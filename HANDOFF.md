@@ -26,6 +26,22 @@ TASK_DAG.md updated    Audit report           e2e-results            CHANGELOG.m
 
 ---
 
+## s0-brainstorm → Stage 2 (Optional)
+
+**From**: Problem Scout (s0-brainstorm)
+**To**: Product Manager (s2-capture-vision) — **user-initiated, not automatic**
+**Triggered by**: User explicitly runs `/s2-capture-vision` after reviewing the draft
+
+### Required Artifact (if used)
+
+| Artifact | Path | Required Sections |
+|---|---|---|
+| Problem statement draft | `docs/brainstorm/YYYY-MM-DD-<topic>-problem-draft.md` | Chosen Problem Framing / Problem Space Map / Rejected Framings / Open Questions / What This Is NOT |
+
+> `s0-brainstorm` is outside the s1–s7 pipeline. Its output is optional input — not a gate — for `/s2-capture-vision`.
+
+---
+
 ## Stage 1 → Stage 2 Handoff
 
 **From**: Foundation Engineer
