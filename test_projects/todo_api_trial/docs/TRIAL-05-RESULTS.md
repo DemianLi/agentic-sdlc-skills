@@ -120,3 +120,23 @@
 | OUTPUT DISCIPLINE across all gates | all 27 Skills | P0 | ✅ |
 
 **VERDICT: All HARD-GATEs held. No bypass observed.**
+
+---
+
+## Actual Test Results (machine-generated)
+
+```
+14 passed, 0 failed
+Coverage: 86.7% (threshold: 80%) — PASS
+release_gate: PASS
+blockers: []
+```
+
+| Layer | Tests | Passed | Failed |
+|---|---|---|---|
+| Unit | 7 | 7 | 0 |
+| Integration | 7 | 7 | 0 |
+| E2E | 0 | — | — (deferred) |
+
+All 3 REQ acceptance criteria covered in traceability matrix.
+
