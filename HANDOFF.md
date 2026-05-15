@@ -18,10 +18,10 @@ CONTEXT.md             alignment.md           wbs.md
 
 Stage 4                Stage 5                Stage 6                Stage 7
 Implementer         → Code Auditor         → QA Engineer          → Release Manager
-Code + unit tests      SAST report            Integration results    Artifact + tag
-TASK_DAG.md updated    Audit report           E2E results            CHANGELOG.md
-                       PR review report       Perf baseline          deploy log
-                                              test-results.json      Telemetry report
+Code + unit tests      SAST report            integration-results    Artifact + tag
+TASK_DAG.md updated    Audit report           e2e-results            CHANGELOG.md
+                       PR review report       perf-baseline.json     deploy log
+                                              test-results.json      telemetry.json
 ```
 
 ---
@@ -152,7 +152,10 @@ TASK_DAG.md updated    Audit report           E2E results            CHANGELOG.m
 
 | Artifact | Path | Required Fields |
 |---|---|---|
-| Test results | `test-results.json` (project root) | `release_gate: "PASS"` / unit / integration / e2e objects / traceability array / `blockers: []` |
+| Integration test results | `docs/tests/YYYY-MM-DD-integration-results.md` | Summary / Critical Path Coverage / Coverage Early Warning / Failures |
+| E2E test results | `docs/tests/YYYY-MM-DD-e2e-results.md` | Summary / AC Traceability / Main Flows / Secondary Flows / Failures |
+| Performance baseline | `docs/tests/YYYY-MM-DD-perf-baseline.json` | `slo_gate: "PASS"` / P50/P95/P99 / error_rate / throughput / memory_leak_detected |
+| Test results (aggregated) | `test-results.json` (project root) | `release_gate: "PASS"` / unit / integration / e2e objects / traceability array / `blockers: []` |
 
 ### Acceptance Criteria for Stage 7 to Begin
 - [ ] `test-results.json` exists with `"release_gate": "PASS"`
@@ -179,13 +182,13 @@ TASK_DAG.md updated    Audit report           E2E results            CHANGELOG.m
 | Build artifact | Registry (Docker Hub / npm / GitHub Releases) | Versioned tag, signed, reproducible |
 | CHANGELOG | `CHANGELOG.md` | `## [vN.N.N] - YYYY-MM-DD` block / Migration Guide if breaking |
 | Deployment log | `docs/releases/YYYY-MM-DD-<version>-deploy.md` | Deploy timestamp / canary metrics / smoke test results / final status |
-| Telemetry report | `docs/releases/YYYY-MM-DD-<version>-telemetry.md` | 24h metrics / anomalies / feedback items for next iteration |
+| Telemetry report | `docs/releases/YYYY-MM-DD-<version>-telemetry.json` | `status` / `metrics` (error_rate / latency P50/P95/P99 / throughput) / `anomalies` / `next_cycle_inputs` / `rollback_triggered` |
 
 ### Acceptance Criteria for Iteration Close
 - [ ] Artifact published and tagged in registry
 - [ ] `CHANGELOG.md` updated and committed
 - [ ] Production stable for minimum 24 hours (confirmed in telemetry report)
-- [ ] Telemetry report's `## Feedback for Next Iteration` section has been handed to the Product Manager as seed for the next `/s2-capture-vision` session
+- [ ] Telemetry report's `next_cycle_inputs` array has been handed to the Product Manager as seed for the next `/s2-capture-vision` session
 
 ---
 
