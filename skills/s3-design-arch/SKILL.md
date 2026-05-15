@@ -120,6 +120,27 @@ Add additional diagrams for error flows and critical edge cases.
 - <identified technical risks and mitigation strategy>
 ```
 
+### Section 7 — Delta Spec (OpenSpec)
+Track exactly what this design changes at the component level. Use the Change ID as the traceability anchor for Stage 3 tasks and Stage 5 audits.
+
+```markdown
+## Delta Spec
+
+**Change ID**: `<kebab-case-feature-name>` (e.g., `user-auth-jwt`, `order-cancellation-flow`)
+
+### Added
+- `ComponentA`: <new behavior or interface added>
+
+### Modified
+- `ComponentB`: <what changes and why the old behavior was insufficient>
+
+### Removed
+- `ComponentC`: <what is deleted and confirmation it has no remaining callers>
+
+### Unchanged (explicitly verified)
+- `ComponentD`: <confirmed unaffected — no changes required>
+```
+
 ---
 
 ## Workflow
