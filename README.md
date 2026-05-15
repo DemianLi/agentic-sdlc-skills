@@ -1,0 +1,183 @@
+# Agentic SDLC Skills
+
+27 atomic Skill files that drive an AI Agent through a structured, gated 7-stage Software Development Lifecycle. Each Skill is a Markdown file that defines a Role, a Workflow, and a HARD-GATE — a mandatory stop that blocks the Agent from proceeding until explicit human approval is given.
+
+---
+
+## Why this exists
+
+AI Agents are fast but undisciplined. Left ungated, they will:
+- Jump from requirements directly to code, skipping impact analysis
+- Write production code before writing failing tests
+- Self-approve quality gates and push to production
+
+This Skill system forces the Agent to work the same way a senior engineering team does: produce an artifact, present it, stop, wait for a human to approve, then proceed.
+
+---
+
+## The 7-Stage Pipeline
+
+```
+Stage 1              Stage 2              Stage 3              Stage 4
+Foundation        →  Product           →  System            →  Implementer
+Engineer             Manager              Architect
+RULES.md             vision.md            design.md            Code + tests
+CONTEXT.md           alignment.md         wbs.md               TASK_DAG [x]
+<tech lock>          requirements.md      TASK_DAG.md
+                     CONTEXT_SNAPSHOT.md
+
+Stage 5              Stage 6              Stage 7
+Code Auditor      →  QA Engineer       →  Release Manager
+SAST report          test-results.json    Artifact + tag
+Audit report         Integration pass     CHANGELOG.md
+PR review            E2E pass             Telemetry report
+```
+
+Each arrow is a **Handoff** — a set of committed artifacts that must exist before the next Stage begins. See `HANDOFF.md` for the complete acceptance criteria.
+
+---
+
+## The 27 Skills
+
+| Stage | Role | Slash Command | Purpose |
+|---|---|---|---|
+| 1 | Foundation Engineer | `/s1-define-rules` | Author `RULES.md` (linter, directory, forbidden patterns) |
+| 1 | Foundation Engineer | `/s1-config-context` | Author domain glossary `CONTEXT.md` |
+| 1 | Foundation Engineer | `/s1-lock-tech-stack` | Pin runtime + framework versions; generate lock files |
+| 2 | Product Manager | `/s2-capture-vision` | Elicit problem statement, target users, proposed approach |
+| 2 | Product Manager | `/s2-align-req` | Resolve stakeholder conflicts, define scope boundary |
+| 2 | Product Manager | `/s2-struct-req` | Write structured requirements with binary Acceptance Criteria |
+| 2 | Product Manager | `/s2-snapshot-ctx` | Produce `CONTEXT_SNAPSHOT.md` (iteration seed for Stage 3) |
+| 3 | System Architect | `/s3-eval-system` | Scan codebase, classify blast radius (🔴/🟡/🟢), write impact report |
+| 3 | System Architect | `/s3-design-arch` | Author OpenSpec design doc with Mermaid sequence diagrams |
+| 3 | System Architect | `/s3-breakdown-wbs` | Decompose design into Atomic Tasks (≤5 min each) |
+| 3 | System Architect | `/s3-build-dag` | Build dependency DAG, identify critical path, write `TASK_DAG.md` |
+| 4 | Implementer | `/s4-setup-env` | Select task from DAG, set up branch + runtime environment |
+| 4 | Implementer | `/s4-tdd` | RED → GREEN → REFACTOR (Iron Law: no production code without a failing test) |
+| 4 | Implementer | `/s4-impl-task` | Implement one Atomic Task to GREEN |
+| 4 | Implementer | `/s4-local-debug` | Reproduce → minimise → hypothesise → instrument → fix → regression-test |
+| 5 | Code Auditor | `/s5-sast-lint` | Run SAST + linter, flag CRITICAL violations |
+| 5 | Code Auditor | `/s5-audit-rules` | Validate architecture against `RULES.md` constraints |
+| 5 | Code Auditor | `/s5-pr-review` | Scope drift detection, severity classification (CRITICAL/WARNING/SUGGESTION) |
+| 5 | Code Auditor | `/s5-fix-optimize` | Auto-fix CRITICAL issues; performance optimisations |
+| 6 | QA Engineer | `/s6-test-integration` | Run integration tests; verify all critical paths pass |
+| 6 | QA Engineer | `/s6-test-e2e` | Run Playwright/Cypress; verify main user flows |
+| 6 | QA Engineer | `/s6-test-perf` | Run k6/Artillery; capture P50/P95/P99; regression gate (20%) |
+| 6 | QA Engineer | `/s6-verify-release` | Run full suite; write `test-results.json`; issue PASS or BLOCKED |
+| 7 | Release Manager | `/s7-build-artifact` | Build, tag, and sign the release artifact |
+| 7 | Release Manager | `/s7-release-notes` | Generate `CHANGELOG.md` following Keep a Changelog format |
+| 7 | Release Manager | `/s7-deploy` | Deploy → monitor → verify (canary-aware) |
+| 7 | Release Manager | `/s7-telemetry` | Capture 24h metrics; compare to S6 baseline; feed back to Stage 2 |
+
+---
+
+## HARD-GATE Enforcement
+
+Every Skill contains a `<HARD-GATE>` block that specifies the conditions that must be true **before** the Agent proceeds. After meeting those conditions and presenting the required artifact, the Agent's message **must** end with:
+
+> *"Awaiting your approval to proceed to \<next-skill\>."*
+
+The Agent may not generate the next stage's artifact, code, or analysis until the human explicitly approves. A response that is silent on approval is **not** approval.
+
+### What the HARD-GATE prevents (examples)
+
+| Skill | What it blocks without evidence |
+|---|---|
+| `s1-lock-tech-stack` | Generating lock files before recording the actual `python --version` output |
+| `s3-eval-system` | Proceeding to design before the impact report is written to disk and committed |
+| `s4-tdd` | Writing production code before pasting actual `pytest FAILED` terminal output |
+| `s6-verify-release` | Issuing "Ready" signal before `test-results.json` is machine-generated and committed |
+
+---
+
+## How to install
+
+Skills are plain Markdown files. Copy them into your Claude Code project as slash commands.
+
+**Option A — project-local (recommended):**
+```bash
+# In your project root
+mkdir -p .claude/skills
+cp -r skills/s4-tdd .claude/skills/
+```
+Then invoke with `/s4-tdd` inside that project's Claude Code session.
+
+**Option B — global:**
+```bash
+cp -r skills/* ~/.claude/skills/
+```
+Available in all Claude Code sessions.
+
+---
+
+## Using a Skill
+
+1. Start Claude Code in your project directory
+2. Type the slash command, e.g. `/s3-eval-system`
+3. The Agent assumes the Role, runs the Workflow, produces the artifact
+4. The Agent stops and says *"Awaiting your approval…"*
+5. Review the artifact; type your approval (e.g. "approved, proceed")
+6. Move to the next Skill
+
+---
+
+## Repository structure
+
+```
+skills/
+  s1-*/SKILL.md     Stage 1 — Foundation Engineer (3 skills)
+  s2-*/SKILL.md     Stage 2 — Product Manager (4 skills)
+  s3-*/SKILL.md     Stage 3 — System Architect (4 skills)
+  s4-*/SKILL.md     Stage 4 — Implementer (4 skills)
+  s5-*/SKILL.md     Stage 5 — Code Auditor (4 skills)
+  s6-*/SKILL.md     Stage 6 — QA Engineer (4 skills)
+  s7-*/SKILL.md     Stage 7 — Release Manager (4 skills)
+CONTEXT.md          Domain glossary and ubiquitous language
+HANDOFF.md          Artifact pipeline and acceptance criteria between stages
+REVIEW_NOTES.md     Gap analysis and improvement history
+```
+
+---
+
+## Skill anatomy
+
+Each `SKILL.md` has four sections:
+
+```
+---
+name: <skill-name>
+description: <one-line summary>
+---
+
+<HARD-GATE>          ← blocking conditions + OUTPUT DISCIPLINE clause
+</HARD-GATE>
+
+<what-to-do>         ← Role identity + step-by-step Workflow + Completion Report
+</what-to-do>
+
+<supporting-info>    ← Process Flow (Graphviz DOT), Artifact Standard
+</supporting-info>
+```
+
+---
+
+## Design principles
+
+- **Artifact-first** — every Stage produces a committed file, not just a conversation
+- **Vertical slice** — Stage 4 implements one behavior at a time (RED → GREEN → REFACTOR)
+- **Human-in-the-loop** — every Stage gate requires explicit approval before proceeding
+- **Evidence over assertion** — the Agent must paste actual terminal output, not claim success
+- **Blocked handoffs escalate backward** — if an artifact is missing, the Agent reports `NEEDS_CONTEXT` and halts; it never infers forward
+
+---
+
+## Completion status vocabulary
+
+Every Skill ends with exactly one of:
+
+| Status | Meaning |
+|---|---|
+| `DONE` | Artifact produced, committed, user approved |
+| `DONE_WITH_CONCERNS` | Done, but specific concerns listed that may affect next stage |
+| `BLOCKED` | Cannot proceed; exact blocker stated; fix required before retry |
+| `NEEDS_CONTEXT` | Missing upstream artifact; halting until provided |
