@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "slugify"
+version = "1.0.0"
+description = "URL slug generator"
+requires-python = ">=3.9"
+
+[tool.setuptools.packages.find]
+where = ["src"]
