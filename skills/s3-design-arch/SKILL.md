@@ -233,4 +233,8 @@ Required sections (all mandatory):
 
 Commit before transitioning.
 
+## Artifact Dependencies
+- **Reads**: `docs/arch/YYYY-MM-DD-<topic>-impact.md`, `RULES.md`
+- **Writes**: `docs/arch/YYYY-MM-DD-<topic>-design.md`
+
 </supporting-info>

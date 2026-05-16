@@ -118,4 +118,8 @@ Required sections:
 
 Commit before transitioning.
 
+## Artifact Dependencies
+- **Reads**: `docs/alignment/YYYY-MM-DD-<topic>-alignment.md`
+- **Writes**: `docs/specs/YYYY-MM-DD-<topic>-requirements.md`
+
 </supporting-info>

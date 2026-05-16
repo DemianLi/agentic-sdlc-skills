@@ -174,4 +174,8 @@ Required sections:
 
 Commit the spec before transitioning.
 
+## Artifact Dependencies
+- **Reads**: brainstorm doc from `/s0-brainstorm` (optional)
+- **Writes**: `docs/specs/YYYY-MM-DD-<topic>-vision.md`
+
 </supporting-info>

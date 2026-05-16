@@ -163,4 +163,8 @@ Required sections: Breaking Changes / Additive Changes / Technical Debt / Recomm
 
 Commit before transitioning.
 
+## Artifact Dependencies
+- **Reads**: `CONTEXT_SNAPSHOT.md`, `CONTEXT.md`, `RULES.md`, `docs/adr/` (optional)
+- **Writes**: `docs/arch/YYYY-MM-DD-<topic>-impact.md`
+
 </supporting-info>

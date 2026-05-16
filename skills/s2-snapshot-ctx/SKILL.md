@@ -109,4 +109,8 @@ Report status using exactly one of:
 - Must include `## Forbidden Actions` section
 - Must reference all source document paths
 
+## Artifact Dependencies
+- **Reads**: `docs/specs/YYYY-MM-DD-<topic>-requirements.md`, `CONTEXT.md`, `RULES.md`
+- **Writes**: `CONTEXT_SNAPSHOT.md`
+
 </supporting-info>

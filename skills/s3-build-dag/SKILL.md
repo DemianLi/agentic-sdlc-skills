@@ -160,4 +160,8 @@ Required sections:
 
 Commit before transitioning.
 
+## Artifact Dependencies
+- **Reads**: `docs/arch/YYYY-MM-DD-<topic>-wbs.md`
+- **Writes**: `TASK_DAG.md`
+
 </supporting-info>

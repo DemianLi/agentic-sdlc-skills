@@ -138,4 +138,8 @@ Required sections:
 - `## OUT of Scope` — explicit exclusions
 - `## Deferred` — acknowledged but not this iteration
 
+## Artifact Dependencies
+- **Reads**: `docs/specs/YYYY-MM-DD-<topic>-vision.md`
+- **Writes**: `docs/alignment/YYYY-MM-DD-<topic>-alignment.md`
+
 </supporting-info>

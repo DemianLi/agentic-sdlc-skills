@@ -135,4 +135,8 @@ Required:
 
 Commit before transitioning.
 
+## Artifact Dependencies
+- **Reads**: `docs/arch/YYYY-MM-DD-<topic>-design.md`
+- **Writes**: `docs/arch/YYYY-MM-DD-<topic>-wbs.md`
+
 </supporting-info>
