@@ -37,6 +37,17 @@ If RULES.md specifies different thresholds, those override the defaults above.
 
 ## Workflow
 
+### Step 0 — Pre-flight Check
+
+Before running any tests, verify the following. If any check fails, **stop immediately and report `NEEDS_CONTEXT` with the exact gap. Do not attempt to run tests.**
+
+| Check | What to verify | If it fails |
+|---|---|---|
+| Test runner is configured | `package.json` has a `test` script, or `pytest.ini` / `pyproject.toml` / `go.mod` exists with test config | Report: "`NEEDS_CONTEXT`: no test runner configured. Cannot run tests until test infrastructure is set up." |
+| Test files exist | At least one `*.test.*` / `test_*.py` / `*_test.go` file exists in the codebase | Report: "`NEEDS_CONTEXT`: no test files found. Stage 4 TDD artifacts are missing — run `/s4-tdd` first." |
+| Requirements doc exists | `docs/specs/YYYY-MM-DD-<topic>-requirements.md` is present for AC traceability | Report: "`NEEDS_CONTEXT`: no requirements doc found at `docs/specs/`. Cannot build traceability matrix without REQ-N / AC-N.M definitions." |
+| Coverage threshold is knowable | `RULES.md` specifies a coverage %, OR default 80% is acceptable | If absent from `RULES.md`, proceed with 80% default and note: "Coverage threshold not set in RULES.md — applying default 80%." |
+
 ### Step 1 — Run Full Test Suite
 ```bash
 # Unit + Integration

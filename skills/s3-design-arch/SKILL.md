@@ -147,6 +147,17 @@ Track exactly what this design changes at the component level. Use the Change ID
 
 1. Read `docs/arch/YYYY-MM-DD-<topic>-impact.md` from `/s3-eval-system`
 2. Read `RULES.md` — the design MUST conform to the architectural paradigm defined there
+
+**Step 2b — Input Sanity Check**
+
+After reading the impact report, verify the following before writing any design section. If any check fails, **stop and state exactly what is missing. Do not begin writing.**
+
+| Check | What to verify | If it fails |
+|---|---|---|
+| Impact report names specific files | At least one source file path is listed — not just "the service layer" or "the order module" | Ask: "Which specific files are affected? Please update the impact report with exact paths before I design." |
+| Breaking changes are explicit | Each 🔴 item states what contract changes and how — not just "might break" | Ask: "For breaking change '...', what exactly changes — a field name, response schema, or function signature?" |
+| `## Recommended Approach` exists | The impact report gives a direction for the design | If absent, proceed but explicitly note the missing direction in the design's `## Context` section and ask the user to confirm the approach before continuing. |
+
 3. Write each section of the design document
 4. Present to user **section by section** — ask for approval after each section before continuing
 5. After all sections approved, commit and proceed
