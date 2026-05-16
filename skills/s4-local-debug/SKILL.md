@@ -40,6 +40,15 @@ Reduce the failing case to its smallest possible form.
 - [ ] Remove all unrelated code from the reproduction scope
 - [ ] If a test is failing, confirm which single assertion fails first
 
+### Phase 2.5 — ANALOGY
+Find a working counterpart in the codebase and compare it against the broken code.
+
+- [ ] Identify a similar feature/module that works correctly
+- [ ] Diff the two side by side: same data flow? same error handling? same initialization order?
+- [ ] Every difference is a hypothesis candidate — list them before moving to Phase 3
+
+> 95% of "unsolvable" bugs trace back to incomplete investigation, not unsolvable problems. The working analog often reveals the missing piece within minutes.
+
 ### Phase 3 — HYPOTHESISE
 State your hypothesis before touching code.
 

@@ -1,0 +1,168 @@
+---
+name: s1-git-guardrails
+description: >
+  Git 安全護欄設置 — 安裝 PreToolUse hook 攔截破壞性 git 指令
+  （push、reset --hard、clean -f、branch -D、checkout .），
+  防止 AI Agent 在無用戶確認的情況下執行不可逆操作。
+  Use during Stage 1 setup, or any time you need to add safety rails to a new project.
+---
+
+<HARD-GATE>
+Do NOT declare this skill complete until:
+1. The block script has been copied to the project's hooks directory.
+2. The PreToolUse hook entry has been added to `.claude/settings.json`.
+3. You have run the verification test and shown the actual blocked output.
+
+---
+⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
+After presenting the required artifact, your message MUST end with exactly:
+  "Awaiting your approval to confirm git-guardrails are active."
+Do NOT mark this complete until the user explicitly confirms the test output looks correct.
+</HARD-GATE>
+
+<what-to-do>
+
+You are the **Foundation Engineer** in safety-rail mode. Your job is to ensure no destructive git command runs without the user's explicit awareness.
+
+## Blocked Commands
+
+These patterns are intercepted before execution:
+
+| Pattern | Risk |
+|---------|------|
+| `git push` (all variants) | Overwrites remote history, triggers CI/CD, notifies other developers |
+| `git reset --hard` | Destroys all uncommitted local changes — unrecoverable |
+| `git clean -f` / `-fd` | Deletes untracked files/directories — unrecoverable |
+| `git branch -D` | Force-deletes branch, potentially losing commits not merged elsewhere |
+| `git checkout .` / `git restore .` | Discards all working-tree changes — unrecoverable |
+
+## Workflow
+
+### Step 1 — Choose Scope
+
+Ask the user:
+
+> "Should these guardrails apply to this project only, or to all projects globally?"
+
+- **Project-level**: write to `.claude/settings.json` in the repo root
+- **Global**: write to `~/.claude/settings.json`
+
+### Step 2 — Install the Block Script
+
+Copy the bundled script to the appropriate hooks directory:
+
+**Project-level:**
+```bash
+mkdir -p .claude/hooks
+cp <skill-path>/scripts/block-dangerous-git.sh .claude/hooks/
+chmod +x .claude/hooks/block-dangerous-git.sh
+```
+
+**Global:**
+```bash
+mkdir -p ~/.claude/hooks
+cp <skill-path>/scripts/block-dangerous-git.sh ~/.claude/hooks/
+chmod +x ~/.claude/hooks/block-dangerous-git.sh
+```
+
+### Step 3 — Add the PreToolUse Hook
+
+Merge the following into the target `settings.json` under `hooks.PreToolUse`. Do NOT replace existing entries — append to the array:
+
+```json
+{
+  "matcher": "Bash",
+  "hooks": [
+    {
+      "type": "command",
+      "command": "<absolute-path-to>/block-dangerous-git.sh"
+    }
+  ]
+}
+```
+
+Replace `<absolute-path-to>` with the actual absolute path to the installed script.
+
+### Step 4 — Verify
+
+Run the verification test and paste the output:
+
+```bash
+echo '{"tool":"Bash","command":"git reset --hard HEAD~1"}' \
+  | <path-to>/block-dangerous-git.sh
+echo "Exit code: $?"
+```
+
+Expected output:
+```
+⛔ git-guardrails: 'git reset --hard' is blocked. Requires explicit user confirmation.
+Exit code: 2
+```
+
+Exit code `2` = Claude Code will block the command and show the stderr message to the user.
+
+### Step 5 — Customization (optional)
+
+Offer the user the option to adjust which patterns are blocked:
+> "The default blocks push, reset --hard, clean -f, branch -D, and checkout/restore. Would you like to add or remove any patterns?"
+
+Edit the `BLOCKED_PATTERNS` array in the script accordingly.
+
+---
+
+## Completion Report
+
+Report status using exactly one of:
+- **DONE** — script installed, hook wired, verification test passed. Guardrails active.
+- **DONE_WITH_CONCERNS** — active, but list any patterns the user chose to skip.
+- **BLOCKED** — state the exact error (permissions, settings.json parse error, etc.).
+- **NEEDS_CONTEXT** — state what is missing (e.g., skill-path not resolvable).
+
+</what-to-do>
+
+<supporting-info>
+
+## Role Identity: Foundation Engineer (Safety-Rail Mode)
+- **Mindset**: Irreversibility is the enemy. Every command that can't be undone in one step is a command that deserves a pause. The hook doesn't prevent the user from running the command — it just ensures Claude won't run it autonomously.
+- **Upstream Dependency**: Stage 1 setup (`s1-config-context`, `s1-define-rules`).
+- **Downstream Impact**: Active for all subsequent stages (2–7). The user can always run blocked commands manually in their terminal.
+
+## How the Hook Works
+
+Claude Code's `PreToolUse` hook fires before every Bash tool call. The hook script:
+1. Receives the command string via stdin as JSON: `{"tool": "Bash", "command": "..."}`
+2. Extracts the `command` field
+3. Checks it against the blocked pattern list
+4. Returns exit code `2` to block + stderr message shown to user, or exit code `0` to allow
+
+The user retains full ability to run any command in their own terminal. The guardrail only constrains Claude's autonomous execution.
+
+## Process Flow
+
+```dot
+digraph git_guardrails {
+    rankdir=TD;
+    scope    [label="1. Choose scope\n(project vs global)", shape=diamond];
+    install  [label="2. Install script\n+ chmod +x", shape=box];
+    wire     [label="3. Add PreToolUse hook\nto settings.json", shape=box];
+    verify   [label="4. Run verification test\n(expect exit 2)", shape=box];
+    pass     [label="Test passes?", shape=diamond];
+    custom   [label="5. Customize patterns\n(optional)", shape=box];
+    done     [label="DONE\nGuardrails active", shape=doublecircle];
+    blocked  [label="BLOCKED\nReport error", shape=doublecircle];
+
+    scope -> install;
+    install -> wire;
+    wire -> verify;
+    verify -> pass;
+    pass -> custom [label="yes"];
+    pass -> blocked [label="no"];
+    custom -> done;
+}
+```
+
+## Artifact Standard
+- Script: `.claude/hooks/block-dangerous-git.sh` (project) or `~/.claude/hooks/block-dangerous-git.sh` (global)
+- Settings entry: `hooks.PreToolUse[].matcher = "Bash"` pointing to the installed script
+
+</supporting-info>

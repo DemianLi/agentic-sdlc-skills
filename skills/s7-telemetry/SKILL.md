@@ -1,6 +1,9 @@
 ---
 name: s7-telemetry
-description: 運維監控與反饋閉環 (Delivery & Iteration)
+description: >
+  運維監控與反饋閉環 — 捕獲部署後 24 小時生產基線指標，
+  產出結構化 telemetry.json（含 Latency P99 / Error Rate / Throughput 與
+  Pre-deploy 基線對比），並將異常作為下一週期 Stage 2 輸入。
 ---
 <HARD-GATE>
 Do NOT close the iteration loop (transition to Stage 2 next cycle) until:
@@ -26,7 +29,7 @@ Your task is to monitor the live system and close the iteration loop.
    - Anomalies: any unexpected error patterns or spikes
 3. **Compare to pre-deployment baseline** from `/s6-test-perf`.
 4. **Compile feedback for next cycle**: Document runtime anomalies, user-reported issues, and performance surprises as "New Ideas / Pain Points" for Stage 2.
-5. **Write telemetry report** (see Artifact Standard below).
+5. **Write telemetry report** — produce `docs/releases/YYYY-MM-DD-<version>-telemetry.json` matching the schema in Artifact Standard. Every numeric field must come from actual APM/log data, not estimates.
 
 ## Completion Report
 Report status using exactly one of:
@@ -37,9 +40,49 @@ Report status using exactly one of:
 </what-to-do>
 <supporting-info>
 ## Role Identity: Release Manager
-- **Mindset**: Ouroboros. Delivery is not the end; it's the beginning of the next cycle.
+- **Mindset**: Ouroboros. Delivery is not the end; it's the beginning of the next cycle. Numbers without context are noise — always compare to the pre-deploy baseline from `/s6-test-perf`.
 - **Upstream Dependency**: `/s7-deploy`.
 - **Downstream Target**: Stage 2 (Product Manager - next cycle).
+
+## Artifact Standard
+Output file: `docs/releases/YYYY-MM-DD-<version>-telemetry.json`
+
+All numeric values must be sourced from actual APM data (e.g., Datadog, Grafana, CloudWatch). No estimates. If APM is unavailable, set `"status": "NEEDS_CONTEXT"` and list what observability is missing.
+
+```json
+{
+  "timestamp": "2024-01-02T00:00:00Z",
+  "deployment_ref": "v1.2.3",
+  "topic": "<iteration topic>",
+  "window_hours": 24,
+  "status": "STABLE",
+  "metrics": {
+    "error_rate": {
+      "value_pct": 0.12,
+      "baseline_pct": 0.08,
+      "threshold_pct": 1.0,
+      "gate": "PASS"
+    },
+    "latency_p50_ms": { "value": 42, "baseline": 38 },
+    "latency_p95_ms": { "value": 110, "baseline": 95 },
+    "latency_p99_ms": { "value": 210, "baseline": 180 },
+    "throughput_rps": { "value": 850, "baseline": 820 }
+  },
+  "anomalies": [],
+  "next_cycle_inputs": [
+    { "type": "pain_point", "description": "...", "source": "user-report | APM | log" }
+  ],
+  "rollback_triggered": false
+}
+```
+
+Field rules:
+- `status`: `"STABLE"` / `"DEGRADED"` / `"NEEDS_CONTEXT"`
+- `metrics.*.gate`: `"PASS"` when value ≤ threshold; `"FAIL"` triggers rollback recommendation
+- `anomalies`: empty array if none; each entry must name the time window and metric that spiked
+- `next_cycle_inputs`: minimum one entry per anomaly or user-reported issue; empty only if truly zero feedback
+- `rollback_triggered`: set to `true` and add `"rollback_reason"` field if `/s7-deploy` rollback was executed
+
 ## Process Flow
 
 ```dot

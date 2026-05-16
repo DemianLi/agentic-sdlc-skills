@@ -1,6 +1,8 @@
 ---
 name: s6-test-e2e
-description: 端到端與邊界驗證 (Dynamic Testing)
+description: >
+  端到端與邊界驗證 — 模擬真實用戶行為，確認所有主要 user flow 均通過，
+  並輸出結構化報告（含 AC 追蹤矩陣）供 /s6-verify-release 聚合。
 ---
 <HARD-GATE>
 Do NOT proceed to `/s6-test-perf` if any E2E test covering a main user flow fails.
@@ -22,6 +24,7 @@ Your task is to run End-to-End tests simulating real user behavior.
 3. **Execute E2E tests**: Run Playwright / Cypress / Selenium against the test environment.
 4. **Boundary validation**: Verify edge cases defined in Stage 2 boundary conditions.
 5. **Zero failures on main flows**: Any main-flow failure is a hard blocker. Secondary-flow failures are HIGH severity but may be deferred with user approval.
+6. **Write `docs/tests/YYYY-MM-DD-e2e-results.md`** — see Artifact Standard.
 
 ## Completion Report
 Report status using exactly one of:
@@ -30,6 +33,16 @@ Report status using exactly one of:
 - **NEEDS_CONTEXT** — E2E test environment not configured; state what is missing.
 </what-to-do>
 <supporting-info>
+## Artifact Standard
+Output file: `docs/tests/YYYY-MM-DD-e2e-results.md`
+
+Required sections:
+- **Summary**: total flows tested, passed, failed
+- **AC Traceability**: for each AC-N.M from Stage 2, which E2E test covers it
+- **Main Flows** (PASS / FAIL per flow): use the flow names from `CONTEXT_SNAPSHOT.md`
+- **Secondary Flows** (PASS / DEFERRED per flow, with user approval noted if deferred)
+- **Failures** (if any): step in user journey that fails, screenshot or log excerpt
+
 ## Role Identity: QA Engineer
 - **Mindset**: User proxy. If the user can break it, you must find it first.
 - **Upstream Dependency**: `/s6-test-integration`.

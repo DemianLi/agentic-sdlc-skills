@@ -1,6 +1,8 @@
 ---
 name: s6-test-integration
-description: 自動化整合測試 (Dynamic Testing)
+description: >
+  自動化整合測試 — 驗證模組邊界跨元件行為，確認所有 REQ critical path
+  均有整合測試覆蓋，並輸出結構化報告供 /s6-verify-release 聚合。
 ---
 <HARD-GATE>
 Do NOT proceed to `/s6-test-e2e` if any integration test is failing.
@@ -20,8 +22,10 @@ Your task is to execute module-to-module integration tests.
 1. **Merge completed Atomic Tasks**: Confirm all TASK-N items in `TASK_DAG.md` are marked `[x]`.
 2. **Traceability mapping**: For each REQ-N from Stage 2, identify which integration test covers the cross-component behavior.
 3. **Run integration tests**: Execute tests covering API endpoints, database connections, and external service calls working together.
-4. **Report format**: For each failing integration test, state: test name, expected behavior, actual behavior, failing component boundary.
-5. Zero tolerance for failures — all integration tests must PASS before E2E.
+4. **Coverage early warning**: Run unit coverage alongside integration tests (`npm test --coverage` / `pytest --cov`). The 80% gate is enforced in `/s6-verify-release` — flag here as WARNING if current coverage is below 75% so Stage 4 can backfill before the final gate.
+5. **Report format**: For each failing integration test, state: test name, expected behavior, actual behavior, failing component boundary.
+6. Zero tolerance for failures — all integration tests must PASS before E2E.
+7. **Write `docs/tests/YYYY-MM-DD-integration-results.md`** — see Artifact Standard.
 
 ## Completion Report
 Report status using exactly one of:
@@ -30,8 +34,17 @@ Report status using exactly one of:
 - **NEEDS_CONTEXT** — integration environment not configured; state what is missing.
 </what-to-do>
 <supporting-info>
+## Artifact Standard
+Output file: `docs/tests/YYYY-MM-DD-integration-results.md`
+
+Required sections:
+- **Summary**: total tests, passed, failed, skipped
+- **Critical Path Coverage**: for each REQ-N, which integration test covers it (name the test)
+- **Coverage Early Warning**: current unit coverage % vs. 80% gate (PASS / WARNING / BLOCKER)
+- **Failures** (if any): test name, component boundary, expected vs. actual behavior
+
 ## Role Identity: QA Engineer
-- **Mindset**: Boundary breaker. You test the glue between the components.
+- **Mindset**: Boundary breaker. You test the glue between the components. Coverage gate belongs to `/s6-verify-release`, but an early warning here saves a costly Stage 4 round-trip.
 - **Upstream Dependency**: Stage 5 Output.
 - **Downstream Target**: `/s6-test-e2e`.
 ## Process Flow

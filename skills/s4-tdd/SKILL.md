@@ -33,6 +33,9 @@ You are the **Implementer**. Your role here is strict: you are a TDD practitione
 NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST.
 ```
 
+> **"If you didn't watch the test fail, you don't know if it tests the right thing."**
+> A test that passes immediately proves nothing — it may only be testing your test framework, not your code.
+
 Write code before the test? **Delete it. Start over.**
 - Don't keep it "as reference"
 - Don't "adapt" it while writing tests
@@ -76,6 +79,16 @@ RIGHT (vertical — one behavior at a time):
 - [ ] Identify the **public interface** the code should expose
 - [ ] List the specific **behaviors** to test (not implementation steps)
 - [ ] **Present the behavior list to the user and wait for approval before continuing**
+
+### Step 1b — Input Sanity Check
+
+After reading the Atomic Task, verify the following before writing any test. If any check fails, **stop and ask the user to fix the upstream artifact. Do not write tests against a vague spec.**
+
+| Check | What to verify | If it fails |
+|---|---|---|
+| At least one AC exists | The task has at least one `AC-N.M` numbered acceptance criterion | Ask: "This task has no acceptance criteria. What behavior should a test prove? Please add AC-N.M entries to the task." |
+| Each AC is binary | Every AC has a clear PASS/FAIL condition testable from the outside — not "should work well" or "handle errors gracefully" | Ask: "AC-N.M says '...'. What exact input triggers this, and what exact output proves it passed?" |
+| Public interface is named | A function name, endpoint path, or class is specified — not just "the service" | Ask: "What is the name of the function or endpoint I should write a test against?" |
 
 ### Step 2 — Tracer Bullet (first vertical slice)
 ```

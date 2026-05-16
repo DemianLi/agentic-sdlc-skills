@@ -50,6 +50,10 @@ For each changed file, read the diff and check:
 - [ ] Are there any edge cases visible in the code that have no test?
 - [ ] Does the naming match the domain glossary in `CONTEXT.md`?
 - [ ] Are there any obvious performance anti-patterns (N+1 queries, unnecessary loops)?
+- [ ] **Race condition**: Is there a read-then-write window where concurrent requests could corrupt state?
+- [ ] **Stale read**: Is cache invalidated correctly after every write path that changes the cached data?
+- [ ] **Trust boundary**: Is any user-controlled value passed into an internal service without re-validation at the boundary?
+- [ ] **Forgotten enum handler**: Does every `switch` / `if-else` chain handle all possible enum values, including future additions?
 
 ### Step 3 — Security Spot-Check
 - [ ] Are user inputs validated before use?

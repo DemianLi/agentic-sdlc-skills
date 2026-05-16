@@ -1,6 +1,8 @@
 ---
 name: s6-test-perf
-description: 效能與壓力測試 (Dynamic Testing)
+description: >
+  效能與壓力測試 — 在負載下驗證 SLO 達標，捕獲 P50/P95/P99 基線，
+  輸出結構化 perf-baseline.json 作為 /s7-telemetry 的 pre-deploy 對比基準。
 ---
 <HARD-GATE>
 Do NOT proceed to `/s6-verify-release` if performance metrics exceed the thresholds
@@ -26,6 +28,7 @@ Your task is to validate system performance under load.
    - Memory usage (no leak over 10-minute sustained load)
 4. **Regression check**: Compare against previous iteration's baseline (if exists). Any metric 20%+ worse is a regression.
 5. **Report format**: Provide numeric values for every metric, not vague descriptions.
+6. **Write `docs/tests/YYYY-MM-DD-perf-baseline.json`** — see Artifact Standard. This file is the pre-deploy baseline read by `/s7-telemetry` for post-deploy comparison.
 
 ## Completion Report
 Report status using exactly one of:
@@ -35,8 +38,33 @@ Report status using exactly one of:
 - **NEEDS_CONTEXT** — no performance acceptance criteria defined in Stage 2; state what thresholds to use.
 </what-to-do>
 <supporting-info>
+## Artifact Standard
+Output file: `docs/tests/YYYY-MM-DD-perf-baseline.json`
+
+This file is consumed by `/s7-telemetry` as the pre-deploy baseline for production comparison. Every field must come from the load test tool's output — no manual estimates.
+
+```json
+{
+  "timestamp": "2024-01-01T00:00:00Z",
+  "tool": "k6 | Artillery | Locust | ab",
+  "concurrency": 100,
+  "duration_seconds": 600,
+  "latency_p50_ms": 38,
+  "latency_p95_ms": 95,
+  "latency_p99_ms": 180,
+  "error_rate_pct": 0.08,
+  "throughput_rps": 820,
+  "memory_leak_detected": false,
+  "slo_gate": "PASS"
+}
+```
+
+Field rules:
+- `slo_gate`: `"PASS"` if all Stage 2 performance ACs met; `"FAIL"` blocks progression to `/s6-verify-release`
+- `memory_leak_detected`: set to `true` if memory grows monotonically over the 10-minute sustained test
+
 ## Role Identity: QA Engineer
-- **Mindset**: Stress instigator. You push the system to its limits to see where it cracks.
+- **Mindset**: Stress instigator. You push the system to its limits to see where it cracks. The baseline you capture here is the contract that `/s7-telemetry` will hold production to.
 - **Upstream Dependency**: `/s6-test-e2e`.
 - **Downstream Target**: `/s6-verify-release`.
 ## Process Flow

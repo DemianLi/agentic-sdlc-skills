@@ -37,6 +37,24 @@ Scan the vision for:
 - [ ] **Vague terms**: words like "fast", "simple", "real-time" — each needs a number or definition
 - [ ] **Missing non-functional requirements**: auth, rate limits, error handling, i18n
 
+### Step 2.5 — Decision Tree Exhaustion (grill-me pattern)
+
+After identifying conflicts, map every unresolved decision to its full branch tree before moving to the resolution loop. For each open decision point, explicitly ask:
+
+> *"When X happens, what should occur? When X doesn't happen, what then? If the user does Y instead, how does that change the answer?"*
+
+Document every branch outcome — even the ones that seem obvious. A branch left implicit becomes a bug in Stage 4.
+
+**Branch mapping format:**
+```
+Decision: [the open question]
+├── Case A: [condition] → [expected behavior]
+├── Case B: [condition] → [expected behavior]
+└── Case C: [edge / error] → [expected behavior or explicit deferral]
+```
+
+Do not proceed to Step 3 until every open decision has a fully mapped branch tree with no "TBD" or "handle later" leaves.
+
 ### Step 3 — Resolution Loop (one question at a time)
 For each identified issue:
 1. State the conflict/gap clearly: *"The vision says X but also implies Y. These conflict."*
