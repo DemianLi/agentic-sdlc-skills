@@ -6,10 +6,7 @@ description: >
 ---
 
 <HARD-GATE>
-Do NOT commit the structured requirements document until:
-1. Every requirement has an explicit acceptance criterion.
-2. Every acceptance criterion is testable (has a binary pass/fail condition).
-3. The user has reviewed and signed off on the final document.
+Do NOT commit the structured requirements document until every requirement has explicit, testable acceptance criteria (binary pass/fail), and the user has reviewed and signed off.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
@@ -73,6 +70,14 @@ Present the complete structured document to the user and state:
 Wait for explicit approval.
 
 ---
+
+## Red Flags — 停下來重新考慮
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| 某些需求很明顯怎麼測試，不需要寫明確的 AC 敍述 | 「明顯」在 Stage 4 變成 3 種詮釋。必須寫成 Gherkin 或具體敍述，讓 QA 和工程師都一致 |
+| 文件還有一些 AC 是「性能良好」或「系統穩定」而不是數字 | 這些是不可測試的。必須改寫成「P99 latency < 200ms in load test with 100 concurrent users」。可測試 = 無歧義 |
+| 使用者快速掃過要求就說「看起來不錯」，我可以直接 commit | 「看起來不錯」不是簽核。必須明確要求「你批准我提交嗎？」並等待「是的，提交」 |
 
 ## Completion Report
 

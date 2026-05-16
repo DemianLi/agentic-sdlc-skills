@@ -31,6 +31,14 @@ Your immediate task is to define and document the fundamental rules of the proje
 
 Do not write any implementation code. Your output is pure governance.
 
+## Red Flags — 停下來重新考慮
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| RULES.md 先前就有，直接用就好了，不用重新提出 | 舊規則可能已過期或不適用於新目標。必須在修改前明確徵求批准，使用者有權更新基礎規則 |
+| 規則太詳細會拖延進度，簡化一點沒關係 | 模糊的規則會在後續階段（特別是 Stage 5 Code Auditor）引發大量重做。現在的精確度決定稍後的品質 |
+| 使用者沒有具體回答，我就自己決定「合理的」規則 | 你的「合理」可能與他們的願景不符。靜默狀態≠批准。必須明確詢問，等待明確回應 |
+
 ## Completion Report
 Report status using exactly one of:
 - **DONE** — `RULES.md` written and presented; user has approved.

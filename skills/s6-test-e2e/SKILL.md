@@ -7,6 +7,7 @@ description: >
 <HARD-GATE>
 Do NOT proceed to `/s6-test-perf` if any E2E test covering a main user flow fails.
 E2E test failures on main flows are BLOCKING — they cannot be deferred.
+3. The e2e test results must be machine-generated from actual test execution — a manually created test report or screenshots does NOT satisfy this gate.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
@@ -25,6 +26,14 @@ Your task is to run End-to-End tests simulating real user behavior.
 4. **Boundary validation**: Verify edge cases defined in Stage 2 boundary conditions.
 5. **Zero failures on main flows**: Any main-flow failure is a hard blocker. Secondary-flow failures are HIGH severity but may be deferred with user approval.
 6. **Write `docs/tests/YYYY-MM-DD-e2e-results.md`** — see Artifact Standard.
+
+## Red Flags — 停下來，這可能是不可逆操作
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| E2E 是 flaky test，這次失敗不算 | Flaky test 是環境問題或測試邏輯問題，必須在這一關修掉；帶著 flaky 進入 performance 和部署，會被誤判為效能 issue |
+| 截圖看起來對，不需要跑完整 suite | 截圖是點狀驗證；E2E suite 是面狀驗證；沒有 suite 結果，無法確認整個 flow 從開始到結束都通 |
+| main flow 都過了，secondary 的失敗可以稍後補 | secondary flow fail 累積到部署後被客戶發現，成本是現在修的 100 倍 |
 
 ## Completion Report
 Report status using exactly one of:

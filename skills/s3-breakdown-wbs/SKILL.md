@@ -6,9 +6,8 @@ description: >
 ---
 
 <HARD-GATE>
-Do NOT mark any task as "atomic" if it would take longer than 5 minutes to implement.
-If a task takes longer, break it down further. Present the full task list to the user
-and wait for approval before proceeding to `/s3-build-dag`.
+Do NOT proceed to `/s3-build-dag` until:
+1. The full WBS has been written and COMMITTED to git (`docs/arch/YYYY-MM-DD-<topic>-wbs.md`).
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
@@ -70,6 +69,16 @@ List all tasks with their estimates. Present to user:
 > *"Here are N Atomic Tasks with a total estimated complexity of X minutes. Does this decomposition look correct before I build the dependency graph?"*
 
 Wait for approval.
+
+---
+
+## Red Flags — 停下來重新考慮
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| "這個任務邊界不太清楚，但應該沒問題，s4 會分清楚" | 不清楚的邊界=整個 DAG 被污染；必須回到 s3-design-arch，澄清 API Contract |
+| "有個任務接近 5 分鐘天花板，但勉強還可以過" | 邊界任務（5 分鐘）比 4 分鐘任務風險高 5 倍；拆開 |
+| "任務列表還沒完全穩定，但我先寫出來讓用戶審批看看" | 「還沒完成」= 還沒提交；不能展示未完成的作品 |
 
 ---
 

@@ -6,10 +6,7 @@ description: >
 ---
 
 <HARD-GATE>
-Do NOT hand off to `/s5-audit-rules` if ANY of the following are true:
-- There are CRITICAL linting errors (not warnings) remaining.
-- There are SAST findings of severity HIGH or CRITICAL.
-- The formatter has not been run to completion.
+Do NOT hand off to `/s5-audit-rules` if there are CRITICAL linting errors, SAST findings (HIGH or CRITICAL severity), or formatting issues remaining.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
@@ -101,6 +98,16 @@ Any HIGH or CRITICAL SAST finding must be fixed before handoff.
 - ✅ No hardcoded secrets
 - ✅ No circular imports
 ```
+
+---
+
+## Red Flags — 停下來重新考慮
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| 掃出的只是警告，可以忽略或留到下次修 | WARNING 不阻斷，但 CRITICAL 會。勿混淆。你的職責是分類準確，而不是判斷「哪些警告能容忍」。 |
+| CI 會自動捕獲這些問題，不用我手動掃 | Stage 5 就是「代碼進人工審查之前的最後一道機械防線」。如果格式/linter/SAST 在這裡沒有運行，問題會漏掉。 |
+| 我們只需要 linting，不需要 formatter | 格式化是先決條件。未格式化的代碼導致 linter 結果不可靠（混淆式變化 vs 實質變化）。必須先格式，再 lint。 |
 
 ---
 

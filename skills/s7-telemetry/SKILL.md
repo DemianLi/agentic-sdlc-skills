@@ -6,9 +6,7 @@ description: >
   Pre-deploy 基線對比），並將異常作為下一週期 Stage 2 輸入。
 ---
 <HARD-GATE>
-Do NOT close the iteration loop (transition to Stage 2 next cycle) until:
-1. Production health has been confirmed for a minimum of 24 hours post-deployment.
-2. A structured telemetry report has been committed.
+Do NOT close the iteration loop until production health has been confirmed for 24 hours post-deployment and a structured telemetry report has been committed.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
@@ -30,6 +28,16 @@ Your task is to monitor the live system and close the iteration loop.
 3. **Compare to pre-deployment baseline** from `/s6-test-perf`.
 4. **Compile feedback for next cycle**: Document runtime anomalies, user-reported issues, and performance surprises as "New Ideas / Pain Points" for Stage 2.
 5. **Write telemetry report** — produce `docs/releases/YYYY-MM-DD-<version>-telemetry.json` matching the schema in Artifact Standard. Every numeric field must come from actual APM/log data, not estimates.
+
+## Red Flags — 停下來重新考慮
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| 數據看起來正常，不需要深度分析 | 「看起來正常」是最危險的狀態。你的職責是與 pre-deploy 基線比對。即使看起來正常，如果和基線有偏差，就必須深挖根因。 |
+| 沒有 APM 訪問權限，我用估計值填報告 | 估計值不可接受。如果你沒有 APM 訪問，狀態應該是 `NEEDS_CONTEXT`，而不是編造數據。完整性比時間表重要。 |
+| 部署後 12 小時看起來穩定，可以提前結束監控 | 24 小時是最小值，不是建議值。沒有完整的 24 小時窗口，你看不到非高峰期的行為。這是 stage 的定義，不能協商。 |
+
+---
 
 ## Completion Report
 Report status using exactly one of:

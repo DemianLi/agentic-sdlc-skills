@@ -7,16 +7,8 @@ description: >
 ---
 
 <HARD-GATE>
-Do NOT converge on a single direction until:
-1. At least THREE distinct problem framings have been explored and written down.
-2. Each framing has been reality-checked (is this the real problem, or a symptom?).
-3. The user has explicitly chosen ONE framing to take forward.
-
-Premature convergence is the enemy. A brainstorm that ends with one idea was a monologue, not a brainstorm.
-
----
-⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
+⛔ OUTPUT DISCIPLINE:
+After presenting the artifact, your message MUST end with exactly:
   "Awaiting your approval. If you'd like to develop this further, run /s2-capture-vision with this draft as input."
 Do NOT invoke /s2-capture-vision or any other skill automatically.
 </HARD-GATE>

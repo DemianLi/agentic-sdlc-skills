@@ -96,6 +96,16 @@ Present the report to the user. Wait for acknowledgment before proceeding to `/s
 
 ---
 
+## Red Flags — 停下來重新考慮
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| test 都過了，代碼應該沒有問題 | 測試通過不代表代碼審查通過。測試只驗證了你的假設；審查驗證你的假設是否完整。競態條件、N+1 查詢、邊界情況經常在測試通過後才被發現。 |
+| 這只是小改動，不需要完整的 review | 「小改動」產生的 bug 並不比「大改動」的小。五行代碼可能比五千行代碼更危險。每一個改動都要 scope drift check。 |
+| 代碼看起來合理，我會跳過檢查清單 | 檢查清單存在就是為了防止「看起來合理」的假象。跳過任何一項（特別是 scope drift、race condition、trust boundary），就等於放棄了這個 stage 的責任。 |
+
+---
+
 ## Completion Report
 
 Report status using exactly one of:

@@ -55,6 +55,14 @@ Decision: [the open question]
 
 Do not proceed to Step 3 until every open decision has a fully mapped branch tree with no "TBD" or "handle later" leaves.
 
+## Red Flags — 停下來重新考慮
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| 使用者給的答案只涵蓋主要情況，我可以假設邊界情況 | 假設會在 Stage 4 code 寫到一半時被打破。必須顯式 ask「如果 X 失敗或使用者做 Y 呢？」，讓使用者決定 |
+| 所有衝突都已解決，可以提交 scope boundary 即使還有一、兩項「等等看」的事項 | 「等等看」= 範疇蔓延的種子。明確範疇意味著沒有懸念。必須強制每一項進入 IN / OUT / Deferred |
+| 提交 alignment 文檔後，如果使用者後來改主意，我可以改改需求 | 後來的改動違反了「scope boundary approved」。如果需要改，應該啟動新的 `/s2-align-req` 迴圈，不能無聲地修改 |
+
 ### Step 3 — Resolution Loop (one question at a time)
 For each identified issue:
 1. State the conflict/gap clearly: *"The vision says X but also implies Y. These conflict."*

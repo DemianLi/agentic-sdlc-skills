@@ -8,11 +8,10 @@ description: >
 ---
 
 <HARD-GATE>
-Do NOT begin tracing the call chain until:
-1. You have presented a list of candidate entry points to the user.
-2. The user has confirmed which entry point(s) to trace.
-
-Scanning and listing entry points is allowed. Tracing is not.
+⛔ OUTPUT DISCIPLINE:
+After presenting the artifact, your message MUST end with exactly:
+  "Awaiting your approval to proceed to /s3-eval-system."
+Do NOT invoke /s3-eval-system or any other skill automatically.
 </HARD-GATE>
 
 <what-to-do>

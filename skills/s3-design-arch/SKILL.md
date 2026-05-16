@@ -7,10 +7,7 @@ description: >
 
 <HARD-GATE>
 Do NOT proceed to `/s3-breakdown-wbs` until:
-1. The OpenSpec design document has been written and committed.
-2. Every API contract includes both request AND response schemas.
-3. At least one Mermaid sequence diagram illustrates the primary happy path.
-4. The user has reviewed and approved the design document.
+1. The OpenSpec design document has been written and COMMITTED to git.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
@@ -161,6 +158,16 @@ After reading the impact report, verify the following before writing any design 
 3. Write each section of the design document
 4. Present to user **section by section** — ask for approval after each section before continuing
 5. After all sections approved, commit and proceed
+
+---
+
+## Red Flags — 停下來重新考慮
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| "我已經在代碼中看到類似的模式，設計應該是一致的" | 設計文件必須獨立自 RULES.md 和影響報告；不能靠「我假設代碼已經對了」 |
+| "用戶對粗略版本的序列圖點頭，細節可以 s4 再調整" | Mermaid 圖是 s3-breakdown-wbs 拆解任務的依據；細節變更必須重新呈現 |
+| "OpenSpec 還沒完全寫完，但 API schema 核心部分已經 OK 了" | 「還沒完成」= 還沒提交；不能分部分批准 |
 
 ---
 

@@ -7,10 +7,7 @@ description: >
 ---
 
 <HARD-GATE>
-Do NOT proceed to `/s2-align-req` until:
-1. A written design spec has been presented to the user in sections.
-2. The user has explicitly approved each section.
-3. The spec has been written to `docs/specs/YYYY-MM-DD-<topic>-vision.md` and committed.
+Do NOT proceed to `/s2-align-req` until a written vision spec has been presented section-by-section, explicitly approved by the user, written to `docs/specs/YYYY-MM-DD-<topic>-vision.md`, and committed to git.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
@@ -100,6 +97,14 @@ Before asking the user to review, check your written spec:
 Fix issues inline. No need to re-run the review — just fix and continue.
 
 ---
+
+## Red Flags — 停下來重新考慮
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| 使用者的回答模糊，我可以自己詮釋然後在設計中反映 | 詮釋錯誤會在 `/s2-align-req` 時被發現，浪費對齊時間。必須停下來澄清，用「你的意思是 X 還是 Y？」 |
+| vision spec 草稿夠好了，可以先寫到檔案，之後再改 | 未批准就提交 = 使用者要求重寫。必須在 commit 前逐節獲得明確批准，確保 git 記錄是真實同意 |
+| 涵蓋了主要功能就夠了，邊界情況和限制可以在後續階段補充 | 「後續補充」意味著 `/s2-align-req` 和 `/s3-design-arch` 要重新討論。現在的遺漏 = 後續的返工。做得全面 |
 
 ## Completion Report
 
