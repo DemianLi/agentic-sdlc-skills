@@ -1,0 +1,97 @@
+{
+  "timestamp": "2026-05-16T15:00:00Z",
+  "version": "1.0.0",
+  "simulation_mode": true,
+  "algorithm_version": "slo-headroom-v1",
+  "status": "healthy",
+  "metrics": {
+    "error_rate": 0.0,
+    "latency_p50_ms": 0.003,
+    "latency_p95_ms": 0.250,
+    "latency_p99_ms": 0.283,
+    "throughput_rps": 3534
+  },
+  "pre_deploy_baseline": {
+    "latency_p50_ms": 0.003,
+    "latency_p95_ms": 0.183,
+    "latency_p99_ms": 0.187,
+    "throughput_rps": 14838,
+    "warmup_iterations": 10,
+    "source": "test_projects/trial-11-s7validation/docs/tests/2026-05-16-perf-baseline.json"
+  },
+  "anomaly_detection": {
+    "method": "slo-headroom-relative",
+    "threshold_pct_of_slo": 5,
+    "rollback_slo_pct": 80,
+    "rollback_baseline_multiplier": 2
+  },
+  "anomalies": [],
+  "slo_per_metric": {
+    "word_count_p99_ms": 1.0,
+    "char_count_p99_ms": 1.0,
+    "sentence_count_p99_ms": 2.0,
+    "paragraph_count_p99_ms": 1.0
+  },
+  "slo_delta_analysis": [
+    {
+      "metric": "word_count_p99_ms",
+      "pre": 0.042,
+      "post": 0.079,
+      "slo_limit": 1.0,
+      "slo_consumption_delta_pct": 3.7,
+      "threshold_pct": 5,
+      "anomaly": false,
+      "note": "3.7% < 5% threshold. Old algorithm (raw delta%: 88%) would have flagged this as anomaly — false positive eliminated."
+    },
+    {
+      "metric": "char_count_p99_ms",
+      "pre": 0.036,
+      "post": 0.053,
+      "slo_limit": 1.0,
+      "slo_consumption_delta_pct": 1.7,
+      "threshold_pct": 5,
+      "anomaly": false,
+      "note": "1.7% < 5% threshold. Old algorithm (raw delta%: 47%) — false positive eliminated."
+    },
+    {
+      "metric": "sentence_count_p99_ms",
+      "pre": 0.187,
+      "post": 0.283,
+      "slo_limit": 2.0,
+      "slo_consumption_delta_pct": 4.8,
+      "threshold_pct": 5,
+      "anomaly": false,
+      "note": "4.8% < 5% threshold (borderline — monitor next cycle). Old algorithm (raw delta%: 51%) — false positive eliminated."
+    },
+    {
+      "metric": "paragraph_count_p99_ms",
+      "pre": 0.004,
+      "post": 0.009,
+      "slo_limit": 1.0,
+      "slo_consumption_delta_pct": 0.5,
+      "threshold_pct": 5,
+      "anomaly": false,
+      "note": "0.5% < 5% threshold. Old algorithm (raw delta%: 125%) — worst false positive eliminated."
+    }
+  ],
+  "rollback_triggered": false,
+  "slo_compliance": {
+    "word_count_p99_under_1ms": "PASS (0.079ms — 7.9% of SLO)",
+    "char_count_p99_under_1ms": "PASS (0.053ms — 5.3% of SLO)",
+    "sentence_count_p99_under_2ms": "PASS (0.283ms — 14.2% of SLO)",
+    "paragraph_count_p99_under_1ms": "PASS (0.009ms — 0.9% of SLO)",
+    "error_rate_zero": "PASS (0.0%)"
+  },
+  "next_cycle_inputs": [
+    {
+      "source": "telemetry",
+      "priority": "MEDIUM",
+      "description": "sentence_count SLO-delta is 4.8% — borderline near 5% threshold. Add warmup to post-deploy simulation (warmup_iterations=10) to confirm whether this delta is real or a measurement artifact."
+    },
+    {
+      "source": "telemetry",
+      "priority": "LOW",
+      "description": "throughput_rps dropped from 14838 to 3534 (76% raw delta). Investigate whether this is a fresh-venv isolation artifact or a real regression. SLO not defined for throughput — add throughput SLO to REQ-5."
+    }
+  ]
+}

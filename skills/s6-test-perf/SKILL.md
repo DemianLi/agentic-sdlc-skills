@@ -22,14 +22,31 @@ You are the **QA Engineer**.
 Your task is to validate system performance under load.
 1. **Load performance targets**: Read performance acceptance criteria from Stage 2 requirements (e.g., "API must respond < 200ms at P99 under 100 concurrent users").
 2. **Run load tests**: Execute performance tests with a tool appropriate to the project (k6, Artillery, Locust, ab).
-3. **Capture baseline metrics**:
+3. **Warmup before measurement**: Run 10–20 warmup iterations (discard results) before capturing the actual P50/P95/P99 metrics. Warmup ensures the runtime (interpreter JIT, OS file-system cache, module import) reaches steady state — the same hot state as a production request.
+
+   ```python
+   # Warmup phase — discard these results
+   for _ in range(10):
+       func(test_input)
+
+   # Measurement phase — capture these
+   times = []
+   for _ in range(N_iterations):
+       t0 = time.perf_counter()
+       func(test_input)
+       times.append((time.perf_counter() - t0) * 1000)
+   ```
+
+   Record `warmup_iterations` in `perf-baseline.json` so `/s7-telemetry` can reproduce the same warm-state condition when re-running post-deploy.
+
+4. **Capture baseline metrics**:
    - Response time: P50, P95, P99
    - Error rate under load
    - Throughput (req/s at target concurrency)
    - Memory usage (no leak over 10-minute sustained load)
-4. **Regression check**: Compare against previous iteration's baseline (if exists). Any metric 20%+ worse is a regression.
-5. **Report format**: Provide numeric values for every metric, not vague descriptions.
-6. **Write `docs/tests/YYYY-MM-DD-perf-baseline.json`** — see Artifact Standard. This file is the pre-deploy baseline read by `/s7-telemetry` for post-deploy comparison.
+5. **Regression check**: Compare against previous iteration's baseline (if exists). Any metric 20%+ worse is a regression.
+6. **Report format**: Provide numeric values for every metric, not vague descriptions.
+7. **Write `docs/tests/YYYY-MM-DD-perf-baseline.json`** — see Artifact Standard. This file is the pre-deploy baseline read by `/s7-telemetry` for post-deploy comparison.
 
 ## Red Flags — 停下來，這可能是不可逆操作
 
@@ -55,9 +72,10 @@ This file is consumed by `/s7-telemetry` as the pre-deploy baseline for producti
 ```json
 {
   "timestamp": "2024-01-01T00:00:00Z",
-  "tool": "k6 | Artillery | Locust | ab",
+  "tool": "k6 | Artillery | Locust | ab | custom-timing-harness",
   "concurrency": 100,
   "duration_seconds": 600,
+  "warmup_iterations": 10,
   "latency_p50_ms": 38,
   "latency_p95_ms": 95,
   "latency_p99_ms": 180,

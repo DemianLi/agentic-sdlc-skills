@@ -68,33 +68,50 @@ Re-run the performance test suite against the installed package:
 # Install the newly built artifact (if not already installed)
 pip install dist/<artifact>.whl
 
-# Re-run perf tests
+# Re-run perf tests — IMPORTANT: match warmup_iterations from perf-baseline.json
 cd tests/perf
 pytest test_perf.py -v --json-report --json-report-file=perf-post-deploy.json
 ```
+
+**Warmup parity**: Read `warmup_iterations` from `perf-baseline.json` and use the same value when re-running the post-deploy suite. If the pre-deploy baseline used 10 warmup iterations, the post-deploy re-run must also use 10. Mismatched warmup states cause systematic cold-cache bias in the delta.
 
 Extract the same fields from the test output: P50/P95/P99 latency, error rate, throughput.
 
 ### Step 3 — Anomaly Detection
 
-Compare pre vs post metrics. Flag as anomaly if any metric degrades > 20%:
+**Use SLO-headroom-relative detection** for any metric that has a defined SLO limit.
+This prevents false positives on sub-millisecond operations where raw delta% is meaningless.
+
+**Formula (for latency metrics with a defined SLO)**:
+```
+slo_consumption_delta = (post - pre) / SLO_limit
+Flag as anomaly if slo_consumption_delta > 5%
+```
 
 ```
-Example:
-pre_p99 = 0.187ms
-post_p99 = 0.210ms
-delta = (0.210 - 0.187) / 0.187 = 12.3% → below 20% threshold → no anomaly
+Example A — sub-ms operation, trivial noise (old algorithm: false positive):
+  pre_p99 = 0.004ms, post_p99 = 0.009ms, SLO = 1ms
+  old: (0.009 - 0.004) / 0.004 = 125% delta → WRONG ANOMALY
+  new: (0.009 - 0.004) / 1.0   = 0.5% of SLO consumed → no anomaly ✓
+
+Example B — real regression:
+  pre_p99 = 0.187ms, post_p99 = 0.290ms, SLO = 1ms
+  new: (0.290 - 0.187) / 1.0   = 10.3% of SLO consumed → ANOMALY ✓
+
+Example C — metric with no SLO (throughput_rps) — fall back to raw delta:
+  pre = 14838 rps, post = 9000 rps
+  fallback: (14838 - 9000) / 14838 = 39.3% → ANOMALY ✓
 ```
 
 Build a comparison table:
 
-| Metric | Pre | Post | Delta | Anomaly? |
-|---|---|---|---|---|
-| latency_p50_ms | X | Y | Z% | YES / NO |
-| latency_p95_ms | X | Y | Z% | YES / NO |
-| latency_p99_ms | X | Y | Z% | YES / NO |
-| error_rate_pct | X | Y | Z% | YES / NO |
-| throughput_rps | X | Y | Z% | YES / NO |
+| Metric | Pre | Post | SLO | SLO-delta | Anomaly? |
+|---|---|---|---|---|---|
+| latency_p50_ms | X | Y | N ms | Z% | YES / NO |
+| latency_p95_ms | X | Y | N ms | Z% | YES / NO |
+| latency_p99_ms | X | Y | N ms | Z% | YES / NO |
+| error_rate_pct | X | Y | 0% | raw delta | YES / NO |
+| throughput_rps | X | Y | — | raw delta | YES / NO |
 
 If `memory_leak_detected` changes from `false` to `true` → always an anomaly, regardless of delta.
 
@@ -103,8 +120,9 @@ If `memory_leak_detected` changes from `false` to `true` → always an anomaly, 
 | Condition | Decision |
 |---|---|
 | No anomalies | `rollback_triggered: false` |
-| Anomaly detected, delta 20-100% | `rollback_triggered: false` + note in `anomalies` |
-| Any metric > 2× pre-deploy baseline | Present to user, await rollback authorization |
+| Anomaly detected (SLO-delta 5-50%) | `rollback_triggered: false` + note in `anomalies` |
+| Any metric `post > 80% of SLO_limit` | Present to user, await rollback authorization |
+| Any metric `post > 2× pre-deploy baseline` | Present to user, await rollback authorization |
 | Error rate > 1% in live mode | Present to user, await rollback authorization |
 | Simulation mode | `rollback_triggered: false` (no live deployment to roll back) |
 
@@ -238,12 +256,16 @@ When `deploy_mode: "dry-run"` (no real production):
 
 ## Anomaly Severity Reference
 
-| Delta | Severity | Action |
+Thresholds are expressed as % of SLO budget consumed by the regression
+`(post - pre) / SLO_limit`. For metrics without a defined SLO, use raw delta%.
+
+| SLO-delta consumed | Severity | Action |
 |---|---|---|
-| < 15% | Normal variance | No anomaly |
-| 15-20% | Close to threshold | Log as warning in anomalies array |
-| > 20% | Anomaly | Add to anomalies array |
-| > 100% (2×) | Critical | Present rollback decision to user |
+| < 3% | Normal variance | No anomaly |
+| 3–5% | Close to threshold | Log as warning in anomalies array |
+| > 5% | Anomaly | Add to anomalies array |
+| `post > 80% of SLO` | High risk | Present rollback decision to user |
+| `post > 2× pre` | Critical regression | Present rollback decision to user |
 
 ## next_cycle_inputs Priority Guide
 
