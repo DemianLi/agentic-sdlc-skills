@@ -1,0 +1,30 @@
+{
+  "date": "2026-05-16",
+  "project": "mdtoc",
+  "version": "1.0.0",
+  "release_gate": "PASS",
+  "summary": {
+    "total": 22,
+    "passed": 22,
+    "failed": 0,
+    "skipped": 0,
+    "coverage_pct": null
+  },
+  "test_suites": {
+    "unit_core": {
+      "file": "tests/test_core.py",
+      "total": 17,
+      "passed": 17,
+      "failed": 0,
+      "requirements_covered": ["REQ-1", "REQ-2", "REQ-3"]
+    },
+    "integration_cli": {
+      "file": "tests/test_cli.py",
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "requirements_covered": ["REQ-4"]
+    }
+  },
+  "notes": "All AC-1.x through AC-4.x pass. REQ-5 (performance) validated separately in perf-baseline.json."
+}
