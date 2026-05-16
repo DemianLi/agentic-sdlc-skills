@@ -30,6 +30,14 @@ git add docs/specs/ && git commit -m "docs: add structured requirements for <top
 ```
 If not committed, STOP and do this first.
 
+## Red Flags — 停下來重新考慮
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| 我可以從記憶或未提交的草稿生成 snapshot，事後再 commit 需求文檔 | 不行。snapshot 必須來自 committed 的事實。未 commit = 草稿，可能被使用者改掉。必須先 commit，再衍生 |
+| snapshot 可以包含我的詮釋或預測，幫助下一階段的 Agent | 不行。只能轉錄 committed 事實。詮釋和預測會在 Stage 3 被推翻。保持純粹 |
+| 如果 snapshot 超過 1 頁，可以放心加入更多背景資訊 | 不行。1 頁限制是刻意的。Stage 3-7 Agent 需要快速掃描。冗長 = 被忽視。刪除非關鍵項 |
+
 ### Step 2 — Generate CONTEXT_SNAPSHOT.md
 
 Create `CONTEXT_SNAPSHOT.md` in the project root. This file must be:
