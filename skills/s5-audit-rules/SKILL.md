@@ -24,6 +24,16 @@ Your task is to verify code compliance against the architectural paradigms and d
 5. **File Scope Compliance**: Verify only files listed in `TASK_DAG.md` task scope were modified.
 6. Report any violation as 🔴 CRITICAL — do not auto-fix architectural violations.
 
+## Red Flags — 停下來重新考慮
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| 代碼能跑，就算架構不完美也可以先 merge | 架構問題會沉澱。運行正常的破壞性架構遲早拖累整個系統。RULES.md 的架構規則不是建議，是紅線。 |
+| 這條 RULES.md 規則太嚴格了，應該放寬 | 你在 Stage 5——只負責驗證，不負責改規則。如果你認為規則需要調整，這是 Stage 1（Product Manager）的決策，不是這個 stage 的決策。 |
+| 設計文檔過時了，我相信代碼 | 設計文檔是「真理」。如果代碼和設計文檔不符，要麼代碼錯，要麼設計文檔需要更新。你不能選擇相信代碼並跳過驗證。 |
+
+---
+
 ## Completion Report
 Report status using exactly one of:
 - **DONE** — zero architectural violations; API contracts match; naming aligned; proceeding to `/s5-pr-review`.

@@ -29,6 +29,16 @@ Your task is to generate documentation for the release.
 4. **Write to CHANGELOG.md**: Prepend the new release block at the top under `## [v<version>] - YYYY-MM-DD`.
 5. Commit: `git add CHANGELOG.md && git commit -m "docs: release notes for v<version>"`
 
+## Red Flags — 停下來重新考慮
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| CHANGELOG 上次寫過了，這次只是小更新，跳過 | 每一個 release 都需要文檔。「小更新」對某個用戶可能是 breaking change。commit 歷史不能替代 release notes。 |
+| 用戶會讀 git log，不用寫 CHANGELOG | git log 是開發者看的；CHANGELOG 是用戶看的。兩者受眾不同，格式和語言都應該不同。你無法跳過這一步。 |
+| breaking change 「應該明顯」，不用寫遷移指南 | 什麼叫「明顯」？一個 API 簽名改變，對某些使用者是顯而易見的破壞，對其他人可能需要一小時調試。遷移指南是義務，不是選項。 |
+
+---
+
 ## Completion Report
 Report status using exactly one of:
 - **DONE** — `CHANGELOG.md` updated and committed; migration guide written if breaking changes exist. Proceeding to `/s7-deploy`.
