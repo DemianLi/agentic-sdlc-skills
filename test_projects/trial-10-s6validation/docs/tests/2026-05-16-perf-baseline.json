@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-05-16T11:16:25.258820Z",
+  "tool": "pytest-custom-timing",
+  "concurrency": 1,
+  "duration_seconds": 1.2,
+  "latency_p50_ms": 0.0032499999999963114,
+  "latency_p95_ms": 0.18279374999999892,
+  "latency_p99_ms": 0.18703926000000093,
+  "error_rate_pct": 0.0,
+  "throughput_rps": 14838.183855262252,
+  "memory_leak_detected": false,
+  "slo_gate": "PASS",
+  "details": {
+    "text_size_chars": 9990,
+    "word_count_p50_ms": 0.034833000000001474,
+    "word_count_p95_ms": 0.038710099999998346,
+    "word_count_p99_ms": 0.042470329999999154,
+    "char_count_p50_ms": 0.02841699999999933,
+    "char_count_p95_ms": 0.032781249999998076,
+    "char_count_p99_ms": 0.035606339999998765,
+    "sentence_count_p50_ms": 0.17354200000000222,
+    "sentence_count_p95_ms": 0.18279374999999892,
+    "sentence_count_p99_ms": 0.18703926000000093,
+    "paragraph_count_p50_ms": 0.0032499999999963114,
+    "paragraph_count_p95_ms": 0.004041999999995771,
+    "paragraph_count_p99_ms": 0.004458839999998825
+  }
+}
