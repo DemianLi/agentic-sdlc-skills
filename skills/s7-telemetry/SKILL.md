@@ -91,6 +91,10 @@ Field rules:
 - `next_cycle_inputs`: minimum one entry per anomaly or user-reported issue; empty only if truly zero feedback
 - `rollback_triggered`: set to `true` and add `"rollback_reason"` field if `/s7-deploy` rollback was executed
 
+## Artifact Dependencies
+- **Reads**: live deployment metrics, `docs/tests/YYYY-MM-DD-perf-baseline.json` (from `/s6-test-perf`)
+- **Writes**: telemetry report (`docs/releases/YYYY-MM-DD-<version>-telemetry.json`)
+
 ## Process Flow
 
 ```dot

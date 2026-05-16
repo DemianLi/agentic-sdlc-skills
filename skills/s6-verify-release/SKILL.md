@@ -191,4 +191,8 @@ Required fields: `timestamp`, `topic`, `release_gate` (PASS/BLOCKED), `unit_test
 
 Commit before transitioning. Never modify `test-results.json` manually — it must be machine-generated from actual test runs.
 
+## Artifact Dependencies
+- **Reads**: `docs/tests/YYYY-MM-DD-integration-results.md`, `docs/tests/YYYY-MM-DD-e2e-results.md`, `docs/tests/YYYY-MM-DD-perf-baseline.json`, `docs/specs/YYYY-MM-DD-<topic>-requirements.md`, `RULES.md` (coverage threshold)
+- **Writes**: `test-results.json`
+
 </supporting-info>

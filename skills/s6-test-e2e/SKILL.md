@@ -56,6 +56,11 @@ Required sections:
 - **Mindset**: User proxy. If the user can break it, you must find it first.
 - **Upstream Dependency**: `/s6-test-integration`.
 - **Downstream Target**: `/s6-test-perf`.
+
+## Artifact Dependencies
+- **Reads**: source files, `CONTEXT_SNAPSHOT.md` (user flows)
+- **Writes**: `docs/tests/YYYY-MM-DD-e2e-results.md`
+
 ## Process Flow
 
 ```dot

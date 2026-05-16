@@ -56,6 +56,11 @@ Required sections:
 - **Mindset**: Boundary breaker. You test the glue between the components. Coverage gate belongs to `/s6-verify-release`, but an early warning here saves a costly Stage 4 round-trip.
 - **Upstream Dependency**: Stage 5 Output.
 - **Downstream Target**: `/s6-test-e2e`.
+
+## Artifact Dependencies
+- **Reads**: source files, `docs/specs/YYYY-MM-DD-<topic>-requirements.md`
+- **Writes**: `docs/tests/YYYY-MM-DD-integration-results.md`
+
 ## Process Flow
 
 ```dot

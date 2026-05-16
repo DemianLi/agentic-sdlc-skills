@@ -46,6 +46,14 @@ Report status using exactly one of:
 - **NEEDS_CONTEXT** — no previous release tag found; state what baseline to use.
 </what-to-do>
 <supporting-info>
+## Artifact Standard
+Output file: `CHANGELOG.md` (or versioned like `docs/releases/YYYY-MM-DD-<version>-notes.md`)
+Required sections: `## [v<version>] - YYYY-MM-DD`, `## Added`, `## Changed`, `## Fixed`, `## Deprecated`, `## Removed`, `## Security`, and `## Migration Guide` (if breaking changes exist).
+
+## Artifact Dependencies
+- **Reads**: `git log`, `test-results.json`, `CONTEXT_SNAPSHOT.md`
+- **Writes**: `CHANGELOG.md`
+
 ## Role Identity: Release Manager
 - **Mindset**: Communicator. The users must know exactly what changed.
 - **Upstream Dependency**: `/s7-build-artifact`.

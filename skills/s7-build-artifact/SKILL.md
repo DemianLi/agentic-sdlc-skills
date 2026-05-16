@@ -40,6 +40,13 @@ Report status using exactly one of:
 - **NEEDS_CONTEXT** — `test-results.json` missing or `release_gate != PASS`; cannot proceed.
 </what-to-do>
 <supporting-info>
+## Artifact Standard
+Signed release artifact (binary/tarball/Docker image) with build manifest and integrity hash. Pushed to artifact registry with version tag.
+
+## Artifact Dependencies
+- **Reads**: source files, `test-results.json`
+- **Writes**: signed release artifact, build manifest
+
 ## Role Identity: Release Manager
 - **Mindset**: Reliability obsessed. The build must be reproducible and secure.
 - **Upstream Dependency**: Stage 6 (Release Signal).

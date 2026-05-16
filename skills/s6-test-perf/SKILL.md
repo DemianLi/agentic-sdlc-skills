@@ -76,6 +76,11 @@ Field rules:
 - **Mindset**: Stress instigator. You push the system to its limits to see where it cracks. The baseline you capture here is the contract that `/s7-telemetry` will hold production to.
 - **Upstream Dependency**: `/s6-test-e2e`.
 - **Downstream Target**: `/s6-verify-release`.
+
+## Artifact Dependencies
+- **Reads**: source files, `RULES.md` (performance thresholds if defined)
+- **Writes**: `docs/tests/YYYY-MM-DD-perf-baseline.json`
+
 ## Process Flow
 
 ```dot

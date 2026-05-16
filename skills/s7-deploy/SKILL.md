@@ -170,4 +170,8 @@ digraph deploy {
 Deployment log: `docs/releases/YYYY-MM-DD-<version>-deploy.md`
 Required: deployment timestamp, environment, pre-deploy checklist results, canary window metrics, smoke test results, final status.
 
+## Artifact Dependencies
+- **Reads**: signed release artifact, `CHANGELOG.md`
+- **Writes**: deployment verification report
+
 </supporting-info>
