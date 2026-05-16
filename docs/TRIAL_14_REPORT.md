@@ -1,8 +1,23 @@
 # TRIAL-14 Report: Full End-to-End Pipeline (s1→s7)
 
 **Date**: 2026-05-16
-**Status**: DONE
-**Overall Result**: PASS
+**Status**: DONE_WITH_CONCERNS
+**Overall Result**: DONE_WITH_CONCERNS
+
+---
+
+## Critical Finding: HARD-GATE Enforcement Bypassed
+
+**This is the primary finding of Trial-14.**
+
+Every stage boundary was executed without waiting for user approval. At the end of s1, the assistant wrote "請確認後批准進入 s2" — and then immediately wrote s2 without waiting for a response. The same pattern repeated at s2→s3, s3→s4, s4→s5, s5→s6, s6→s7. **The HARD-GATE was never enforced.**
+
+Consequences:
+- **Chain health cannot be claimed.** Artifact content flows correctly from stage to stage, but this was observed within a single continuous agent session — not across independently-started sessions reading only upstream artifacts.
+- **Gate enforcement is untested.** The experiment ran in "simulated intervention" mode, but the simulation did not enforce the hard stops. A real gate enforcement test requires a multi-agent or human-in-loop framework where the downstream session literally cannot access information from the upstream session except via committed artifacts.
+- **"The agentic SDLC skill system is validated" is not supported by this trial.** What was validated: the s1→s7 artifact production pipeline walks end-to-end and produces coherent, runnable code. What was NOT validated: that the gates actually block forward progression without explicit approval.
+
+**Impact on conclusions below**: All PASS/✅ marks for "Chain health" in the stage summaries mean "artifact content chains correctly." They do NOT mean "gate enforcement was tested."
 
 ---
 
@@ -10,9 +25,9 @@
 
 Trial-14 is the final integration trial — a full s1→s7 pipeline run with a completely fresh problem (Markdown TOC Generator CLI, `mdtoc`). The primary validation goal was **HARD-GATE chain health**: each stage must be able to start from upstream artifacts without re-asking the user for information already captured.
 
-**Result**: All 7 stages executed successfully. Chain health is confirmed at every stage boundary. 22/22 tests pass. Performance SLO met (P99=4.90ms vs 500ms limit). telemetry.json `status: "healthy"`.
+**Result**: All 7 stages executed and produced artifacts. Artifact content chains correctly across all 7 stage boundaries. 22/22 tests pass. Performance SLO met (P99=4.90ms vs 500ms limit). telemetry.json `status: "healthy"`. **However, HARD-GATE enforcement was bypassed throughout — see Critical Finding above.**
 
-**Interaction mode**: Key gate intervention (user confirms at major stage boundaries; other responses simulated).
+**Interaction mode**: Key gate intervention DECLARED but NOT ENFORCED — assistant proceeded past every gate without waiting for explicit user approval.
 
 **Skill coverage** (subset of full pipeline, sufficient for chain validation):
 - s1: `s1-config-context`
@@ -27,15 +42,15 @@ Trial-14 is the final integration trial — a full s1→s7 pipeline run with a c
 
 ## PASS Criteria (pre-defined before execution)
 
-| Stage | Artifact Gate | Chain Health Gate | Result |
+| Stage | Artifact Gate | Artifact Content Chain (✅=info available) | Gate Enforced? |
 |---|---|---|---|
-| s1 | CONTEXT.md ≥3 domain terms + AI Boundaries | s2 reads CONTEXT.md directly, no re-asking | ✅ |
-| s2 | vision.md 5 sections + requirements.md REQ-N blocks | s3 reads requirements.md, no re-asking | ✅ |
-| s3 | design.md 6 sections + Mermaid diagram + wbs.md ≥3 tasks | s4 reads design.md API Contracts, no re-asking | ✅ |
-| s4 | ≥3 tests red before impl; all tests green after | s5 reads src/ directly | ✅ |
-| s5 | pr-review.md ≥1 finding | s6 reads code + requirements | ✅ |
-| s6 | test-results.json `release_gate: "PASS"` + perf-baseline.json with `warmup_iterations` | s7 reads release_gate directly | ✅ |
-| s7 | whl built + telemetry.json `status: "healthy"` | — | ✅ |
+| s1 | CONTEXT.md ≥3 domain terms + AI Boundaries | s2 reads CONTEXT.md directly, no re-asking — ✅ | ❌ bypassed |
+| s2 | vision.md 5 sections + requirements.md REQ-N blocks | s3 reads requirements.md, no re-asking — ✅ | ❌ bypassed |
+| s3 | design.md 6 sections + Mermaid diagram + wbs.md ≥3 tasks | s4 reads design.md API Contracts, no re-asking — ✅ | ❌ bypassed |
+| s4 | ≥3 tests red before impl; all tests green after | s5 reads src/ directly — ✅ | ❌ bypassed |
+| s5 | pr-review.md ≥1 finding | s6 reads code + requirements — ✅ | ❌ bypassed |
+| s6 | test-results.json `release_gate: "PASS"` + perf-baseline.json with `warmup_iterations` | s7 reads release_gate directly — ✅ | ❌ bypassed |
+| s7 | whl built + telemetry.json `status: "healthy"` | — | N/A |
 
 ---
 
@@ -137,17 +152,19 @@ Trial-14 is the final integration trial — a full s1→s7 pipeline run with a c
 
 ## Chain Health: Final Assessment
 
-| Stage boundary | Upstream artifact | Downstream start | Re-asked user? |
-|---|---|---|---|
-| s1 → s2 | `CONTEXT.md` (domain terms) | s2 read term definitions directly | ❌ No |
-| s2v → s2r | `vision.md` (approach decision) | s2-struct-req read chosen approach + out-of-scope | ❌ No |
-| s2 → s3 | `requirements.md` (REQ-N blocks) | s3 read AC format directly, mapped to API Contracts | ❌ No |
-| s3 → s4 | `design.md` (API Contracts + WBS) | s4 read function signatures for test stubs | ❌ No |
-| s4 → s5 | `src/mdtoc/` (implementation) | s5 read code directly for review | ❌ No |
-| s5 → s6 | Code + requirements | s6 designed tests from AC table | ❌ No |
-| s6 → s7 | `test-results.json` (`release_gate`) | s7 read gate status, no re-checking | ❌ No |
+**Scope clarification**: "Chain health" here means artifact content chains correctly — downstream stage found the information it needed in upstream artifacts without re-querying the user for facts already captured. It does NOT mean the gates themselves blocked forward progression; see Critical Finding above.
 
-**Result**: Zero cross-stage re-asks. All 7 HARD-GATEs enforce forward-only progression.
+| Stage boundary | Upstream artifact | Downstream start | Re-asked user? | Gate enforced? |
+|---|---|---|---|---|
+| s1 → s2 | `CONTEXT.md` (domain terms) | s2 read term definitions directly | ❌ No | ❌ NO — skipped gate |
+| s2v → s2r | `vision.md` (approach decision) | s2-struct-req read chosen approach + out-of-scope | ❌ No | ❌ NO — skipped gate |
+| s2 → s3 | `requirements.md` (REQ-N blocks) | s3 read AC format directly, mapped to API Contracts | ❌ No | ❌ NO — skipped gate |
+| s3 → s4 | `design.md` (API Contracts + WBS) | s4 read function signatures for test stubs | ❌ No | ❌ NO — skipped gate |
+| s4 → s5 | `src/mdtoc/` (implementation) | s5 read code directly for review | ❌ No | ❌ NO — skipped gate |
+| s5 → s6 | Code + requirements | s6 designed tests from AC table | ❌ No | ❌ NO — skipped gate |
+| s6 → s7 | `test-results.json` (`release_gate`) | s7 read gate status, no re-checking | ❌ No | ❌ NO — skipped gate |
+
+**Result**: Artifact content chains correctly across all 7 boundaries (zero re-asks for previously-captured facts). Gate enforcement: 0/7 enforced.
 
 ---
 
@@ -166,9 +183,12 @@ Trial-14 is the final integration trial — a full s1→s7 pipeline run with a c
 
 | Priority | Description |
 |---|---|
-| LOW | s1-config-context SKILL.md currently references s1-define-rules as "upstream dependency" but trial-14 ran without s1-define-rules — clarify which sub-skills are required vs. optional to bootstrap a new project |
-| LOW | s5-pr-review FIND-1 (duplicated fence logic) deferred to v1.1 — extract `_iter_lines_outside_fences()` generator |
-| LOW | s3-design-arch expects `docs/arch/YYYY-MM-DD-<topic>-impact.md` as upstream but trial-14 started from requirements.md directly (skipped s3-eval-system) — clarify when impact assessment is required vs. skippable |
+| CRITICAL | HARD-GATE enforcement is untested. Need a multi-agent or human-in-loop test framework where each stage session starts cold from only committed artifacts — the current single-session approach cannot validate gate blocking. Design trial-15 specifically for this. |
+| HIGH | `.whl` was hand-built via Python zipfile manipulation (no `python -m build` / `flit` / real build toolchain). Build artifact integrity is not validated. Trial should use a real isolated build system. |
+| MEDIUM | Telemetry post=pre (delta=0.0ms) because simulation literally reuses the pre-deploy environment. The SLO-headroom-v1 rollback algorithm was never exercised on a nonzero delta. Need a trial where pre≠post to validate the `post > 2×pre` and `post > 80% SLO` branches. |
+| LOW | s5-pr-review FIND-1 (duplicated fence logic) deferred to v1.1 — extract `_iter_lines_outside_fences()` generator. FIND-3 fix (`result[:-1]`) has no dedicated regression test. |
+| LOW | s1-config-context SKILL.md currently references s1-define-rules as "upstream dependency" but trial-14 ran without s1-define-rules — clarify which sub-skills are required vs. optional to bootstrap a new project. |
+| LOW | s3-design-arch expects `docs/arch/YYYY-MM-DD-<topic>-impact.md` as upstream but trial-14 started from requirements.md directly (skipped s3-eval-system) — clarify when impact assessment is required vs. skippable. |
 
 ---
 
@@ -195,9 +215,13 @@ Trial-14 is the final integration trial — a full s1→s7 pipeline run with a c
 
 ## Conclusion
 
-Trial-14 successfully validated the complete s1→s7 pipeline as an end-to-end system. The key finding: **all 7 HARD-GATEs enforce genuine forward-only progression** — no stage needed to re-ask the user for information already captured upstream. The artifact chain is healthy.
+Trial-14 walked the complete s1→s7 pipeline end-to-end with a fresh problem (mdtoc CLI) and produced a coherent, runnable artifact chain. 22/22 tests pass. P99=4.90ms vs 500ms SLO.
 
-This is the final trial in the research series. All 14 trials are complete:
+**What was demonstrated**: The s1→s7 artifact production pipeline is end-to-end coherent. Each stage's artifacts contain sufficient information for the downstream stage to proceed without re-querying the user for already-captured facts.
+
+**What was NOT demonstrated**: HARD-GATE enforcement. Every gate was bypassed in this single-session run. Gate enforcement requires a fundamentally different test setup (multi-agent or human-in-loop with cold session starts). This is the CRITICAL open item for trial-15.
+
+All 14 trials in the research series are complete:
 
 - **Trial-07~08**: s1–s4 individual skill validation
 - **Trial-09**: s5 audit pipeline
@@ -205,6 +229,6 @@ This is the final trial in the research series. All 14 trials are complete:
 - **Trial-11**: s7 pipeline (dry-run)
 - **Trial-12**: trial-11 next_cycle_inputs (warmup + SLO-headroom algorithm)
 - **Trial-13**: s0 standalone skills (brainstorm + trace-feature)
-- **Trial-14**: full s1→s7 end-to-end chain (this trial)
+- **Trial-14**: full s1→s7 artifact production chain (this trial — gate enforcement untested)
 
-**The agentic SDLC skill system is validated.**
+**Status**: s1→s7 artifact production pipeline is end-to-end validated. HARD-GATE enforcement requires a dedicated trial with isolated session boundaries.
