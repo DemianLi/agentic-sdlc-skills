@@ -4,4 +4,5 @@ __pycache__/
 *.pyo
 .claude/
 .gemini/
-test_projects/.cache/
+test_projects/
+github_skill_sample/

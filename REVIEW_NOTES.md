@@ -4,6 +4,10 @@
 This document tracks the status of all 27 atomic skills across the 7 stages of the Agentic SDLC. 
 Please use this document to record any review feedback or required modifications for the generated skills.
 
+### Stage 0: Standalone (獨立於 s1-s7 之外)
+- [x] `/s0-brainstorm`
+- [x] `/s0-trace-feature`
+
 ### Stage 1: Foundation Engineer
 - [x] `/s1-define-rules`
 - [x] `/s1-config-context`
