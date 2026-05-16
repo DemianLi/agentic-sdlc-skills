@@ -99,6 +99,11 @@ If no registry is configured (e.g., trial validation context), the artifact live
 and the git tag is local only. This is acceptable — document it as `deploy_target: "local"`.
 Do NOT attempt to push to PyPI / Docker Hub / npm unless explicitly instructed.
 
+**Monorepo caveat**: If the trial project lives inside a larger repository (e.g. as a subdirectory),
+`git tag` in Step 3 will tag the monorepo root — not the trial project. In this case, **skip
+the git tag step** and note `git_tag: "skipped (monorepo context)"` in the build summary.
+Git tags only make sense when the repository root corresponds to the project being released.
+
 ## Red Flags — 停下來，這可能是不可逆操作
 
 | 如果你在想… | 現實是 |

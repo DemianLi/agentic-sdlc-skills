@@ -148,6 +148,13 @@ Write to `docs/releases/YYYY-MM-DD-<version>-telemetry.json`:
     "latency_p99_ms": 0.187,
     "throughput_rps": 14838
   },
+  "pre_deploy_baseline": {
+    "latency_p50_ms": 0.003,
+    "latency_p95_ms": 0.183,
+    "latency_p99_ms": 0.187,
+    "throughput_rps": 14838,
+    "source": "docs/tests/YYYY-MM-DD-perf-baseline.json"
+  },
   "anomalies": [],
   "next_cycle_inputs": [
     {
@@ -156,16 +163,21 @@ Write to `docs/releases/YYYY-MM-DD-<version>-telemetry.json`:
       "description": "Add OpenAPI spec for /api/analyze endpoint (deferred from Stage 5 PR review)"
     }
   ],
-  "rollback_triggered": false
+  "rollback_triggered": false,
+  "slo_compliance": {
+    "<metric>_p99_under_<Nms>": "PASS (<actual>ms) | FAIL (<actual>ms)"
+  }
 }
 ```
 
 Required fields (from HANDOFF.md Stage 7 → Next Iteration):
 - `status`: `"healthy"` | `"degraded"` | `"rolled_back"`
 - `metrics`: object with `error_rate`, `latency_p50_ms`, `latency_p95_ms`, `latency_p99_ms`, `throughput_rps`
+- `pre_deploy_baseline`: object mirroring `metrics` keys, plus `source` pointing to the perf-baseline.json file — makes the comparison auditable
 - `anomalies`: array (empty array if none, each entry names the metric and delta)
 - `next_cycle_inputs`: array (at least one entry; if truly empty, explain why)
 - `rollback_triggered`: boolean
+- `slo_compliance`: object keyed by SLO name (e.g. `word_count_p99_under_1ms`), value is `"PASS (<actual>)"` or `"FAIL (<actual>)"`
 
 Commit the file:
 ```bash
