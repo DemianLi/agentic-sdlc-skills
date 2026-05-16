@@ -70,4 +70,8 @@ digraph setup_env {
 }
 ```
 
+## Artifact Dependencies
+- **Reads**: `TASK_DAG.md`, `RULES.md`
+- **Writes**: feature branch (git), runtime environment setup
+
 </supporting-info>

@@ -45,4 +45,9 @@ Report status using exactly one of:
 - **Mindset**: Architectural guardian. Clean architecture must be preserved at all costs.
 - **Upstream Dependency**: `/s5-sast-lint`.
 - **Downstream Target**: `/s5-pr-review`.
+
+## Artifact Dependencies
+- **Reads**: source files, `RULES.md`, `docs/arch/YYYY-MM-DD-<topic>-design.md`
+- **Writes**: architecture audit report
+
 </supporting-info>

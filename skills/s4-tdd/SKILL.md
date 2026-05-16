@@ -224,6 +224,10 @@ digraph tdd_cycle {
 - **Coverage report**: Run after all behaviors are GREEN and attach summary (lines covered / total)
 - **Commit format**: `test: add failing test for <behavior>` then `feat: implement <behavior> (TDD green)`
 
+## Artifact Dependencies
+- **Reads**: `TASK_DAG.md` (current Atomic Task + Acceptance Criteria)
+- **Writes**: test files (`*.test.*` / `test_*.py` / `*_test.go`), coverage report
+
 ## Red Flags — STOP and Start Over
 Any of these means delete production code and restart:
 - Code exists before a test does

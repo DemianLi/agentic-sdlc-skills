@@ -45,4 +45,9 @@ Report status using exactly one of:
 - **Mindset**: Laser focus. You execute exactly what is specified, elegantly and efficiently.
 - **Upstream Dependency**: `/s4-tdd`.
 - **Downstream Target**: `/s4-local-debug`.
+
+## Artifact Dependencies
+- **Reads**: test files (from s4-tdd), `TASK_DAG.md`
+- **Writes**: production source files
+
 </supporting-info>

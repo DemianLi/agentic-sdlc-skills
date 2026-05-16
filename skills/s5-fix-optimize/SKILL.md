@@ -46,4 +46,9 @@ Report status using exactly one of:
 - **Mindset**: Finisher. You polish the rough diamond into a production-ready gem.
 - **Upstream Dependency**: `/s5-pr-review`.
 - **Downstream Target**: Stage 6 (QA Engineer).
+
+## Artifact Dependencies
+- **Reads**: SAST report, architecture audit report, PR review report
+- **Writes**: fixed source files, fix summary report
+
 </supporting-info>

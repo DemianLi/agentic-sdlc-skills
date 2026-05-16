@@ -164,4 +164,8 @@ Severity definitions:
 - **WARNING**: performance issue, missing error handling, naming mismatch
 - **SUGGESTION**: optional style or future-proofing improvement
 
+## Artifact Dependencies
+- **Reads**: `git diff`, `docs/arch/YYYY-MM-DD-<topic>-design.md`, `docs/specs/YYYY-MM-DD-<topic>-requirements.md`
+- **Writes**: PR review report
+
 </supporting-info>

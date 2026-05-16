@@ -168,4 +168,8 @@ digraph debug_loop {
 - **Commit message format**: `fix: <short root-cause description>\n\nRoot cause: <explanation>\nRegression test: <test name>`
 - **No debug logs**: All `console.log` / `print` / `fmt.Printf` added during Phase 4 must be removed before handoff
 
+## Artifact Dependencies
+- **Reads**: failing test output, source files
+- **Writes**: bug fix commits, regression test
+
 </supporting-info>

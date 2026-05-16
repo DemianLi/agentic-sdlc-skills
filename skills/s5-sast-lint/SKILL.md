@@ -161,4 +161,8 @@ digraph sast_lint {
 Report file: `docs/audit/YYYY-MM-DD-<branch>-sast.md`
 Required fields: Status (PASS/BLOCKED), CRITICAL count, WARNING count, Auto-fixed count, Zero Violations Confirmed list.
 
+## Artifact Dependencies
+- **Reads**: source files, `RULES.md`
+- **Writes**: SAST scan report
+
 </supporting-info>
