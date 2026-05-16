@@ -6,8 +6,8 @@ description: >
 ---
 
 <HARD-GATE>
-Do NOT apply any fix until you have completed the REPRODUCE and MINIMISE phases.
-Fixing without reproducing is guessing, not engineering.
+Do NOT apply any fix until:
+1. Root cause has been confirmed via INSTRUMENT phase and fix is committed with regression test.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
@@ -106,6 +106,16 @@ After **3 failed fix attempts** on the same root cause:
 3. Ask the user: "Should I try a different approach or escalate?"
 
 Do not loop more than 3 times on the same hypothesis.
+
+---
+
+## Red Flags — 停下來重新考慮
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| "失敗很明顯，就是那個地方的邏輯有問題，直接改吧，不用 INSTRUMENT" | 「明顯」的假設往往錯得最離譜；沒有實際數據，就是猜測；必須貼出 log 和堆棧追蹤的證據 |
+| "我已經找到 3 個假設都沒成功，但有個 4 號假設非常可能，再試一次" | 3 次試驗的極限是硬規則；第 4 次意味著你沒有真正理解根因；停止、報告 BLOCKED、尋求幫助 |
+| "這個回歸測試有點複雜，我先提交修復，等測試寫完了再補回來" | 修復 + 回歸測試是一體的；沒有測試的修復就是時間炸彈；必須先寫測試，看失敗，再修復 |
 
 ---
 

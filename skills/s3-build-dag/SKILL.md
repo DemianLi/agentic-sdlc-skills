@@ -6,10 +6,8 @@ description: >
 ---
 
 <HARD-GATE>
-Do NOT output TASK_DAG.md until you have verified that:
-1. The graph has NO cycles (it must be a true Directed Acyclic Graph).
-2. Every task from the WBS appears as exactly one node.
-3. The user has approved the dependency graph before Stage 4 begins.
+Do NOT proceed to Stage 4 until:
+1. TASK_DAG.md has been written and COMMITTED to git.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
@@ -94,6 +92,16 @@ Write `TASK_DAG.md` at the project root:
 ```
 
 Present to user and wait for approval before committing.
+
+---
+
+## Red Flags — 停下來重新考慮
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| "圖看起來有點複雜，可能有個循環，但應該先給用戶看看，他們會發現" | 任何懷疑都是真實的循環訊號；拓撲排序失敗 = DAG 無效；必須先修 WBS |
+| "這個任務的依賴有點模糊，假設它按現在的順序跑應該 OK" | 模糊的依賴=執行順序不確定；可能造成死鎖；必須回到 WBS，澄清 AC 邊界 |
+| "關鍵路徑計算似乎有點長，但這是最優的，應該沒問題" | 如果路徑超過預期，表示 WBS 拆分不夠；s4 會被堵；現在就拆 |
 
 ---
 

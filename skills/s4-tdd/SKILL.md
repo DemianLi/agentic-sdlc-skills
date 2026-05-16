@@ -145,7 +145,7 @@ After all behaviors are GREEN:
 
 ---
 
-## Common Rationalizations — STOP and Start Over
+## Red Flags — 停下來重新考慮
 
 | Rationalization | Reality |
 |----------------|---------|

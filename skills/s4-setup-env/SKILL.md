@@ -4,9 +4,7 @@ description: 研發環境就緒 (Implementation & Local Debug)
 ---
 <HARD-GATE>
 Do NOT start any implementation until:
-1. The specific TASK-N from `TASK_DAG.md` has been confirmed with the user.
-2. The feature branch has been created and checked out.
-3. The local environment matches the tech stack from Stage 1 exactly.
+1. Environment check passed and workspace is verified as clean.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
@@ -25,6 +23,16 @@ Your task is to prepare the development environment for a specific Atomic Task.
    - `node --version` / `go version` / `python --version` — must match lock file
    - `npm ci` / `go mod download` — install from lock file, not latest
 4. **Workspace Verification**: Confirm no uncommitted changes from prior task that might contaminate this one.
+
+## Red Flags — 停下來重新考慮
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| "我之前用過這個環境，應該可以跳過版本檢查，直接開始" | 「之前用過」的環境可能已過期或被污染；每個任務的起點必須乾淨 |
+| "TASK_DAG.md 裡的下一個任務依賴複雜，但先開始設置，實現時再補" | 設置 ≠ 實現；你現在必須選定具體的 TASK-N，否則分支名無法確定 |
+| "測試通過了，說明環境是對的，可以開始寫代碼" | 環境檢查只驗證運行時和依賴版本；不保證沒有前一任務遺留的孤立檔案；必須手動檢查 git status |
+
+---
 
 ## Completion Report
 Report status using exactly one of:

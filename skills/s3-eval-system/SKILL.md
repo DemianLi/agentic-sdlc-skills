@@ -6,13 +6,8 @@ description: >
 ---
 
 <HARD-GATE>
-Do NOT proceed to `/s3-design-arch` until ALL of the following are complete:
-1. The impact report has been WRITTEN to `docs/arch/YYYY-MM-DD-<topic>-impact.md` (not just presented inline).
-2. The file has been committed to git (`git commit`).
-3. You have presented the file path and content to the user.
-4. The user has given explicit approval.
-
-An inline summary in the conversation does NOT satisfy this gate. The file must exist on disk.
+Do NOT proceed to `/s3-design-arch` until:
+1. The impact report has been WRITTEN to `docs/arch/YYYY-MM-DD-<topic>-impact.md` and COMMITTED to git.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
@@ -104,6 +99,16 @@ git commit -m "arch: add impact report for <topic>"
 
 Show the user the file path and full content. **Wait for explicit approval before proceeding.**
 A conversation summary does NOT replace the file. If the file does not exist on disk, this step is not done.
+
+---
+
+## Red Flags — 停下來重新考慮
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| "影響分析看起來差不多，可以先跳過寫文件" | 文件是後續 s3-design-arch 的唯一輸入；沒有承諾的文字，設計會漂移 |
+| "用戶同意了之前的粗略版本，不需要再問一次" | 影響報告提交後的每一次變更都需要重新呈現和批准 |
+| "找不到某些組件，就假設沒有受到影響" | 不知道 ≠ 無影響；「無法存取」要停下來、列出具體障礙，並在報告中標記 NEEDS_CONTEXT |
 
 ---
 
