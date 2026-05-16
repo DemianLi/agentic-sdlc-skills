@@ -170,4 +170,8 @@ digraph git_guardrails {
 - Script: `.claude/hooks/block-dangerous-git.sh` (project) or `~/.claude/hooks/block-dangerous-git.sh` (global)
 - Settings entry: `hooks.PreToolUse[].matcher = "Bash"` pointing to the installed script
 
+## Artifact Dependencies
+- **Reads**: `RULES.md`
+- **Writes**: `.pre-commit-config.yaml`, `.github/workflows/` CI config
+
 </supporting-info>

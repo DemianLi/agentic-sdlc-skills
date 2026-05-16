@@ -28,6 +28,16 @@ Your immediate task is to define and document the fundamental rules of the proje
 2. **Analysis & Proposal**: If the user is unsure, analyze the project's nature and propose a robust, production-ready set of rules.
 3. **Documentation**: Once aligned, create or update a `RULES.md` (or equivalent global config) file. This document must be highly rigorous and act as the absolute law for all subsequent Stages.
 4. **Enforcement**: Ensure that the rules explicitly forbid violating architectural boundaries (e.g., "The Domain layer must not depend on the Infrastructure layer").
+5. **Toolchain Mapping (Optional but Recommended)**: For each rule in `RULES.md`, note whether a tool can enforce it automatically:
+
+   | Rule Type | Enforcement Tool |
+   |-----------|-----------------|
+   | Formatting | Add to `pyproject.toml [tool.ruff]` / `.prettierrc` |
+   | Forbidden pattern | Add to SAST config — `/s5-sast-lint` will consume this |
+   | File length limit | Linter rule (e.g., `max-module-lines` in Ruff) |
+   | Architecture boundary | Import linter (e.g., `import-linter`, `deptrac`) |
+
+   Rules without a tool enforcement path should be marked `# manual review required` in `RULES.md` so Stage 5 auditors know where human judgment is needed.
 
 Do not write any implementation code. Your output is pure governance.
 
@@ -60,5 +70,10 @@ The resulting `RULES.md` must contain:
 1. **Linter/Formatter configurations** (e.g., Prettier, Ruff).
 2. **Directory Structure Governance** (where does what go).
 3. **Forbidden Patterns** (e.g., "Do not use `any` in TypeScript", "Do not mutate state").
+4. **Toolchain Enforcement Notes** — for each rule, either a tool reference or `# manual review required`.
+
+## Artifact Dependencies
+- **Reads**: none
+- **Writes**: `RULES.md`
 
 </supporting-info>

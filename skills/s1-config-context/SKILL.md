@@ -62,4 +62,8 @@ The `CONTEXT.md` must follow the format:
 - `## AI Boundaries`: Explicit do's and don'ts for LLMs working in this repo.
 - `## Architecture`: Link to the rules defined in `s1-define-rules`.
 
+## Artifact Dependencies
+- **Reads**: none
+- **Writes**: `CONTEXT.md`
+
 </supporting-info>

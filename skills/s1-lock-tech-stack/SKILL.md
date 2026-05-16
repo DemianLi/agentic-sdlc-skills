@@ -67,4 +67,8 @@ Report status using exactly one of:
 - Do not use `^` or `~` in `package.json` for core frameworks unless explicitly requested. Pin exact versions.
 - If the user asks for a monolithic architecture, ensure the tech stack aligns with that (e.g., don't install microservice orchestration tools).
 
+## Artifact Dependencies
+- **Reads**: `RULES.md`
+- **Writes**: `package.json` / `pyproject.toml` / `go.mod` (language-dependent), lock files
+
 </supporting-info>

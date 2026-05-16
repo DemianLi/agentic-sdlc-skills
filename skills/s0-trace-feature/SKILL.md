@@ -216,4 +216,8 @@ Be concrete. Name files, functions, line numbers. No generalities.
 Good: "`OrderService.create()` at `backend/services/orders.py:87` calls `db.insert()` on the `orders` table"
 Bad: "The service layer creates the order in the database."
 
+## Artifact Dependencies
+- **Reads**: codebase source files (read-only scan)
+- **Writes**: `docs/traces/YYYY-MM-DD-<feature>-trace.md`
+
 </supporting-info>

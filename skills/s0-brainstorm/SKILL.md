@@ -182,4 +182,8 @@ Required sections:
 
 This file is the ONLY output. No architecture. No tech choices. No implementation hints.
 
+## Artifact Dependencies
+- **Reads**: none
+- **Writes**: `docs/brainstorm/YYYY-MM-DD-<topic>-problem-draft.md` (optional — 產出可選)
+
 </supporting-info>
