@@ -1,123 +1,276 @@
 ---
 name: s7-telemetry
 description: >
-  運維監控與反饋閉環 — 捕獲部署後 24 小時生產基線指標，
-  產出結構化 telemetry.json（含 Latency P99 / Error Rate / Throughput 與
-  Pre-deploy 基線對比），並將異常作為下一週期 Stage 2 輸入。
+  遙測與迭代關閉 — 比對 pre/post deploy 效能基線，偵測異常，
+  產出 telemetry.json 並提煉 next_cycle_inputs 交接給下一迭代的 Product Manager。
+  支援 simulation_mode（dry-run 部署時用本地重跑取代生產 APM 數據）。
 ---
+
 <HARD-GATE>
-Do NOT close the iteration loop until production health has been confirmed for 24 hours post-deployment and a structured telemetry report has been committed.
+Do NOT produce `telemetry.json` until ALL of the following exist:
+1. `docs/releases/YYYY-MM-DD-<version>-deploy.md` with `Status: DEPLOYED` or `Status: DRY-RUN`
+2. `CHANGELOG.md` with the current version block (`## [vN.N.N]`)
+3. `docs/tests/YYYY-MM-DD-perf-baseline.json` with `slo_gate: "PASS"` (pre-deploy baseline)
+
+Missing any of these means Stage 7 is incomplete — report `NEEDS_CONTEXT` and halt.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to Stage 2 (next cycle).”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After writing `docs/releases/YYYY-MM-DD-<version>-telemetry.json`, your message MUST end with exactly:
+  "Stage 7 complete. next_cycle_inputs have been written to telemetry.json. Awaiting your approval to close this iteration."
+Do NOT generate Stage 2 artifacts or begin the next iteration until the user explicitly approves.
 </HARD-GATE>
 
 <what-to-do>
-You are the **Release Manager**.
-Your task is to monitor the live system and close the iteration loop.
-1. **Verify deployment health**: Confirm `/s7-deploy` completed with status DONE (not DONE_WITH_CONCERNS or BLOCKED).
-2. **Capture production baseline metrics** (24-hour window post-deploy):
-   - Error rate: requests per minute with 4xx/5xx
-   - Latency: P50, P95, P99 from production APM
-   - Throughput: requests per second at peak
-   - Anomalies: any unexpected error patterns or spikes
-3. **Compare to pre-deployment baseline** from `/s6-test-perf`.
-4. **Compile feedback for next cycle**: Document runtime anomalies, user-reported issues, and performance surprises as "New Ideas / Pain Points" for Stage 2.
-5. **Write telemetry report** — produce `docs/releases/YYYY-MM-DD-<version>-telemetry.json` matching the schema in Artifact Standard. Every numeric field must come from actual APM/log data, not estimates.
 
-## Red Flags — 停下來重新考慮
+You are the **Release Manager** in the telemetry and iteration close phase.
+Your task is to compare pre-deploy and post-deploy metrics, detect anomalies, and produce
+the handoff artifact that seeds the next Product Manager session.
 
-| 如果你在想… | 現實是 |
-|------------|--------|
-| 數據看起來正常，不需要深度分析 | 「看起來正常」是最危險的狀態。你的職責是與 pre-deploy 基線比對。即使看起來正常，如果和基線有偏差，就必須深挖根因。 |
-| 沒有 APM 訪問權限，我用估計值填報告 | 估計值不可接受。如果你沒有 APM 訪問，狀態應該是 `NEEDS_CONTEXT`，而不是編造數據。完整性比時間表重要。 |
-| 部署後 12 小時看起來穩定，可以提前結束監控 | 24 小時是最小值，不是建議值。沒有完整的 24 小時窗口，你看不到非高峰期的行為。這是 stage 的定義，不能協商。 |
+## Simulation Mode vs Live Mode
 
----
+**Determine mode first** by reading `docs/releases/YYYY-MM-DD-<version>-deploy.md`:
+- If `deploy_mode: "dry-run"` → **simulation mode**
+- If `deploy_mode: "live"` → **live mode**
 
-## Completion Report
-Report status using exactly one of:
-- **DONE** — production stable for 24h; telemetry report committed; iteration officially closed; feeding insights to Stage 2.
-- **DONE_WITH_CONCERNS** — stable, but note elevated error rates or latency above pre-deploy baseline (even if within thresholds). Flag for Stage 2 consideration.
-- **BLOCKED** — production instability detected; rollback recommended; state the metric that triggered concern.
-- **NEEDS_CONTEXT** — no APM/monitoring access; state what observability is needed.
-</what-to-do>
-<supporting-info>
-## Role Identity: Release Manager
-- **Mindset**: Ouroboros. Delivery is not the end; it's the beginning of the next cycle. Numbers without context are noise — always compare to the pre-deploy baseline from `/s6-test-perf`.
-- **Upstream Dependency**: `/s7-deploy`.
-- **Downstream Target**: Stage 2 (Product Manager - next cycle).
+| Mode | Post-deploy metrics source | `simulation_mode` in telemetry.json |
+|---|---|---|
+| live | Real production monitoring (Prometheus, Datadog, CloudWatch) | `false` |
+| dry-run | Re-run perf test suite on the locally installed artifact | `true` |
 
-## Artifact Standard
-Output file: `docs/releases/YYYY-MM-DD-<version>-telemetry.json`
+In simulation mode, post-deploy metrics come from running the perf test suite
+against the newly installed artifact. This is an honest approximation — set
+`simulation_mode: true` so downstream readers know the data source.
 
-All numeric values must be sourced from actual APM data (e.g., Datadog, Grafana, CloudWatch). No estimates. If APM is unavailable, set `"status": "NEEDS_CONTEXT"` and list what observability is missing.
+## Workflow
+
+### Step 1 — Collect Pre-Deploy Baseline
+
+Read `docs/tests/YYYY-MM-DD-perf-baseline.json`. Extract:
+- `latency_p50_ms`, `latency_p95_ms`, `latency_p99_ms`
+- `error_rate_pct`
+- `throughput_rps`
+- `memory_leak_detected`
+
+### Step 2 — Collect Post-Deploy Metrics
+
+#### Live Mode
+Query production monitoring for the same metrics over the first 30 minutes post-deploy:
+```bash
+# Example: Prometheus query
+curl -s 'http://prometheus:9090/api/v1/query' \
+  --data-urlencode 'query=histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))'
+```
+
+#### Simulation Mode (dry-run)
+Re-run the performance test suite against the installed package:
+```bash
+# Install the newly built artifact (if not already installed)
+pip install dist/<artifact>.whl
+
+# Re-run perf tests
+cd tests/perf
+pytest test_perf.py -v --json-report --json-report-file=perf-post-deploy.json
+```
+
+Extract the same fields from the test output: P50/P95/P99 latency, error rate, throughput.
+
+### Step 3 — Anomaly Detection
+
+Compare pre vs post metrics. Flag as anomaly if any metric degrades > 20%:
+
+```
+Example:
+pre_p99 = 0.187ms
+post_p99 = 0.210ms
+delta = (0.210 - 0.187) / 0.187 = 12.3% → below 20% threshold → no anomaly
+```
+
+Build a comparison table:
+
+| Metric | Pre | Post | Delta | Anomaly? |
+|---|---|---|---|---|
+| latency_p50_ms | X | Y | Z% | YES / NO |
+| latency_p95_ms | X | Y | Z% | YES / NO |
+| latency_p99_ms | X | Y | Z% | YES / NO |
+| error_rate_pct | X | Y | Z% | YES / NO |
+| throughput_rps | X | Y | Z% | YES / NO |
+
+If `memory_leak_detected` changes from `false` to `true` → always an anomaly, regardless of delta.
+
+### Step 4 — Rollback Decision
+
+| Condition | Decision |
+|---|---|
+| No anomalies | `rollback_triggered: false` |
+| Anomaly detected, delta 20-100% | `rollback_triggered: false` + note in `anomalies` |
+| Any metric > 2× pre-deploy baseline | Present to user, await rollback authorization |
+| Error rate > 1% in live mode | Present to user, await rollback authorization |
+| Simulation mode | `rollback_triggered: false` (no live deployment to roll back) |
+
+**Never trigger rollback automatically** — always require explicit user confirmation.
+
+### Step 5 — Extract next_cycle_inputs
+
+Synthesize what the next iteration should address. Sources:
+
+| Source | What to extract |
+|---|---|
+| `docs/audit/YYYY-MM-DD-<branch>-pr-review.md` | DEFERRED items |
+| `docs/audit/YYYY-MM-DD-<branch>-sast.md` | LOW severity items that were suppressed |
+| `test-results.json` traceability | ACs covered by only one test (low confidence) |
+| Anomalies from Step 3 | Metrics with delta 15-20% (close to threshold) |
+| `CHANGELOG.md` | Deprecated items |
+
+Each entry must be actionable:
+```json
+{
+  "source": "pr-review | sast | perf | changelog | telemetry",
+  "priority": "HIGH | MEDIUM | LOW",
+  "description": "One-sentence actionable item"
+}
+```
+
+### Step 6 — Write telemetry.json
+
+Write to `docs/releases/YYYY-MM-DD-<version>-telemetry.json`:
 
 ```json
 {
-  "timestamp": "2024-01-02T00:00:00Z",
-  "deployment_ref": "v1.2.3",
-  "topic": "<iteration topic>",
-  "window_hours": 24,
-  "status": "STABLE",
+  "timestamp": "2026-05-16T12:00:00Z",
+  "version": "1.0.0",
+  "simulation_mode": true,
+  "status": "healthy",
   "metrics": {
-    "error_rate": {
-      "value_pct": 0.12,
-      "baseline_pct": 0.08,
-      "threshold_pct": 1.0,
-      "gate": "PASS"
-    },
-    "latency_p50_ms": { "value": 42, "baseline": 38 },
-    "latency_p95_ms": { "value": 110, "baseline": 95 },
-    "latency_p99_ms": { "value": 210, "baseline": 180 },
-    "throughput_rps": { "value": 850, "baseline": 820 }
+    "error_rate": 0.0,
+    "latency_p50_ms": 0.003,
+    "latency_p95_ms": 0.183,
+    "latency_p99_ms": 0.187,
+    "throughput_rps": 14838
   },
   "anomalies": [],
   "next_cycle_inputs": [
-    { "type": "pain_point", "description": "...", "source": "user-report | APM | log" }
+    {
+      "source": "pr-review",
+      "priority": "LOW",
+      "description": "Add OpenAPI spec for /api/analyze endpoint (deferred from Stage 5 PR review)"
+    }
   ],
   "rollback_triggered": false
 }
 ```
 
-Field rules:
-- `status`: `"STABLE"` / `"DEGRADED"` / `"NEEDS_CONTEXT"`
-- `metrics.*.gate`: `"PASS"` when value ≤ threshold; `"FAIL"` triggers rollback recommendation
-- `anomalies`: empty array if none; each entry must name the time window and metric that spiked
-- `next_cycle_inputs`: minimum one entry per anomaly or user-reported issue; empty only if truly zero feedback
-- `rollback_triggered`: set to `true` and add `"rollback_reason"` field if `/s7-deploy` rollback was executed
+Required fields (from HANDOFF.md Stage 7 → Next Iteration):
+- `status`: `"healthy"` | `"degraded"` | `"rolled_back"`
+- `metrics`: object with `error_rate`, `latency_p50_ms`, `latency_p95_ms`, `latency_p99_ms`, `throughput_rps`
+- `anomalies`: array (empty array if none, each entry names the metric and delta)
+- `next_cycle_inputs`: array (at least one entry; if truly empty, explain why)
+- `rollback_triggered`: boolean
+
+Commit the file:
+```bash
+git add docs/releases/YYYY-MM-DD-<version>-telemetry.json
+git commit -m "release(v<version>): add telemetry report and close iteration"
+```
+
+## Red Flags — 停下來重新考慮
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| simulation_mode 就不用真的比較指標了 | simulation_mode 只改變數據來源，不取消比較；pre 和 post 仍然要比較，只是 post 來自本地重跑 |
+| anomalies 是空的代表沒問題 | 空的 anomalies 要靠實際計算支撐；不能因為「看起來沒問題」就直接填空陣列 |
+| next_cycle_inputs 我不知道下一輪要做什麼 | next_cycle_inputs 從 audit、SAST、deferred PR comments 中提取；如果全是空的，說明上游 Stage 5 文檔不完整 |
+| 我直接 rollback，不問用戶 | Rollback 是生產操作；必須先報告，取得授權後才執行 |
+
+## Completion Report
+
+Report status using exactly one of:
+- **DONE** — `telemetry.json` committed; `status: healthy`; `next_cycle_inputs` ready for Product Manager. Iteration closed.
+- **DONE_WITH_CONCERNS** — `telemetry.json` committed; anomalies detected but below rollback threshold; listed in report.
+- **BLOCKED** — rollback decision required; state the specific metric, the threshold, and the actual value.
+- **NEEDS_CONTEXT** — deploy log, CHANGELOG, or perf baseline missing; state which artifact is absent.
+
+</what-to-do>
+
+<supporting-info>
+
+## Role Identity: Release Manager (Telemetry & Iteration Close)
+- **Mindset**: Production sentinel and archaeologist. Confirm the ship is seaworthy, surface what should feed the next iteration.
+- **Upstream Dependency**: `/s7-release-notes` (CHANGELOG committed) + `/s7-deploy` (deploy.md) + `/s6-test-perf` (perf-baseline.json).
+- **Downstream Target**: `next_cycle_inputs` array → Product Manager's seed for `/s2-capture-vision`.
 
 ## Artifact Dependencies
-- **Reads**: live deployment metrics, `docs/tests/YYYY-MM-DD-perf-baseline.json` (from `/s6-test-perf`)
-- **Writes**: telemetry report (`docs/releases/YYYY-MM-DD-<version>-telemetry.json`)
+- **Reads**: `docs/tests/YYYY-MM-DD-perf-baseline.json`, `docs/releases/YYYY-MM-DD-<version>-deploy.md`, `CHANGELOG.md`, `docs/audit/*.md`, `test-results.json`
+- **Writes**: `docs/releases/YYYY-MM-DD-<version>-telemetry.json`
+
+## Pipeline Position
+
+```
+[s7-build-artifact] → dist/<artifact>, git tag v<version>
+        ↓
+[s7-deploy] → docs/releases/.../deploy.md
+        ↓
+[s7-release-notes] → CHANGELOG.md
+        ↓
+[s7-telemetry] → docs/releases/.../telemetry.json   ← final artifact
+```
+
+## Simulation Mode Behavior
+
+When `deploy_mode: "dry-run"` (no real production):
+- Post-deploy metrics = re-run perf test suite on locally installed artifact
+- `simulation_mode: true` in telemetry.json
+- `status` field still uses `"healthy"` / `"degraded"` / `"rolled_back"` based on simulated metrics
+- Anomaly detection threshold unchanged (20% rule still applies)
+- `rollback_triggered` = `false` in dry-run (no live deployment to roll back)
+
+## Anomaly Severity Reference
+
+| Delta | Severity | Action |
+|---|---|---|
+| < 15% | Normal variance | No anomaly |
+| 15-20% | Close to threshold | Log as warning in anomalies array |
+| > 20% | Anomaly | Add to anomalies array |
+| > 100% (2×) | Critical | Present rollback decision to user |
+
+## next_cycle_inputs Priority Guide
+
+| Source | Default priority |
+|---|---|
+| Error rate anomaly in production | HIGH |
+| P99 > 15% degradation | HIGH |
+| PR review DEFERRED items | MEDIUM |
+| Deprecated items in CHANGELOG | MEDIUM |
+| SAST LOW severity suppressed | LOW |
+| Single-test AC coverage | LOW |
 
 ## Process Flow
 
-```dot
-digraph telemetry {
-    rankdir=TD;
-    confirm  [label="1. Confirm\ns7-deploy DONE", shape=diamond];
-    baseline [label="2. Capture 24h\nproduction baseline", shape=box];
-    compare  [label="3. Compare to\ns6-test-perf baseline", shape=box];
-    stable   [label="Metrics\nstable?", shape=diamond];
-    report   [label="4. Write structured\ntelemetry report", shape=box];
-    feedback [label="5. Feed findings\nto Stage 2 next cycle", shape=box];
-    done     [label="DONE — cycle complete", shape=doublecircle];
-    rollback [label="ALERT → trigger\ns7-deploy rollback", shape=doublecircle, style=filled, fillcolor="#ffcccc"];
-
-    confirm -> baseline [label="yes"];
-    confirm -> rollback [label="no — deploy failed"];
-    baseline -> compare;
-    compare -> stable;
-    stable -> report [label="yes"];
-    stable -> rollback [label="no — degradation"];
-    report -> feedback;
-    feedback -> done;
-}
+```
+deploy.md (DEPLOYED/DRY-RUN) + CHANGELOG.md + perf-baseline.json
+   ↓ All three exist?
+   ├── NO → NEEDS_CONTEXT
+   └── YES
+        ↓
+   Determine simulation_mode (from deploy.md)
+        ↓
+   Collect post-deploy metrics (live or re-run perf suite)
+        ↓
+   Compare pre vs post (20% rule per metric)
+        ↓
+   Any metric > 2× baseline?
+   ├── YES (live mode) → present rollback decision to user → BLOCKED
+   └── NO → log anomalies, continue
+        ↓
+   Extract next_cycle_inputs from audit/SAST/PR review/CHANGELOG
+        ↓
+   Write docs/releases/.../telemetry.json
+        ↓
+   git commit
+        ↓
+   "Stage 7 complete. next_cycle_inputs ready."
+        ↓
+   Await approval to close iteration
 ```
 
 </supporting-info>
