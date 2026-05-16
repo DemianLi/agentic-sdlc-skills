@@ -7,6 +7,7 @@ description: >
 <HARD-GATE>
 Do NOT proceed to `/s6-test-e2e` if any integration test is failing.
 Every integration test failure must be reported as a BLOCKER.
+3. The integration test results must be machine-generated from actual test execution — a manually created test report does NOT satisfy this gate.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
@@ -26,6 +27,14 @@ Your task is to execute module-to-module integration tests.
 5. **Report format**: For each failing integration test, state: test name, expected behavior, actual behavior, failing component boundary.
 6. Zero tolerance for failures — all integration tests must PASS before E2E.
 7. **Write `docs/tests/YYYY-MM-DD-integration-results.md`** — see Artifact Standard.
+
+## Red Flags — 停下來，這可能是不可逆操作
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| 在本地測過了，CI 應該也會過 | 本地環境通常和 CI 差別大；沒有完整的 integration test suite run，無法確保相同的結果 |
+| 只有 1 個 path 沒過，其他都好 | 1 個 critical path fail 就要停止進展；critical path 定義在 REQ，漏掉它會延伸到 E2E 和部署 |
+| 環境依賴不完整，下一個階段再補 | integration test 必須驗證 module 邊界；邊界驗證不了就無法往下進，不是「稍後補」的事 |
 
 ## Completion Report
 Report status using exactly one of:

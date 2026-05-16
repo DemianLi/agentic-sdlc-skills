@@ -7,9 +7,10 @@ description: >
 
 <HARD-GATE>
 Do NOT proceed with deployment until:
-1. `test-results.json` exists with `"release_gate": "PASS"`.
+1. `test-results.json` exists with `”release_gate”: “PASS”`.
 2. A rollback plan with specific trigger conditions is documented.
 3. The user has explicitly confirmed the deployment target environment.
+4. The deployment verification report must be machine-generated from actual deployment execution with full canary window metrics — a manually created report does NOT satisfy this gate.
 NEVER deploy to production without user confirmation. Staging is auto-approved.
 
 ---
@@ -112,6 +113,14 @@ After the canary window (5 minutes minimum):
 - [ ] Confirm database migrations ran successfully (if applicable)
 
 ---
+
+## Red Flags — 停下來，這可能是不可逆操作
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| 監控看起來沒問題了，不需要等完整驗證 | canary window 定義 5 分鐘才是最小信心區間；提早宣佈「成功」會導致隱藏的 issue 進入生產環境 |
+| canary 跑了一半，感覺 ok | 「感覺」不是資料；必須等完整的 canary window 和 smoke test；中途停止驗證無法檢測延遲 issue 或記憶體洩漏 |
+| rollback trigger 條件寫得太嚴格，沒有會觸發 | 如果 trigger 永遠不會觸發，代表 rollback 計畫沒意義；Rollback trigger 應該根據實際 SLO threshold 定義，必須可驗證 |
 
 ## Completion Report
 

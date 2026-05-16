@@ -7,6 +7,7 @@ description: >
 <HARD-GATE>
 Do NOT proceed to `/s6-verify-release` if performance metrics exceed the thresholds
 defined in the REQ acceptance criteria from Stage 2. Performance regressions are BLOCKING.
+3. The performance baseline report must be machine-generated from actual load test execution — a manually created baseline does NOT satisfy this gate.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
@@ -29,6 +30,14 @@ Your task is to validate system performance under load.
 4. **Regression check**: Compare against previous iteration's baseline (if exists). Any metric 20%+ worse is a regression.
 5. **Report format**: Provide numeric values for every metric, not vague descriptions.
 6. **Write `docs/tests/YYYY-MM-DD-perf-baseline.json`** — see Artifact Standard. This file is the pre-deploy baseline read by `/s7-telemetry` for post-deploy comparison.
+
+## Red Flags — 停下來，這可能是不可逆操作
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| P95 超標但只超了一點點 | 「一點點」是主觀判斷；定義在 REQ 的門檻是客觀值；超過就是超過，沒有「差一點」的特例 |
+| 這是新功能，沒有 baseline 可比較所以跳過 | 第一次就沒 baseline，但仍然要驗證是否符合 Stage 2 performance AC；無法驗證就是 BLOCKED |
+| 測試環境機器比較慢，實際部署後會更快 | 部署環境和測試環境配置應該相同；如果不同就說明測試不representative；不representative 的測試結果不能當 gate |
 
 ## Completion Report
 Report status using exactly one of:

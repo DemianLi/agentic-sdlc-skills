@@ -11,6 +11,7 @@ Do NOT issue the "Ready for Delivery" signal until:
 2. ALL integration tests pass.
 3. ALL E2E tests for the in-scope user flows pass.
 4. The `test-results.json` artifact has been written and committed.
+5. The `test-results.json` must be machine-generated from actual command runs — a manually created file does NOT satisfy this gate.
 If any gate fails, status is BLOCKED — Stage 7 cannot proceed.
 
 ---
@@ -135,6 +136,14 @@ If any gate is FAIL, set `"release_gate": "BLOCKED"` and populate `"blockers"` a
 **If BLOCKED**: State exactly which gates failed and what must be fixed. Do NOT proceed to Stage 7.
 
 ---
+
+## Red Flags — 停下來，這可能是不可逆操作
+
+| 如果你在想… | 現實是 |
+|------------|--------|
+| test-results.json 我手動填的，數字是對的 | 手動填的無法追蹤數據來源，無法審計；一旦部署後出問題，無法重現驗證過程 |
+| coverage 79% 差一點點算通過 | coverage gate 定義在 RULES.md；差 1% 就是不通過；門檻存在的目的就是強制執行，不是建議值 |
+| 沒有 traceability matrix，但覆蓋看起來夠 | traceability matrix 是法律文件；「看起來夠」不是證據；必須有 AC-N.M 到 test case 的映射 |
 
 ## Completion Report
 
