@@ -1,6 +1,6 @@
 # Agentic SDLC Skills
 
-27 atomic Skill files that drive an AI Agent through a structured, gated 7-stage Software Development Lifecycle. Each Skill is a Markdown file that defines a Role, a Workflow, and a HARD-GATE — a mandatory stop that blocks the Agent from proceeding until explicit human approval is given.
+29 atomic Skill files that drive an AI Agent through a structured, gated Software Development Lifecycle. The core pipeline is 7 stages (Foundation → Release); two standalone Stage 0 skills operate outside the pipeline and can be used at any time. Each Skill is a Markdown file that defines a Role, a Workflow, and a HARD-GATE — a mandatory stop that blocks the Agent from proceeding until explicit human approval is given.
 
 ---
 
@@ -12,6 +12,17 @@ AI Agents are fast but undisciplined. Left ungated, they will:
 - Self-approve quality gates and push to production
 
 This Skill system forces the Agent to work the same way a senior engineering team does: produce an artifact, present it, stop, wait for a human to approve, then proceed.
+
+---
+
+## Stage 0 — Standalone Skills (use any time)
+
+Two skills operate outside the s1–s7 pipeline. They produce artifacts that can optionally feed into the pipeline but do not block or gate it.
+
+| Slash Command | Purpose | Optional output feeds into |
+|---|---|---|
+| `/s0-brainstorm` | Explore a problem space; produce a framed problem statement | `/s2-capture-vision` |
+| `/s0-trace-feature` | Trace an existing feature's call chain; produce a Mermaid sequence diagram | `/s3-eval-system` or `/s2-capture-vision` |
 
 ---
 
@@ -37,10 +48,12 @@ Each arrow is a **Handoff** — a set of committed artifacts that must exist bef
 
 ---
 
-## The 27 Skills
+## The 29 Skills
 
 | Stage | Role | Slash Command | Purpose |
 |---|---|---|---|
+| 0 *(standalone)* | Problem Scout | `/s0-brainstorm` | Explore problem space; produce framed problem statement |
+| 0 *(standalone)* | Code Archaeologist | `/s0-trace-feature` | Trace existing feature call chain; produce Mermaid sequence diagram |
 | 1 | Foundation Engineer | `/s1-define-rules` | Author `RULES.md` (linter, directory, forbidden patterns) |
 | 1 | Foundation Engineer | `/s1-config-context` | Author domain glossary `CONTEXT.md` |
 | 1 | Foundation Engineer | `/s1-lock-tech-stack` | Pin runtime + framework versions; generate lock files |
@@ -125,6 +138,7 @@ Available in all Claude Code sessions.
 
 ```
 skills/
+  s0-*/SKILL.md     Stage 0 — Standalone (2 skills, outside pipeline)
   s1-*/SKILL.md     Stage 1 — Foundation Engineer (3 skills)
   s2-*/SKILL.md     Stage 2 — Product Manager (4 skills)
   s3-*/SKILL.md     Stage 3 — System Architect (4 skills)

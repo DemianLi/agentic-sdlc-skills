@@ -42,6 +42,22 @@ TASK_DAG.md updated    Audit report           e2e-results            CHANGELOG.m
 
 ---
 
+## s0-trace-feature → Stage 3 or Stage 2 (Optional)
+
+**From**: Code Archaeologist (s0-trace-feature)
+**To**: System Architect (s3-eval-system) **or** Product Manager (s2-capture-vision) — **user-initiated, not automatic**
+**Triggered by**: User explicitly runs `/s3-eval-system` or `/s2-capture-vision` after reviewing the trace
+
+### Required Artifact (if used)
+
+| Artifact | Path | Required Sections |
+|---|---|---|
+| Feature trace | `docs/traces/YYYY-MM-DD-<feature-slug>.md` | Sequence Diagram / Business Logic Summary / Confirmed Facts / Gaps & Unknowns / Boundary Map |
+
+> `s0-trace-feature` is outside the s1–s7 pipeline. Its output is optional codebase context — not a gate — for `/s3-eval-system` (impact assessment) or `/s2-capture-vision` (if the user plans to modify the traced feature).
+
+---
+
 ## Stage 1 → Stage 2 Handoff
 
 **From**: Foundation Engineer

@@ -1,11 +1,11 @@
 # Agentic Skill System
 
-This context defines the ubiquitous language for the 7-stage Agentic Software Development Lifecycle (SDLC) framework. It establishes how AI Agents are directed through different phases of software development using specialized, atomic instructions.
+This context defines the ubiquitous language for the Agentic Software Development Lifecycle (SDLC) framework. The core pipeline has 7 sequential stages (Foundation Engineer → Release Manager); two additional standalone skills (Stage 0) operate outside the pipeline and may be used at any time. It establishes how AI Agents are directed through different phases of software development using specialized, atomic instructions.
 
 ## Language
 
 **Stage**:
-One of the 7 sequential phases of the Agentic SDLC (from Initialization to Delivery).
+One of the 7 sequential phases of the Agentic SDLC pipeline (Foundation Engineer → Release Manager). Stage 0 is a special label for standalone skills that exist outside the pipeline.
 *Avoid*: Phase, Step, Level
 
 **Role**:
@@ -17,8 +17,12 @@ A discrete, atomic Markdown file containing instructions for a specific Role to 
 *Avoid*: Prompt, Command, Script
 
 **Slash Command**:
-The user-facing trigger for a Skill, following the strict naming convention `/s{StageNumber}-{Action}` (e.g., `/s4-tdd`).
+The user-facing trigger for a Skill, following the naming convention `/s{StageNumber}-{Action}` (e.g., `/s4-tdd`, `/s0-trace-feature`). Stage 0 commands use `/s0-` prefix and are standalone — not part of the sequential pipeline.
 *Avoid*: Trigger, Command Line, Input
+
+**Standalone Skill**:
+A Skill with the `/s0-` prefix that operates outside the s1–s7 pipeline. It produces an artifact that may optionally feed into the pipeline but is never a required gate. Current standalone skills: `/s0-brainstorm`, `/s0-trace-feature`.
+*Avoid*: Pre-stage skill, utility skill
 
 **OpenSpec**:
 The highly rigorous specification document format produced in Stage 3, serving as the absolute single source of truth (Source of Truth) for Stage 4's Test-Driven Development (TDD).
@@ -34,6 +38,7 @@ A functionally independent, minimal unit of work derived from the technical desi
 - A **Role** possesses multiple atomic **Skills**.
 - A **Skill** is invoked via exactly one **Slash Command**.
 - The **OpenSpec** dictates the acceptable outcomes for an **Atomic Task**.
+- A **Standalone Skill** has no upstream gate and no downstream requirement; its artifact is optional input to a pipeline stage.
 
 ## Example dialogue
 
