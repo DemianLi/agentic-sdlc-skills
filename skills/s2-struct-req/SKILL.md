@@ -71,6 +71,18 @@ Wait for explicit approval.
 
 ---
 
+## Change Control
+
+Once this document is approved and committed, it becomes a contract. Any scope change requires:
+
+1. Create a new version (e.g., `v1.1`) of the requirements file — do NOT silently edit the committed version.
+2. Explicitly state what changed and why (ADDED / MODIFIED / REMOVED requirement).
+3. Re-present to the user and obtain a new explicit sign-off before Stage 3 proceeds.
+
+> If a Stage 4 implementer discovers a requirement is unclear or missing, they must return here — not interpret forward.
+
+---
+
 ## Red Flags — 停下來重新考慮
 
 | 如果你在想… | 現實是 |

@@ -159,11 +159,27 @@ After all behaviors are GREEN:
 
 ---
 
+## Coverage Gate
+
+After all behaviors are GREEN, run the coverage report and check against the threshold in `RULES.md` (default: 80% if not specified):
+
+```bash
+pytest --cov=. --cov-report=term-missing
+```
+
+| Coverage | Status |
+|----------|--------|
+| ≥ threshold | **DONE** — attach coverage summary |
+| 60% – threshold | **DONE_WITH_CONCERNS** — list uncovered lines and why |
+| < 60% | **BLOCKED** — coverage too low; add tests before proceeding |
+
+Do NOT self-report coverage. Paste the actual `pytest --cov` terminal output.
+
 ## Completion Report
 
 At the end of this skill, report status using exactly one of:
-- **DONE** — all behaviors tested and GREEN. Coverage report attached.
-- **DONE_WITH_CONCERNS** — all GREEN, but list specific concerns (e.g., coverage < threshold).
+- **DONE** — all behaviors tested and GREEN. Coverage ≥ threshold. Coverage report attached.
+- **DONE_WITH_CONCERNS** — all GREEN, but coverage between 60% and threshold. List uncovered lines.
 - **BLOCKED** — state the exact blocker and what was tried.
 - **NEEDS_CONTEXT** — state exactly what information is missing.
 
