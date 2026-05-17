@@ -1,0 +1,37 @@
+name: Skill Alignment Check
+
+on:
+  pull_request:
+    paths:
+      - 'skills/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'skills/**'
+
+jobs:
+  alignment:
+    name: s0-eval-alignment scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Run alignment scanner
+        run: python3 skills/s0-eval-alignment/scripts/scan.py
+
+      - name: Write dated report (on push to main)
+        if: github.event_name == 'push'
+        run: python3 skills/s0-eval-alignment/scripts/scan.py --write
+
+      - name: Upload alignment report
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: alignment-scan-report
+          path: docs/skill-evals/
