@@ -9,6 +9,10 @@ description: >
 Do NOT proceed to `/s3-breakdown-wbs` until:
 1. The OpenSpec design document has been written and COMMITTED to git.
 
+A design that exists only in memory is not an artifact; it is an intention.
+`/s3-breakdown-wbs` reads `docs/arch/YYYY-MM-DD-<topic>-design.md` — if that file
+does not exist on disk and in git, the next stage has nothing to read and cannot start.
+
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
 After presenting the required artifact, your message MUST end with exactly:
