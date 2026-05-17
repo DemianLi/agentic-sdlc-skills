@@ -1,6 +1,6 @@
 # Agentic SDLC Skills
 
-29 atomic Skill files that drive an AI Agent through a structured, gated Software Development Lifecycle. The core pipeline is 7 stages (Foundation → Release); two standalone Stage 0 skills operate outside the pipeline and can be used at any time. Each Skill is a Markdown file that defines a Role, a Workflow, and a HARD-GATE — a mandatory stop that blocks the Agent from proceeding until explicit human approval is given.
+32 atomic Skill files that drive an AI Agent through a structured, gated Software Development Lifecycle. The core pipeline is 7 stages (Foundation → Release); four standalone Stage 0 skills operate outside the pipeline and can be used at any time. Each Skill is a Markdown file that defines a Role, a Workflow, and a HARD-GATE — a mandatory stop that blocks the Agent from proceeding until explicit human approval is given.
 
 ---
 
@@ -17,12 +17,14 @@ This Skill system forces the Agent to work the same way a senior engineering tea
 
 ## Stage 0 — Standalone Skills (use any time)
 
-Two skills operate outside the s1–s7 pipeline. They produce artifacts that can optionally feed into the pipeline but do not block or gate it.
+Four skills operate outside the s1–s7 pipeline. They produce artifacts that can optionally feed into the pipeline but do not block or gate it.
 
 | Slash Command | Purpose | Optional output feeds into |
 |---|---|---|
 | `/s0-brainstorm` | Explore a problem space; produce a framed problem statement | `/s2-capture-vision` |
 | `/s0-trace-feature` | Trace an existing feature's call chain; produce a Mermaid sequence diagram | `/s3-eval-system` or `/s2-capture-vision` |
+| `/s0-eval-skill` | Audit a single skill against 6 structural quality criteria; output a scored report | Skill author fixes drift |
+| `/s0-eval-alignment` | Batch-scan all 28 s1–s7 skills against QA.md design intent; detect drift before it compounds | Maintainer applies fixes |
 
 ---
 
@@ -54,9 +56,12 @@ Each arrow is a **Handoff** — a set of committed artifacts that must exist bef
 |---|---|---|---|
 | 0 *(standalone)* | Problem Scout | `/s0-brainstorm` | Explore problem space; produce framed problem statement |
 | 0 *(standalone)* | Code Archaeologist | `/s0-trace-feature` | Trace existing feature call chain; produce Mermaid sequence diagram |
+| 0 *(standalone)* | Skill Auditor | `/s0-eval-skill` | Audit single skill against 6 structural quality criteria |
+| 0 *(standalone)* | Alignment Inspector | `/s0-eval-alignment` | Batch-scan all s1–s7 skills for design-intent drift |
 | 1 | Foundation Engineer | `/s1-define-rules` | Author `RULES.md` (linter, directory, forbidden patterns) |
 | 1 | Foundation Engineer | `/s1-config-context` | Author domain glossary `CONTEXT.md` |
 | 1 | Foundation Engineer | `/s1-lock-tech-stack` | Pin runtime + framework versions; generate lock files |
+| 1 | Foundation Engineer | `/s1-git-guardrails` | Configure git hooks, branch protection, and commit conventions |
 | 2 | Product Manager | `/s2-capture-vision` | Elicit problem statement, target users, proposed approach |
 | 2 | Product Manager | `/s2-align-req` | Resolve stakeholder conflicts, define scope boundary |
 | 2 | Product Manager | `/s2-struct-req` | Write structured requirements with binary Acceptance Criteria |
@@ -138,17 +143,26 @@ Available in all Claude Code sessions.
 
 ```
 skills/
-  s0-*/SKILL.md     Stage 0 — Standalone (2 skills, outside pipeline)
-  s1-*/SKILL.md     Stage 1 — Foundation Engineer (3 skills)
-  s2-*/SKILL.md     Stage 2 — Product Manager (4 skills)
-  s3-*/SKILL.md     Stage 3 — System Architect (4 skills)
-  s4-*/SKILL.md     Stage 4 — Implementer (4 skills)
-  s5-*/SKILL.md     Stage 5 — Code Auditor (4 skills)
-  s6-*/SKILL.md     Stage 6 — QA Engineer (4 skills)
-  s7-*/SKILL.md     Stage 7 — Release Manager (4 skills)
-CONTEXT.md          Domain glossary and ubiquitous language
-HANDOFF.md          Artifact pipeline and acceptance criteria between stages
-REVIEW_NOTES.md     Gap analysis and improvement history
+  s0-brainstorm/        Problem Scout — framed problem statement
+  s0-trace-feature/     Code Archaeologist — feature call-chain diagram
+  s0-eval-skill/        Skill Auditor — single-skill structural quality check
+  s0-eval-alignment/    Alignment Inspector — batch drift detection (28 skills)
+    references/         skill-design-intent.md (evaluation baseline)
+    scripts/scan.py     Reusable CLI scanner (exit 0 = all ALIGNED)
+    tests/              Smoke-test fixtures + expected output
+  s1-*/SKILL.md         Stage 1 — Foundation Engineer (4 skills)
+  s2-*/SKILL.md         Stage 2 — Product Manager (4 skills)
+  s3-*/SKILL.md         Stage 3 — System Architect (4 skills)
+  s4-*/SKILL.md         Stage 4 — Implementer (4 skills)
+  s5-*/SKILL.md         Stage 5 — Code Auditor (4 skills)
+  s6-*/SKILL.md         Stage 6 — QA Engineer (4 skills)
+  s7-*/SKILL.md         Stage 7 — Release Manager (4 skills)
+docs/
+  skill-evals/          Alignment scan reports (YYYY-MM-DD-alignment-scan.md)
+  BENCHMARK_REFERENCE.md  Design analysis of 4 reference repos
+CONTEXT.md              Domain glossary and ubiquitous language
+HANDOFF.md              Artifact pipeline and acceptance criteria between stages
+QA.md                   28-step SDLC quality checklist (design intent source of truth)
 ```
 
 ---
@@ -182,6 +196,35 @@ description: <one-line summary>
 - **Human-in-the-loop** — every Stage gate requires explicit approval before proceeding
 - **Evidence over assertion** — the Agent must paste actual terminal output, not claim success
 - **Blocked handoffs escalate backward** — if an artifact is missing, the Agent reports `NEEDS_CONTEXT` and halts; it never infers forward
+- **Description as trigger, not summary** *(Matt Pocock principle)* — every skill's `description` field states only *when* to use it; no workflow steps are summarised there, so the Agent always reads the full `<what-to-do>` body
+
+---
+
+## Alignment tooling
+
+Run the scanner at any time to verify that all skills still match their original design intent:
+
+```bash
+# Full scan — console output
+python3 skills/s0-eval-alignment/scripts/scan.py
+
+# Single stage
+python3 skills/s0-eval-alignment/scripts/scan.py --stage s6
+
+# Write dated report to docs/skill-evals/
+python3 skills/s0-eval-alignment/scripts/scan.py --write
+```
+
+The scanner checks four dimensions per skill:
+
+| Check | What it verifies |
+|-------|-----------------|
+| **Q** — QA.md alignment | ≥ 3 design-intent keywords present in skill body |
+| **C1** — HARD-GATE | `<HARD-GATE>` block exists; ends with "Awaiting your approval" |
+| **C2** — Artifact chain | `<supporting-info>` declares explicit **Reads** and **Writes** |
+| **C3** — Matt Pocock | `description` contains no workflow steps or process verbs |
+
+Exits `0` if all skills are ALIGNED; exits `1` if any are PARTIAL or DRIFTED (CI-friendly).
 
 ---
 
