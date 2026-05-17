@@ -1,0 +1,23 @@
+[
+  "tests/test_cli.py::test_bad_extension_exits_two",
+  "tests/test_cli.py::test_compliant_exits_zero",
+  "tests/test_cli.py::test_compliant_prints_pass",
+  "tests/test_cli.py::test_failing_exits_zero_without_strict",
+  "tests/test_cli.py::test_failing_strict_exits_one",
+  "tests/test_cli.py::test_json_fail_has_violations",
+  "tests/test_cli.py::test_json_output_valid",
+  "tests/test_parser.py::test_parse_categories",
+  "tests/test_parser.py::test_parse_detects_unreleased",
+  "tests/test_parser.py::test_parse_no_unreleased",
+  "tests/test_parser.py::test_parse_raw_lines_nonempty",
+  "tests/test_parser.py::test_parse_returns_parsed_changelog",
+  "tests/test_parser.py::test_parse_version_block_bad_date_preserved",
+  "tests/test_parser.py::test_parse_version_block_date",
+  "tests/test_parser.py::test_parse_version_blocks_count",
+  "tests/test_rules.py::test_compliant_no_violations",
+  "tests/test_rules.py::test_r1_missing_unreleased",
+  "tests/test_rules.py::test_r2_bad_date",
+  "tests/test_rules.py::test_r3_unknown_category",
+  "tests/test_rules.py::test_r5_unreleased_not_first",
+  "tests/test_rules.py::test_violation_has_fields"
+]
