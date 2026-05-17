@@ -50,7 +50,7 @@ Each arrow is a **Handoff** — a set of committed artifacts that must exist bef
 
 ---
 
-## The 29 Skills
+## The 32 Skills
 
 | Stage | Role | Slash Command | Purpose |
 |---|---|---|---|
@@ -225,6 +225,21 @@ The scanner checks four dimensions per skill:
 | **C3** — Matt Pocock | `description` contains no workflow steps or process verbs |
 
 Exits `0` if all skills are ALIGNED; exits `1` if any are PARTIAL or DRIFTED (CI-friendly).
+
+### CI enforcement
+
+A GitHub Actions workflow (`.github/workflows/alignment.yml`) runs automatically on every PR and push that touches `skills/**`:
+
+1. **Smoke tests** — `pytest skills/s0-eval-alignment/tests/ -v` (fixture-aligned + fixture-drifted)
+2. **Alignment scan** — `python3 skills/s0-eval-alignment/scripts/scan.py` (exits 1 → blocks merge if any skill drifts)
+3. **Dated report** — on push to `main`, writes `docs/skill-evals/YYYY-MM-DD-alignment-scan.md` and uploads as a GitHub Actions artifact
+
+To run the smoke tests locally:
+
+```bash
+pip install pytest
+pytest skills/s0-eval-alignment/tests/ -v
+```
 
 ---
 
