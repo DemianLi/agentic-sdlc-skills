@@ -3,10 +3,11 @@
 **Date**: 2026-05-17
 **Evaluator**: s0-eval-alignment
 **基線**: `skills/s0-eval-alignment/references/skill-design-intent.md`
+**最終狀態**: ✅ 全部修復完成（同日）
 
 ---
 
-## 總覽表
+## 總覽表（修復後最終結果）
 
 | Skill | Step | Q 對齊 | C1 強制執行 | C2 工件鏈 | C3 Description | 整體 |
 |-------|------|--------|------------|----------|----------------|------|
@@ -22,7 +23,7 @@
 | s3-design-arch | 3.2 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED |
 | s3-breakdown-wbs | 3.3 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED |
 | s3-build-dag | 3.4 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED |
-| s4-setup-env | 4.1 | ⚠️ | ✅ | ✅ | ✅ | ⚠️ PARTIAL |
+| s4-setup-env | 4.1 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED *(修復)* |
 | s4-impl-task | 4.2 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED |
 | s4-tdd | 4.3 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED |
 | s4-local-debug | 4.4 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED |
@@ -30,16 +31,16 @@
 | s5-audit-rules | 5.2 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED |
 | s5-pr-review | 5.3 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED |
 | s5-fix-optimize | 5.4 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED |
-| s6-test-integration | 6.1 | ⚠️ | ✅ | ✅ | ✅ | ⚠️ PARTIAL |
+| s6-test-integration | 6.1 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED *(修復)* |
 | s6-test-e2e | 6.2 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED |
-| s6-test-perf | 6.3 | ⚠️ | ✅ | ✅ | ✅ | ⚠️ PARTIAL |
+| s6-test-perf | 6.3 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED *(修復)* |
 | s6-verify-release | 6.4 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED |
 | s7-build-artifact | 7.1 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED |
-| s7-release-notes | 7.2 | ⚠️ | ✅ | ✅ | ✅ | ⚠️ PARTIAL |
-| s7-deploy | 7.3 | ⚠️ | ✅ | ✅ | ✅ | ⚠️ PARTIAL |
+| s7-release-notes | 7.2 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED *(修復)* |
+| s7-deploy | 7.3 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED *(修復)* |
 | s7-telemetry | 7.4 | ✅ | ✅ | ✅ | ✅ | ✅ ALIGNED |
 
-**總計**：23/28 ✅ ALIGNED，5/28 ⚠️ PARTIAL，0/28 ❌ DRIFTED
+**最終總計**：**28/28 ✅ ALIGNED，0/28 ⚠️ PARTIAL，0/28 ❌ DRIFTED**
 
 ---
 
@@ -57,90 +58,56 @@
 
 ---
 
-## PARTIAL 清單（5 個 skill）
+## 修復紀錄（初掃 5 個 PARTIAL → 同日修復完畢）
 
-### s4-setup-env — Step 4.1
+### s4-setup-env — Step 4.1 ✅ 已修復
 
-**概念缺口**：QA.md 4.1 明確提到「Git Worktree」和「開發沙盒」，但 skill 只涉及 feature branch checkout，未提及 `git worktree add` 工作流。若專案採用 Worktree 並行開發模式，此 skill 的指引不足。
+**概念缺口**：QA.md 4.1 明確提到「Git Worktree」和「開發沙盒」，但 skill 只涉及 feature branch checkout，未提及 `git worktree add` 工作流。
 
-**現有覆蓋**：`git checkout -b`、branch 驗證、workspace 清潔度確認 ✅
-
-**建議**：在 Step 2 Branch Setup 中補充 Worktree 作為替代選項：
-```
-git worktree add ../task-N-<slug> -b task-N-<slug>
-```
+**修復內容**：在 Step 2 Branch Setup 補充 Worktree 模式作為替代選項，說明適用場景（DAG 多條平行路徑同時推進）。
 
 ---
 
-### s6-test-integration — Step 6.1
+### s6-test-integration — Step 6.1 ✅ 已修復
 
-**概念缺口**：QA.md 6.1「將多個原子任務的代碼**合併後**，執行模組間整合測試」— 合併（merge/combine）步驟作為整合測試的前提未在 skill 中明確。AI 可能跳過合併驗證直接跑測試。
+**概念缺口**：QA.md 6.1「將多個原子任務的代碼**合併後**，執行模組間整合測試」— 合併步驟作為整合測試的前提未在 skill 中明確。
 
-**現有覆蓋**：module-to-module 整合測試、blocking 判斷 ✅
-
-**建議**：在 Step 0 加入前提確認：「確認所有待測 Atomic Task 已合併至同一分支，否則 BLOCKED」。
+**修復內容**：新增 Step 0「前提確認：分支整合驗證」，未合併即 BLOCKED，附驗證指令。
 
 ---
 
-### s6-test-perf — Step 6.3
+### s6-test-perf — Step 6.3 ✅ 已修復
 
-**概念缺口**：QA.md 6.3 點名三種具體失敗模式：記憶體洩漏、資料庫死鎖、響應時間。Skill 涵蓋負載測試工具與 P99 閾值，但未要求明確偵測前兩種失敗模式。
+**概念缺口**：QA.md 6.3 點名三種具體失敗模式：記憶體洩漏、資料庫死鎖、響應時間。Skill 缺少前兩種的偵測方法。
 
-**現有覆蓋**：k6/Artillery/Locust、concurrent users、response time ✅
-
-**建議**：在 Step 2 加入記憶體分析（`memory-profiler`、heap snapshot）與資料庫死鎖偵測（query timeout log 分析）作為可選但推薦的額外測試步驟。
+**修復內容**：在 Step 4 新增記憶體洩漏偵測（tracemalloc / heap snapshot）與資料庫死鎖偵測（PostgreSQL `log_lock_waits` / MySQL `innodb_print_all_deadlocks`）作為 Optional but Recommended 步驟。
 
 ---
 
-### s7-release-notes — Step 7.2
+### s7-release-notes — Step 7.2 ✅ 已修復
 
-**概念缺口**：QA.md 7.2「變更日誌、**升級指南**與 **API 變更文檔**」。Skill 產出 CHANGELOG.md 條目，但未處理升級指南（breaking changes 的遷移說明）與 API 變更文檔（endpoint 增刪改摘要）。
+**概念缺口**：QA.md 7.2「變更日誌、**升級指南**與 **API 變更文檔**」。Skill 只產出 CHANGELOG.md，未處理升級指南與 API 變更文檔。
 
-**現有覆蓋**：git log 解析、CHANGELOG.md（Keep a Changelog 格式）✅
-
-**建議**：在 Step 3 加入判斷：若本次變更包含 breaking changes 或 API 異動，產出額外的 `UPGRADE.md` 段落與 API diff 摘要。
+**修復內容**：在 Step 3 新增「條件性產出」區段，breaking changes 或 API 異動時額外產出 UPGRADE.md 段落與 API diff 摘要（表格格式）。
 
 ---
 
-### s7-deploy — Step 7.3
+### s7-deploy — Step 7.3 ✅ 已修復
 
-**概念缺口**：QA.md 7.3「透過 **GitOps** 或部署工具」。Skill 涵蓋 Docker/k8s/fly.io 直接部署，但未提及 GitOps（ArgoCD/Flux）作為替代路徑，可能讓採用 GitOps 的團隊無從對應。
+**概念缺口**：QA.md 7.3「透過 **GitOps** 或部署工具」。Skill 只涵蓋直接部署，未提及 GitOps（ArgoCD/Flux）路徑。
 
-**現有覆蓋**：dry-run 模式、k8s、fly.io、PyPI、Docker registry ✅
-
-**建議**：在 Deploy Mode Selection 加入 GitOps 路徑：「若團隊使用 ArgoCD/Flux，部署即為 PR 合入 main；smoke test 在 CD pipeline 完成後執行」。
+**修復內容**：在 Deploy Mode Selection 表格新增 `gitops` 模式，說明「部署即為 PR 合入 main，smoke test 等待 ArgoCD sync 完成後執行」。
 
 ---
 
-## 優先修復建議
-
-| 優先 | Skill | 修復描述 | 影響 |
-|------|-------|---------|------|
-| 🔴 P1 | s7-release-notes | 補充升級指南與 API 變更文檔輸出邏輯 | breaking changes 無人處理 |
-| 🔴 P1 | s6-test-integration | 補充合併前提確認步驟 | 可能跳過跨 task 整合 |
-| 🟡 P2 | s6-test-perf | 加入記憶體洩漏與資料庫死鎖偵測指引 | 線上問題漏網 |
-| 🟡 P2 | s7-deploy | 補充 GitOps 部署路徑 | GitOps 團隊無法使用 |
-| 🟢 P3 | s4-setup-env | 補充 `git worktree` 作為替代工作流 | 並行開發場景缺支援 |
-
----
-
-## 元發現：Rubric 校準問題
+## 元發現：Rubric 校準問題（已修復）
 
 本次掃描發現 **skill-design-intent.md 的關鍵詞列表為純中文**，但 s1-s7 大量 skill 採用**英文術語**（如 `business logic`、`sequence diagram`、`SAST`、`Docker image`）。
 
 初步 grep 將 13 個 skill 標記為 PARTIAL，人工驗證後確認 8 個為**誤判（false negative）**。
 
-**建議行動**：更新 `references/skill-design-intent.md`，為每個關鍵詞補充英文對等詞，例如：
-
-```
-資料結構 / data struct / schema
-接口 / interface / contract / API
-時序 / sequence
-記憶體洩漏 / memory leak
-```
-
-此修改可讓未來的自動化掃描不需人工複核。
+**已修復**：`references/skill-design-intent.md` 全部 28 個 skill 的關鍵詞已補充中英雙語對等詞（格式：`中文 / English`），未來自動化掃描不需人工複核。
 
 ---
 
-*此報告由 s0-eval-alignment 產出。下次掃描建議在任何 s1-s7 skill 有重大改動後執行。*
+*此報告由 s0-eval-alignment 產出，並於同日完成全部修復。下次掃描建議在任何 s1-s7 skill 有重大改動後執行。*
