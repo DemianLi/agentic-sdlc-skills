@@ -31,6 +31,9 @@ Your task is to deploy the versioned artifact and confirm stability via smoke te
 |---|---|---|
 | `live` | Real target available (k8s, fly.io, Docker registry, PyPI) | `"live"` |
 | `dry-run` | No real target (trial, CI preview, local validation) | `"dry-run"` |
+| `gitops` | 團隊使用 ArgoCD / Flux；部署即為 PR 合入 main，CD pipeline 自動觸發 | `"gitops"` |
+
+**GitOps 模式說明**：選擇 `gitops` 時，「部署」動作本身即為將變更 PR 合入 `main` 分支。不需手動執行 `kubectl apply` 或 `fly deploy`。Smoke test 應等待 ArgoCD sync / Flux reconcile 完成後再執行（通常透過 `argocd app wait <app> --sync` 或觀察 CD pipeline 狀態確認）。
 
 In `dry-run` mode, simulate every step and record what *would* happen.
 Never attempt a real deploy without explicit user confirmation.

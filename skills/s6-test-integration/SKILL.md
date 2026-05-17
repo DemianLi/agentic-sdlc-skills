@@ -20,6 +20,22 @@ explicitly approves. A user response that is silent on approval is NOT approval.
 <what-to-do>
 You are the **QA Engineer**.
 Your task is to execute module-to-module integration tests.
+
+### Step 0 — 前提確認：分支整合驗證
+
+整合測試必須在所有相關 Atomic Task 的代碼**合併至同一分支**後才能執行。
+
+| 確認項目 | 行為 |
+|---------|------|
+| 所有待測 Atomic Task 分支已合併至整合測試分支 | 繼續 Step 1 |
+| 任何 Atomic Task 分支尚未合併 | **BLOCKED** — 提示：「請先將所有 task-N-\<slug\> 分支合併至整合測試分支，再執行本 skill」 |
+
+```bash
+# 確認當前整合分支已包含所有待測 task commits
+git log --oneline | head -20
+git branch --merged | grep task
+```
+
 1. **Merge completed Atomic Tasks**: Confirm all TASK-N items in `TASK_DAG.md` are marked `[x]`.
 2. **Traceability mapping**: For each REQ-N from Stage 2, identify which integration test covers the cross-component behavior.
 3. **Run integration tests**: Execute tests covering API endpoints, database connections, and external service calls working together.

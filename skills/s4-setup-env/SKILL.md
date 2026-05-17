@@ -18,7 +18,19 @@ explicitly approves. A user response that is silent on approval is NOT approval.
 You are the **Implementer**.
 Your task is to prepare the development environment for a specific Atomic Task.
 1. **Task Assignment**: Read `TASK_DAG.md` to identify the next task where all dependencies are marked `[DONE]`. Confirm with user: *"Next task is TASK-N: <title>. Starting this now — confirm?"*
-2. **Branch Setup**: Create or checkout the feature branch: `git checkout -b task-N-<slug>` or pull the correct branch.
+2. **Branch Setup**: 選擇以下其中一種工作流：
+
+   **標準模式**（單一工作目錄）：
+   ```bash
+   git checkout -b task-N-<slug>
+   ```
+
+   **Worktree 模式**（並行開發，多個 task 同時進行不需 stash 切換）：
+   ```bash
+   git worktree add ../task-N-<slug> -b task-N-<slug>
+   cd ../task-N-<slug>
+   ```
+   Worktree 模式讓每個 task 在獨立目錄下開發，適合 DAG 中多條平行路徑同時推進的場景。
 3. **Environment Validation**: Run the project's environment check to confirm all dependencies match Stage 1's locked versions:
    - `node --version` / `go version` / `python --version` — must match lock file
    - `npm ci` / `go mod download` — install from lock file, not latest

@@ -90,6 +90,35 @@ Rules:
 - Present tense, imperative mood: "Add", not "Added" in the entry text
 - If `deploy_mode: "dry-run"`, add a note: `> Note: This release was validated via dry-run. No live deployment was performed.`
 
+### 條件性產出 — 升級指南 & API 變更文檔
+
+若本次版本包含 **breaking changes** 或 **API 異動**，在 CHANGELOG entry 之後額外附加以下段落（或獨立寫入 `UPGRADE.md`）：
+
+| 觸發條件 | 額外產出 |
+|---------|---------|
+| Breaking Changes 段落非空 | 升級指南（遷移步驟） |
+| 任何 endpoint 增刪改 | API 變更摘要 |
+
+**升級指南格式**：
+```markdown
+## Upgrade Guide — v<prev> → v<current>
+
+### Breaking Changes
+- **<功能名稱>**：舊行為 → 新行為
+  - 遷移：將 `<舊呼叫>` 改為 `<新呼叫>`
+```
+
+**API 變更摘要格式**：
+```markdown
+## API Changes — v<current>
+
+| 變更類型 | Endpoint / Method | 說明 |
+|---------|-------------------|------|
+| Added   | POST /api/v2/... | 新增端點 |
+| Removed | GET /api/v1/...  | 已移除，請改用 v2 |
+| Changed | POST /api/...    | 回傳格式新增 `meta` 欄位 |
+```
+
 ### Step 4 — Prepend to CHANGELOG.md
 
 If `CHANGELOG.md` does not exist, create it with a header:

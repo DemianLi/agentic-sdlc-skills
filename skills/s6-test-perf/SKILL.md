@@ -44,6 +44,19 @@ Your task is to validate system performance under load.
    - Error rate under load
    - Throughput (req/s at target concurrency)
    - Memory usage (no leak over 10-minute sustained load)
+
+   **記憶體洩漏偵測（Optional but Recommended）**：
+   ```python
+   # Python: memory-profiler / tracemalloc
+   from tracemalloc import start, take_snapshot, compare_to
+   # 比較 sustained load 前後的記憶體快照；若 RSS 持續增長則 memory_leak_detected: true
+   ```
+   Node.js：使用 `--inspect` + Chrome DevTools heap snapshot 比較 before/after。
+
+   **資料庫死鎖偵測（Optional but Recommended）**：
+   - PostgreSQL：`log_lock_waits = on`，分析 `pg_log` 中的 lock wait timeout
+   - MySQL：`innodb_print_all_deadlocks = ON`，掃描 error log 中的 `DEADLOCK` 關鍵字
+   - 出現 deadlock 或 lock wait timeout → `slo_gate: "FAIL"`
 5. **Regression check**: Compare against previous iteration's baseline (if exists). Any metric 20%+ worse is a regression.
 6. **Report format**: Provide numeric values for every metric, not vague descriptions.
 7. **Write `docs/tests/YYYY-MM-DD-perf-baseline.json`** — see Artifact Standard. This file is the pre-deploy baseline read by `/s7-telemetry` for post-deploy comparison.
