@@ -1,8 +1,8 @@
 ---
 name: s7-build-artifact
 description: >
-  Use after /s6-verify-release produces test-results.json with release_gate: PASS
-  to build, version, and tag the deployable artifact.
+  Use after /s6-verify-release confirms release_gate: PASS to build, version,
+  and tag the deployable artifact.
 ---
 
 <HARD-GATE>
