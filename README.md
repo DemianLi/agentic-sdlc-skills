@@ -149,7 +149,7 @@ skills/
   s0-eval-alignment/    Alignment Inspector — batch drift detection (28 skills)
     references/         skill-design-intent.md (evaluation baseline)
     scripts/scan.py     Reusable CLI scanner (exit 0 = all ALIGNED)
-    tests/              Smoke-test fixtures + expected output
+    tests/              Smoke-test fixtures + pytest suite
   s1-*/SKILL.md         Stage 1 — Foundation Engineer (4 skills)
   s2-*/SKILL.md         Stage 2 — Product Manager (4 skills)
   s3-*/SKILL.md         Stage 3 — System Architect (4 skills)
@@ -159,11 +159,17 @@ skills/
   s7-*/SKILL.md         Stage 7 — Release Manager (4 skills)
 docs/
   skill-evals/          Alignment scan reports (YYYY-MM-DD-alignment-scan.md)
+  TRIALS_INDEX.md       Index of all research trials (07–16) with hypotheses and results
+  TRIAL_*_REPORT.md     Individual trial reports
   BENCHMARK_REFERENCE.md  Design analysis of 4 reference repos
+.github/workflows/
+  alignment.yml         CI gate — runs smoke tests + alignment scan on skills/** changes
 CONTEXT.md              Domain glossary and ubiquitous language
 HANDOFF.md              Artifact pipeline and acceptance criteria between stages
 QA.md                   28-step SDLC quality checklist (design intent source of truth)
 ```
+
+> **Branches**: `main` contains skills and docs only. `research` branch additionally contains `test_projects/` — 10 trial runs (07–16) with full source, tests, and build artifacts.
 
 ---
 
