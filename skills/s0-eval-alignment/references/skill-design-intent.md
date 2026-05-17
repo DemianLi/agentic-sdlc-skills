@@ -37,7 +37,7 @@ s3-eval-system, s5-pr-review, s6-verify-release, s5-audit-rules
 | Skill | Step | QA.md 必現關鍵詞（≥3 即 ALIGNED） |
 |-------|------|----------------------------------|
 | `s1-define-rules` | 1.1 | 編碼規範 / coding standard、Lint / lint、架構範式 / architecture pattern、安全性底線 / security baseline、RULES.md |
-| `s1-config-context` | 1.2 | 上下文 / context、Context / context、技能邊界 / skill boundary、工具權限 / tool permission、全域 / global |
+| `s1-config-context` | 1.2 | context、configure、role / identity、agent、global |
 | `s1-lock-tech-stack` | 1.3 | 技術棧 / tech stack、依賴 / dependency、語言版本 / language version、框架 / framework、套件 / package、資料庫 / database |
 | `s1-git-guardrails` | 1.1 | git、安全 / security、合規 / compliance、branch、commit、hook |
 
@@ -48,7 +48,7 @@ s3-eval-system, s5-pr-review, s6-verify-release, s5-audit-rules
 | `s2-capture-vision` | 2.1 | 構思 / idea、想法 / vision、痛點 / pain point、需求 / requirement、業務 / business、vision |
 | `s2-align-req` | 2.2 | 對齊 / align、衝突 / conflict、歧義 / ambiguity、問答 / Q&A、邊界 / boundary、澄清 / clarify |
 | `s2-struct-req` | 2.3 | 結構化 / structured、PRD、User Story、Gherkin、BDD、文檔 / document |
-| `s2-snapshot-ctx` | 2.4 | 快照 / snapshot、snapshot、沉澱 / consolidate、知識庫 / knowledge base、Context / context |
+| `s2-snapshot-ctx` | 2.4 | snapshot、Context、沉澱、知識 |
 
 ### Stage 3 — 技術方案制定與原子化拆解
 
@@ -65,7 +65,7 @@ s3-eval-system, s5-pr-review, s6-verify-release, s5-audit-rules
 |-------|------|----------------------------------|
 | `s4-setup-env` | 4.1 | 環境 / environment、Worktree / worktree、Branch / branch、沙盒 / sandbox、初始化 / init / setup |
 | `s4-impl-task` | 4.2 | 原子任務 / atomic task、業務邏輯 / business logic、實現 / implement、核心 / core、規則 / rules |
-| `s4-tdd` | 4.3 | 測試 / test、TDD、單元測試 / unit test、可測性 / testability、test |
+| `s4-tdd` | 4.3 | test、TDD、pytest、spec、coverage |
 | `s4-local-debug` | 4.4 | 編譯 / compile / build、調試 / debug、日誌 / log、Stack Trace / stack trace、錯誤 / error |
 
 ### Stage 5 — 代碼審查與靜態驗證
@@ -75,7 +75,7 @@ s3-eval-system, s5-pr-review, s6-verify-release, s5-audit-rules
 | `s5-sast-lint` | 5.1 | Lint / lint、靜態分析 / static analysis、安全掃描 / security scan / SAST、漏洞 / vulnerability、Code Smell / code smell |
 | `s5-audit-rules` | 5.2 | 合規 / compliance、規則 / rule、架構準則 / architecture guideline、RULES.md、違規 / violation |
 | `s5-pr-review` | 5.3 | PR / pull request、評審 / review、review、意見 / comment、重構 / refactor、邏輯漏洞 / logic bug |
-| `s5-fix-optimize` | 5.4 | 修復 / fix、優化 / optimize、排障 / troubleshoot、重構 / refactor、fix |
+| `s5-fix-optimize` | 5.4 | fix、optimize、resolve、analysis、audit |
 
 ### Stage 6 — 動態測試與動態驗證
 
