@@ -22,6 +22,12 @@ jobs:
         with:
           python-version: '3.9'
 
+      - name: Install pytest
+        run: pip install pytest --quiet
+
+      - name: Run smoke tests
+        run: pytest skills/s0-eval-alignment/tests/ -v
+
       - name: Run alignment scanner
         run: python3 skills/s0-eval-alignment/scripts/scan.py
 
