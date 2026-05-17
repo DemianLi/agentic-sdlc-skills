@@ -45,12 +45,19 @@ The following 7 skills sit at **stage transitions** and must contain `"Awaiting 
 
 ### C1c — Intra-Stage Auto-Proceed Pattern
 
-All other s1–s7 skills (not in the C1b list) must contain `"proceed immediately to"` in their HARD-GATE OUTPUT DISCIPLINE block, and must NOT contain `"Awaiting your approval"`.
+All other s1–s7 skills (not in the C1b list, not in the C1-exempt list below) must contain `"proceed immediately to"` in their HARD-GATE OUTPUT DISCIPLINE block, and must NOT contain `"Awaiting your approval"`.
+
+**C1-exempt standalone utilities** — these skills are invocable at any pipeline point and have no fixed downstream skill. They must have `<HARD-GATE>` (C1a) but are excluded from C1b and C1c routing checks:
+
+| Skill | Reason |
+|-------|--------|
+| s1-git-guardrails | Safety-rail tool: "any time a project needs safety rails" (description); no fixed downstream |
 
 | Result | Condition |
 |--------|-----------|
 | PASS | `"proceed immediately to /sX-Y"` present, `"Awaiting your approval"` absent |
 | FAIL | `"Awaiting your approval"` found (approval-gate leak), or neither pattern present |
+| EXEMPT | Skill is in the C1-exempt standalone utilities list |
 
 ---
 
@@ -243,6 +250,7 @@ Record confirmed intentional or accepted deviations so the scanner does not repo
 |-------|-------|-----------|-----------|
 | s3-eval-system | C1c | Step 5c body says "Wait for explicit approval" but HARD-GATE says "proceed immediately" | ⚠️ Unresolved contradiction — body text not updated with overhaul |
 | s1-config-context | C2 | **Reads**: none — this is correct (s1-config-context has no upstream artifact) | ✅ Intentional |
+| s1-git-guardrails | C1c | Does not contain "proceed immediately to" — intentional; classified as standalone utility (see C1-exempt list above) | ✅ Resolved 2026-05-18 |
 
 ---
 

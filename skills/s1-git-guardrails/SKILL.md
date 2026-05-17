@@ -11,7 +11,8 @@ Do NOT declare this skill complete until the block script has been installed, th
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, report that git-guardrails are now active and proceed.
+After presenting the required artifact, report DONE with guardrails active.
+This is a standalone setup utility — do NOT automatically route to a next skill.
 Do NOT skip the verification output — the blocked terminal output must be visible before proceeding.
 </HARD-GATE>
 
@@ -170,6 +171,6 @@ digraph git_guardrails {
 
 ## Artifact Dependencies
 - **Reads**: `RULES.md`
-- **Writes**: `.pre-commit-config.yaml`, `.github/workflows/` CI config
+- **Writes**: `.claude/hooks/block-dangerous-git.sh` (or `~/.claude/hooks/`), `.claude/settings.json`
 
 </supporting-info>
