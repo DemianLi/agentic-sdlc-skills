@@ -1,8 +1,8 @@
 ---
 name: s3-design-arch
 description: >
-  技術方案設計 — 基於影響評估，產出 OpenSpec 格式的設計文件，
-  包含數據結構、API Contract、Mermaid 序列圖，並嚴格遵守 RULES.md 的架構範式。
+  Use after /s3-eval-system to produce the OpenSpec design document (data structures,
+  API contracts, sequence diagrams) before decomposing tasks.
 ---
 
 <HARD-GATE>
@@ -15,10 +15,8 @@ does not exist on disk and in git, the next stage has nothing to read and cannot
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s3-breakdown-wbs.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the required artifact, proceed immediately to /s3-breakdown-wbs.
+Do NOT skip /s3-breakdown-wbs’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

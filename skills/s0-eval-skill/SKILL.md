@@ -1,8 +1,8 @@
 ---
 name: s0-eval-skill
 description: >
-  Skill 品質評估 — 對照 6 項生產級指標為任一 SKILL.md 打分，產出可提交的評估報告。
-  不修改被評估的 Skill，不提出重寫方案。僅輸出診斷分數與具體缺陷座標。
+  Use when you want to score any SKILL.md against 6 production-quality criteria.
+  Outputs a diagnostic report with severity scores and specific defect coordinates — does not rewrite the skill.
 ---
 
 <HARD-GATE>

@@ -1,8 +1,8 @@
 ---
 name: s5-pr-review
 description: >
-  代碼評審與意見反饋 — 對照設計文件進行 PR diff 審查，
-  包含 Scope Drift Detection、嚴重性分級報告，阻斷包含 CRITICAL 問題的代碼。
+  Use after /s5-audit-rules to perform peer-style diff review with severity-graded
+  findings and scope drift detection — blocks PRs with unresolved CRITICAL issues.
 ---
 
 <HARD-GATE>
@@ -11,10 +11,8 @@ CRITICAL issues are blocking. The PR cannot merge until they are fixed.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s5-fix-optimize.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the required artifact, proceed immediately to /s5-fix-optimize.
+Do NOT skip /s5-fix-optimize’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

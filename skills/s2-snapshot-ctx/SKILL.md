@@ -1,8 +1,8 @@
 ---
 name: s2-snapshot-ctx
 description: >
-  文檔沉澱與快照 — 將結構化需求提交到知識庫，並生成高度濃縮的迭代快照
-  作為 Stage 3-7 所有 Agent 的「活躍記憶」。
+  Use after /s2-struct-req to freeze the current iteration's requirements into a
+  compact context snapshot that all Stage 3–7 agents will read as their active memory.
 ---
 
 <HARD-GATE>

@@ -1,8 +1,8 @@
 ---
 name: s7-build-artifact
 description: >
-  製品建構 — 讀取 test-results.json 確認 release_gate，建構版本化 artifact，
-  打 git tag，為 /s7-deploy 提供可追蹤的 build 產出。
+  Use after /s6-verify-release produces test-results.json with release_gate: PASS
+  to build, version, and tag the deployable artifact.
 ---
 
 <HARD-GATE>
@@ -12,10 +12,8 @@ did not complete — this is a pipeline violation, not a judgment call.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the build summary, your message MUST end with exactly:
-  "Awaiting your approval to proceed to /s7-deploy."
-Do NOT generate the next stage's artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the build summary, proceed immediately to /s7-deploy.
+Do NOT skip /s7-deploy's own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

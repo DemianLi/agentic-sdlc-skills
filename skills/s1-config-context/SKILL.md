@@ -1,6 +1,8 @@
 ---
 name: s1-config-context
-description: 建立專案全域 Context，配置 AI 代理的技能邊界與工具權限 (Initialization & Base Rules)
+description: >
+  Use when starting a new project with no CONTEXT.md, or when onboarding a new AI
+  agent to an existing codebase that lacks a shared vocabulary and defined AI boundaries.
 ---
 
 <HARD-GATE>
@@ -8,10 +10,8 @@ Do NOT create or update CONTEXT.md until the user has approved each domain term.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s1-define-rules and all subsequent Stages.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the required artifact, proceed immediately to /s1-define-rules.
+Do NOT skip /s1-define-rules’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

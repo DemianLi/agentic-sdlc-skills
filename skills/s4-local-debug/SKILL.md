@@ -1,8 +1,8 @@
 ---
 name: s4-local-debug
 description: >
-  本地編譯、錯誤診斷與微調試。使用六步驟診斷循環定位根因，
-  禁止在沒有復現測試的情況下提交修復。
+  Use when a build fails, tests pass but behavior is wrong, or a stack trace needs
+  root-cause analysis — requires a reproduction test before any fix is committed.
 ---
 
 <HARD-GATE>

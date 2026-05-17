@@ -1,9 +1,8 @@
 ---
 name: s2-capture-vision
 description: >
-  原始構思捕獲 — 透過蘇格拉底式問答（一次一個問題）釐清用戶的核心問題、
-  痛點與商業價值，並評估作用域是否需要分解為子項目。
-  Use BEFORE any technical discussion or system design.
+  Use when you know what problem to solve but have not yet written any requirements —
+  before any technical discussion or system design begins.
 ---
 
 <HARD-GATE>
@@ -11,10 +10,8 @@ Do NOT proceed to `/s2-align-req` until a written vision spec has been presented
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s2-align-req.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the required artifact, proceed immediately to /s2-align-req.
+Do NOT skip /s2-align-req’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

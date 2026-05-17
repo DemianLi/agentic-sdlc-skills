@@ -1,10 +1,9 @@
 ---
 name: s1-git-guardrails
 description: >
-  Git 安全護欄設置 — 安裝 PreToolUse hook 攔截破壞性 git 指令
-  （push、reset --hard、clean -f、branch -D、checkout .），
-  防止 AI Agent 在無用戶確認的情況下執行不可逆操作。
-  Use during Stage 1 setup, or any time you need to add safety rails to a new project.
+  Use during Stage 1 setup or any time a project needs safety rails — installs a
+  PreToolUse hook that intercepts destructive git commands (push, reset --hard,
+  clean -f, branch -D, checkout .) before they execute.
 ---
 
 <HARD-GATE>
@@ -12,9 +11,8 @@ Do NOT declare this skill complete until the block script has been installed, th
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  "Awaiting your approval to confirm git-guardrails are active."
-Do NOT mark this complete until the user explicitly confirms the test output looks correct.
+After presenting the required artifact, report that git-guardrails are now active and proceed.
+Do NOT skip the verification output — the blocked terminal output must be visible before proceeding.
 </HARD-GATE>
 
 <what-to-do>

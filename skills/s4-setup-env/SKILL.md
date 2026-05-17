@@ -1,6 +1,8 @@
 ---
 name: s4-setup-env
-description: 研發環境就緒 (Implementation & Local Debug)
+description: >
+  Use at the start of each atomic task to verify the workspace is clean, the correct
+  branch is checked out, and the dev environment is ready for implementation.
 ---
 <HARD-GATE>
 Do NOT start any implementation until:
@@ -8,10 +10,8 @@ Do NOT start any implementation until:
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s4-impl-task and /s4-tdd.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the required artifact, proceed immediately to /s4-tdd (or /s4-impl-task if tests already exist).
+Do NOT skip /s4-tdd’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

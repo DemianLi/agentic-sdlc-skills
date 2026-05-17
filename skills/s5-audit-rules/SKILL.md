@@ -1,6 +1,8 @@
 ---
 name: s5-audit-rules
-description: 根本規則合規審查 (Code Review & Verification)
+description: >
+  Use after /s5-sast-lint to verify that the implementation respects the architectural
+  paradigms defined in RULES.md before peer review begins.
 ---
 <HARD-GATE>
 Do NOT hand off to `/s5-pr-review` if the code violates any architectural paradigm
@@ -8,10 +10,8 @@ defined in `RULES.md`. Architectural violations are CRITICAL — they block the 
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s5-pr-review.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the required artifact, proceed immediately to /s5-pr-review.
+Do NOT skip /s5-pr-review’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

@@ -1,6 +1,8 @@
 ---
 name: s5-fix-optimize
-description: 排障與結構優化 (Code Review & Verification)
+description: >
+  Use after /s5-pr-review to fix CRITICAL issues and apply reviewer-approved refactors
+  before handing off to Stage 6 testing.
 ---
 <HARD-GATE>
 Do NOT hand off to Stage 6 if any test is failing.

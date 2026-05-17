@@ -1,8 +1,8 @@
 ---
 name: s7-release-notes
 description: >
-  版本發布說明 — 從 git log、需求文檔、audit 報告合成 CHANGELOG.md 條目，
-  產出符合 Keep a Changelog 格式的版本塊，為 /s7-telemetry 提供人類可讀的變更記錄。
+  Use after /s7-deploy confirms deployment to generate the CHANGELOG entry from
+  git history, requirements, and audit reports.
 ---
 
 <HARD-GATE>
@@ -13,10 +13,8 @@ deployment creates a version history lie.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After updating `CHANGELOG.md`, your message MUST end with exactly:
-  "Awaiting your approval to proceed to /s7-telemetry."
-Do NOT generate the next stage's artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After updating `CHANGELOG.md`, proceed immediately to /s7-telemetry.
+Do NOT skip /s7-telemetry's own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

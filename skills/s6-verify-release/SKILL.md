@@ -1,8 +1,8 @@
 ---
 name: s6-verify-release
 description: >
-  結果最終驗證 — 編譯自動化測試報告、驗證覆蓋率門檻，
-  產出結構化 test-results.json，發出「Ready for Delivery」或「BLOCKED」信號。
+  Use after all Stage 6 tests pass to compile the final test report and issue a
+  release gate decision (PASS or BLOCKED) as test-results.json.
 ---
 
 <HARD-GATE>

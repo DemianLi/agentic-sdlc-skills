@@ -1,9 +1,8 @@
 ---
 name: s7-telemetry
 description: >
-  遙測與迭代關閉 — 比對 pre/post deploy 效能基線，偵測異常，
-  產出 telemetry.json 並提煉 next_cycle_inputs 交接給下一迭代的 Product Manager。
-  支援 simulation_mode（dry-run 部署時用本地重跑取代生產 APM 數據）。
+  Use after /s7-release-notes to compare pre/post deploy performance metrics, detect
+  anomalies, and extract next_cycle_inputs for the next iteration.
 ---
 
 <HARD-GATE>

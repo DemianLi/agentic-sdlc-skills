@@ -1,8 +1,8 @@
 ---
 name: s7-deploy
 description: >
-  部署執行 — 將 s7-build-artifact 產出的版本化 artifact 部署到目標環境，
-  執行 smoke tests，輸出 deploy.md 部署日誌；支援 dry-run 模式用於無真實環境的驗證。
+  Use after /s7-build-artifact to deploy the versioned artifact to the target
+  environment and confirm with smoke tests — supports dry-run mode for environments without live infra.
 ---
 
 <HARD-GATE>
@@ -12,10 +12,8 @@ Do NOT proceed if:
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After writing `docs/releases/YYYY-MM-DD-<version>-deploy.md`, your message MUST end with exactly:
-  "Awaiting your approval to proceed to /s7-release-notes."
-Do NOT generate the next stage's artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After writing `docs/releases/YYYY-MM-DD-<version>-deploy.md`, proceed immediately to /s7-release-notes.
+Do NOT skip /s7-release-notes's own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

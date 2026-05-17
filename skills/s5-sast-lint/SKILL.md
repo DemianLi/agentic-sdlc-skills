@@ -1,8 +1,8 @@
 ---
 name: s5-sast-lint
 description: >
-  靜態代碼分析 — 執行 linting、格式化與 SAST 工具，
-  自動修復可修項，報告剩餘問題，阻斷未通過 RULES.md 的代碼進入審查流程。
+  Use at the start of Stage 5 to run automated linting, formatting, and SAST before
+  any human review — auto-fixes what it can, blocks what it can't.
 ---
 
 <HARD-GATE>
@@ -10,10 +10,8 @@ Do NOT hand off to `/s5-audit-rules` if there are CRITICAL linting errors, SAST 
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s5-audit-rules.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the required artifact, proceed immediately to /s5-audit-rules.
+Do NOT skip /s5-audit-rules’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

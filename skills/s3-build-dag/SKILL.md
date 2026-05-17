@@ -1,8 +1,8 @@
 ---
 name: s3-build-dag
 description: >
-  依賴拓撲建立 — 將 Atomic Tasks 組織為可機器解析的 DAG，
-  使用 Mermaid 語法輸出，標注並行機會與關鍵路徑，產出 TASK_DAG.md。
+  Use after /s3-breakdown-wbs to establish task execution order, identify parallelism
+  opportunities, and produce TASK_DAG.md.
 ---
 
 <HARD-GATE>

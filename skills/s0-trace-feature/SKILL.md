@@ -1,9 +1,9 @@
 ---
 name: s0-trace-feature
 description: >
-  舊有功能追蹤 — 用戶給出功能名稱，Skill 自動掃描找到入口點候選清單，
-  確認後沿完整呼叫鏈追蹤（前後端皆追），產出 Mermaid 序列圖 + 業務說明，
-  沉澱至 docs/traces/。不確定的部分標記 [INFERRED]，邊界外標記 [external]。
+  Use when you need to understand where and how an existing feature is implemented —
+  scans entry points, traces the full call chain (front and back), and produces a
+  Mermaid sequence diagram with business context.
   獨立於 s1-s7 流程，完成後可銜接 /s3-eval-system 做改動評估。
 ---
 

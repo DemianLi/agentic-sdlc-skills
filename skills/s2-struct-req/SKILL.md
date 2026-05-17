@@ -1,8 +1,8 @@
 ---
 name: s2-struct-req
 description: >
-  需求結構化描述 — 將對齊後的需求轉換為可測試的工程文檔（PRD / User Stories / Gherkin），
-  每條需求必須可測試且映射到具體商業價值。
+  Use after /s2-align-req to convert fully-aligned requirements into testable
+  engineering documents (PRD, User Stories, or Gherkin acceptance criteria).
 ---
 
 <HARD-GATE>
@@ -10,10 +10,8 @@ Do NOT commit the structured requirements document until every requirement has e
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s2-snapshot-ctx.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the required artifact, proceed immediately to /s2-snapshot-ctx.
+Do NOT skip /s2-snapshot-ctx’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

@@ -17,10 +17,8 @@ If code was written before the test: DELETE IT. Start over. There are NO excepti
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s4-impl-task.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the required artifact, proceed immediately to /s4-impl-task.
+Do NOT skip /s4-impl-task’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>
@@ -161,6 +159,20 @@ After all behaviors are GREEN:
 
 ## Coverage Gate
 
+### Step 0 — Detect Project Mode
+
+Before running any coverage command, check `RULES.md` for a `mode:` field:
+
+```
+mode: brownfield   → activate Characterization Test Mode (see below)
+mode: greenfield   → use standard threshold gate
+(field absent)     → use standard threshold gate
+```
+
+---
+
+### Standard Mode (greenfield or unset)
+
 After all behaviors are GREEN, run the coverage report and check against the threshold in `RULES.md` (default: 80% if not specified):
 
 ```bash
@@ -174,6 +186,33 @@ pytest --cov=. --cov-report=term-missing
 | < 60% | **BLOCKED** — coverage too low; add tests before proceeding |
 
 Do NOT self-report coverage. Paste the actual `pytest --cov` terminal output.
+
+---
+
+### Characterization Test Mode (brownfield)
+
+Legacy codebases often have zero existing tests. Blocking on 80% total coverage would freeze all progress. In brownfield mode:
+
+**Goal**: cover the code YOU added or modified in this task — not the pre-existing legacy lines.
+
+```bash
+# Run coverage scoped to files touched in this task only
+pytest --cov=<module_you_changed> --cov-report=term-missing
+```
+
+| Coverage of new/modified lines | Status |
+|-------------------------------|--------|
+| ≥ 80% of YOUR new lines | **DONE** — attach scoped coverage summary |
+| 60–79% of YOUR new lines | **DONE_WITH_CONCERNS** — list which new lines are uncovered and why |
+| < 60% of YOUR new lines | **BLOCKED** — even in brownfield, your own new code must be tested |
+
+Report header must read:
+```
+BROWNFIELD MODE: coverage scoped to new/modified lines only.
+Pre-existing untested code excluded from gate.
+```
+
+**What this is NOT**: a license to skip tests. You still TDD every new behavior. The gate just doesn't penalize pre-existing legacy debt you didn't create.
 
 ## Completion Report
 

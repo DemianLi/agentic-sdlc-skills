@@ -1,6 +1,8 @@
 ---
 name: s1-lock-tech-stack
-description: 明確定案開發語言版本、框架、核心套件與資料庫選型 (Initialization & Base Rules)
+description: >
+  Use when finalizing the tech stack for a new project, or when a major dependency
+  decision needs to be locked before implementation begins.
 ---
 
 <HARD-GATE>

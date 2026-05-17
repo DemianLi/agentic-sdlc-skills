@@ -1,8 +1,8 @@
 ---
 name: s6-test-perf
 description: >
-  效能與壓力測試 — 在負載下驗證 SLO 達標，捕獲 P50/P95/P99 基線，
-  輸出結構化 perf-baseline.json 作為 /s7-telemetry 的 pre-deploy 對比基準。
+  Use after /s6-test-e2e to validate SLOs under load and capture a P50/P95/P99
+  performance baseline for pre/post deploy comparison.
 ---
 <HARD-GATE>
 Do NOT proceed to `/s6-verify-release` if performance metrics exceed the thresholds
@@ -11,10 +11,8 @@ defined in the REQ acceptance criteria from Stage 2. Performance regressions are
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s6-verify-release.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the required artifact, proceed immediately to /s6-verify-release.
+Do NOT skip /s6-verify-release’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

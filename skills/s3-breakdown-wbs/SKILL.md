@@ -1,8 +1,8 @@
 ---
 name: s3-breakdown-wbs
 description: >
-  原子化任務拆解 — 將 OpenSpec 設計文件分解為最小可執行單元，
-  每個 Atomic Task 包含輸入、輸出、驗收標準與 2-5 分鐘時間預估。
+  Use after /s3-design-arch to decompose the design into atomic, independently
+  implementable tasks with explicit inputs, outputs, and acceptance criteria.
 ---
 
 <HARD-GATE>
@@ -11,10 +11,8 @@ Do NOT proceed to `/s3-build-dag` until:
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s3-build-dag.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the required artifact, proceed immediately to /s3-build-dag.
+Do NOT skip /s3-build-dag’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

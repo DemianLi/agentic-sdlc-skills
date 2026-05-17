@@ -1,8 +1,8 @@
 ---
 name: s2-align-req
 description: >
-  需求對齊與衝突消除 — 審查 vision spec，主動識別矛盾、邊界模糊與範疇蔓延，
-  ONE question at a time，直到所有歧義消除完畢。
+  Use after /s2-capture-vision to surface and resolve ambiguities, contradictions,
+  and scope creep before converting requirements to testable documents.
 ---
 
 <HARD-GATE>
@@ -12,10 +12,8 @@ Present the resolved scope boundary to the user and await confirmation.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s2-struct-req.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the required artifact, proceed immediately to /s2-struct-req.
+Do NOT skip /s2-struct-req’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

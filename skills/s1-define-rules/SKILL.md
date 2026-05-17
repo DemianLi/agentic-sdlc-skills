@@ -1,6 +1,8 @@
 ---
 name: s1-define-rules
-description: 確立編碼規範、系統架構範式與安全性底線 (Initialization & Base Rules)
+description: >
+  Use when a project has no RULES.md, or when adding a new architectural constraint,
+  security baseline, or linting standard to an existing project.
 ---
 
 <HARD-GATE>
@@ -9,10 +11,8 @@ to the user and received explicit approval. Present first, then write.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s1-lock-tech-stack and Stage 5 Code Auditor.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the required artifact, proceed immediately to /s1-lock-tech-stack.
+Do NOT skip /s1-lock-tech-stack’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

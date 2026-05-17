@@ -1,8 +1,8 @@
 ---
 name: s3-eval-system
 description: >
-  現有系統評估 — 讀取 CONTEXT_SNAPSHOT，掃描倉庫識別受影響組件、
-  DB Schema 與 API，標出潛在破壞性變更與技術債的「爆炸半徑」。
+  Use before designing any change that touches existing code — maps blast radius
+  across components, DB schemas, and APIs before anyone writes a line.
 ---
 
 <HARD-GATE>
@@ -11,10 +11,8 @@ Do NOT proceed to `/s3-design-arch` until:
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s3-design-arch.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the required artifact, proceed immediately to /s3-design-arch.
+Do NOT skip /s3-design-arch’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

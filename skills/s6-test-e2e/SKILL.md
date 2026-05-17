@@ -1,8 +1,8 @@
 ---
 name: s6-test-e2e
 description: >
-  端到端與邊界驗證 — 模擬真實用戶行為，確認所有主要 user flow 均通過，
-  並輸出結構化報告（含 AC 追蹤矩陣）供 /s6-verify-release 聚合。
+  Use after /s6-test-integration to validate full user flows and edge cases against
+  the acceptance criteria defined in Stage 2.
 ---
 <HARD-GATE>
 Do NOT proceed to `/s6-test-perf` if any E2E test covering a main user flow fails.
@@ -11,10 +11,8 @@ E2E test failures on main flows are BLOCKING — they cannot be deferred.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s6-test-perf.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the required artifact, proceed immediately to /s6-test-perf.
+Do NOT skip /s6-test-perf’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

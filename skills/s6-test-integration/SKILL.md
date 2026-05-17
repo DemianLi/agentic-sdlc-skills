@@ -1,8 +1,8 @@
 ---
 name: s6-test-integration
 description: >
-  自動化整合測試 — 驗證模組邊界跨元件行為，確認所有 REQ critical path
-  均有整合測試覆蓋，並輸出結構化報告供 /s6-verify-release 聚合。
+  Use after Stage 4 is complete to verify cross-module behavior at API and service
+  boundaries before E2E testing begins.
 ---
 <HARD-GATE>
 Do NOT proceed to `/s6-test-e2e` if any integration test is failing.
@@ -11,10 +11,8 @@ Every integration test failure must be reported as a BLOCKER.
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s6-test-e2e.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the required artifact, proceed immediately to /s6-test-e2e.
+Do NOT skip /s6-test-e2e’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>

@@ -1,9 +1,9 @@
 ---
 name: s0-brainstorm
 description: >
-  從零發散探索 — 當只有模糊感覺或問題領域時使用，透過視覺化問答與多框架發散，
-  提煉出問題陳述草稿（problem-draft.md）。不產出 spec，不預設技術方案。
-  獨立於 s1-s7 流程之外，完成後由用戶決定是否進入 /s2-capture-vision。
+  Use when you have only a vague problem feeling and no clear spec — clarifies what
+  you're actually trying to solve before any requirements or design work begins.
+  Does not produce a spec; produces a problem statement draft only.
 ---
 
 <HARD-GATE>

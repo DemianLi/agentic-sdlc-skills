@@ -1,6 +1,8 @@
 ---
 name: s4-impl-task
-description: 原子任務並發實現 (Implementation & Local Debug)
+description: >
+  Use after /s4-tdd has produced failing tests — writes minimal production code to
+  make them green without over-engineering or touching out-of-scope files.
 ---
 <HARD-GATE>
 Do NOT write any production code until:
@@ -8,10 +10,8 @@ Do NOT write any production code until:
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s4-local-debug.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the required artifact, proceed immediately to /s4-local-debug.
+Do NOT skip /s4-local-debug’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>
