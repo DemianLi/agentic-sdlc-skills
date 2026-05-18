@@ -1,6 +1,8 @@
 # Agentic SDLC Skills
 
-32 atomic Skill files that drive an AI Agent through a structured, gated Software Development Lifecycle. The core pipeline is 7 stages (Foundation → Release); four standalone Stage 0 skills operate outside the pipeline and can be used at any time. Each Skill is a Markdown file that defines a Role, a Workflow, and a HARD-GATE — a mandatory stop that blocks the Agent from proceeding until explicit human approval is given.
+33 atomic Skill files that drive an AI Agent through a structured, gated Software Development Lifecycle. The core pipeline is 7 stages (Foundation → Release); four standalone Stage 0 skills operate outside the pipeline and can be used at any time; one fast-track routing skill lets you skip s1–s3 ceremony for small, well-understood tasks.
+
+Each Skill is a Markdown file that defines a Role, a Workflow, and a `<HARD-GATE>` — a mandatory stop that blocks the Agent from proceeding until a pre-defined artifact exists on disk.
 
 ---
 
@@ -11,7 +13,7 @@ AI Agents are fast but undisciplined. Left ungated, they will:
 - Write production code before writing failing tests
 - Self-approve quality gates and push to production
 
-This Skill system forces the Agent to work the same way a senior engineering team does: produce an artifact, present it, stop, wait for a human to approve, then proceed.
+This Skill system forces the Agent to work the same way a senior engineering team does: produce an artifact, present it, then proceed — with human sign-off required only at the seven stage boundaries where the consequences of getting it wrong are highest.
 
 ---
 
@@ -25,6 +27,18 @@ Four skills operate outside the s1–s7 pipeline. They produce artifacts that ca
 | `/s0-trace-feature` | Trace an existing feature's call chain; produce a Mermaid sequence diagram | `/s3-eval-system` or `/s2-capture-vision` |
 | `/s0-eval-skill` | Audit a single skill against 6 structural quality criteria; output a scored report | Skill author fixes drift |
 | `/s0-eval-alignment` | Batch-scan all 28 s1–s7 skills against QA.md design intent; detect drift before it compounds | Maintainer applies fixes |
+
+---
+
+## Fast-Track Routing
+
+For tasks that don't need the full s1–s3 requirements ceremony:
+
+| Slash Command | Use when |
+|---|---|
+| `/s-fast-track` | Bug fix, single-file change, brownfield feature add, or rapid prototype — routes directly to the right s4 skill after one clarifying question |
+
+`/s-fast-track` is **not** a shortcut through Stage 4–7 discipline. Tests, audit, and release gates still apply. It only skips the vision/requirements/architecture ceremony when the task is small enough that those artifacts would be waste.
 
 ---
 
@@ -50,18 +64,19 @@ Each arrow is a **Handoff** — a set of committed artifacts that must exist bef
 
 ---
 
-## The 32 Skills
+## The 33 Skills
 
 | Stage | Role | Slash Command | Purpose |
 |---|---|---|---|
+| *(fast-track)* | Router | `/s-fast-track` | Skip s1–s3 for bug fixes and small tasks; route to the right s4 skill |
 | 0 *(standalone)* | Problem Scout | `/s0-brainstorm` | Explore problem space; produce framed problem statement |
 | 0 *(standalone)* | Code Archaeologist | `/s0-trace-feature` | Trace existing feature call chain; produce Mermaid sequence diagram |
 | 0 *(standalone)* | Skill Auditor | `/s0-eval-skill` | Audit single skill against 6 structural quality criteria |
 | 0 *(standalone)* | Alignment Inspector | `/s0-eval-alignment` | Batch-scan all s1–s7 skills for design-intent drift |
-| 1 | Foundation Engineer | `/s1-define-rules` | Author `RULES.md` (linter, directory, forbidden patterns) |
-| 1 | Foundation Engineer | `/s1-config-context` | Author domain glossary `CONTEXT.md` |
+| 1 | Foundation Engineer | `/s1-define-rules` | Author `RULES.md` (linter, directory structure, forbidden patterns) |
+| 1 | Foundation Engineer | `/s1-config-context` | Author domain glossary `CONTEXT.md`; define AI boundaries |
 | 1 | Foundation Engineer | `/s1-lock-tech-stack` | Pin runtime + framework versions; generate lock files |
-| 1 | Foundation Engineer | `/s1-git-guardrails` | Configure git hooks, branch protection, and commit conventions |
+| 1 | Foundation Engineer | `/s1-git-guardrails` | Install PreToolUse hook that intercepts destructive git commands before they execute |
 | 2 | Product Manager | `/s2-capture-vision` | Elicit problem statement, target users, proposed approach |
 | 2 | Product Manager | `/s2-align-req` | Resolve stakeholder conflicts, define scope boundary |
 | 2 | Product Manager | `/s2-struct-req` | Write structured requirements with binary Acceptance Criteria |
@@ -83,19 +98,37 @@ Each arrow is a **Handoff** — a set of committed artifacts that must exist bef
 | 6 | QA Engineer | `/s6-test-perf` | Run k6/Artillery; capture P50/P95/P99; regression gate (20%) |
 | 6 | QA Engineer | `/s6-verify-release` | Run full suite; write `test-results.json`; issue PASS or BLOCKED |
 | 7 | Release Manager | `/s7-build-artifact` | Build, tag, and sign the release artifact |
+| 7 | Release Manager | `/s7-deploy` | Deploy → smoke tests → verify (dry-run supported) |
 | 7 | Release Manager | `/s7-release-notes` | Generate `CHANGELOG.md` following Keep a Changelog format |
-| 7 | Release Manager | `/s7-deploy` | Deploy → monitor → verify (canary-aware) |
-| 7 | Release Manager | `/s7-telemetry` | Capture 24h metrics; compare to S6 baseline; feed back to Stage 2 |
+| 7 | Release Manager | `/s7-telemetry` | Capture post-deploy metrics; compare to S6 baseline; feed next_cycle_inputs to Stage 2 |
 
 ---
 
 ## HARD-GATE Enforcement
 
-Every Skill contains a `<HARD-GATE>` block that specifies the conditions that must be true **before** the Agent proceeds. After meeting those conditions and presenting the required artifact, the Agent's message **must** end with:
+Every Skill contains a `<HARD-GATE>` block specifying the conditions that must be true **before** the Agent proceeds. Two approval patterns exist:
+
+### Stage-boundary gates (7 skills — require explicit human approval)
+
+At the seven stage transitions, the Agent's message **must** end with:
 
 > *"Awaiting your approval to proceed to \<next-skill\>."*
 
 The Agent may not generate the next stage's artifact, code, or analysis until the human explicitly approves. A response that is silent on approval is **not** approval.
+
+| Skill | Transition |
+|---|---|
+| `/s1-lock-tech-stack` | Stage 1 → Stage 3 |
+| `/s2-snapshot-ctx` | Stage 2 → Stage 3 |
+| `/s3-build-dag` | Stage 3 → Stage 4 |
+| `/s4-local-debug` | Stage 4 → Stage 5 |
+| `/s5-fix-optimize` | Stage 5 → Stage 6 |
+| `/s6-verify-release` | Stage 6 → Stage 7 |
+| `/s7-telemetry` | End of iteration |
+
+### Intra-stage gates (21 skills — auto-proceed)
+
+Within a stage, after the HARD-GATE conditions are met and the artifact is presented, the Agent proceeds immediately to the next skill without waiting for approval. The next skill's own HARD-GATE then applies.
 
 ### What the HARD-GATE prevents (examples)
 
@@ -133,9 +166,9 @@ Available in all Claude Code sessions.
 1. Start Claude Code in your project directory
 2. Type the slash command, e.g. `/s3-eval-system`
 3. The Agent assumes the Role, runs the Workflow, produces the artifact
-4. The Agent stops and says *"Awaiting your approval…"*
-5. Review the artifact; type your approval (e.g. "approved, proceed")
-6. Move to the next Skill
+4. Within a stage: the Agent proceeds automatically to the next skill
+5. At a stage boundary: the Agent stops — review the artifact and type your approval
+6. Move to the next Stage
 
 ---
 
@@ -143,11 +176,11 @@ Available in all Claude Code sessions.
 
 ```
 skills/
+  s-fast-track/         Fast-Track Router — bypass s1–s3 for small tasks
   s0-brainstorm/        Problem Scout — framed problem statement
   s0-trace-feature/     Code Archaeologist — feature call-chain diagram
   s0-eval-skill/        Skill Auditor — single-skill structural quality check
   s0-eval-alignment/    Alignment Inspector — batch drift detection (28 skills)
-    references/         skill-design-intent.md (evaluation baseline)
     scripts/scan.py     Reusable CLI scanner (exit 0 = all ALIGNED)
     tests/              Smoke-test fixtures + pytest suite
   s1-*/SKILL.md         Stage 1 — Foundation Engineer (4 skills)
@@ -157,6 +190,8 @@ skills/
   s5-*/SKILL.md         Stage 5 — Code Auditor (4 skills)
   s6-*/SKILL.md         Stage 6 — QA Engineer (4 skills)
   s7-*/SKILL.md         Stage 7 — Release Manager (4 skills)
+references/
+  skill-design-intent.md  Evaluation baseline for s0-eval-alignment (C1–C4 checks + per-skill keywords)
 docs/
   skill-evals/          Alignment scan reports (YYYY-MM-DD-alignment-scan.md)
   TRIALS_INDEX.md       Index of all research trials (07–16) with hypotheses and results
@@ -180,16 +215,17 @@ Each `SKILL.md` has four sections:
 ```
 ---
 name: <skill-name>
-description: <one-line summary>
+description: >
+  Use when/after/at/before/during <trigger condition>.   ← trigger language only; no workflow steps
 ---
 
 <HARD-GATE>          ← blocking conditions + OUTPUT DISCIPLINE clause
 </HARD-GATE>
 
-<what-to-do>         ← Role identity + step-by-step Workflow + Completion Report
+<what-to-do>         ← Role identity + step-by-step Workflow + Red Flags + Completion Report
 </what-to-do>
 
-<supporting-info>    ← Process Flow (Graphviz DOT), Artifact Standard
+<supporting-info>    ← Process Flow (Graphviz DOT), Artifact Standard, Artifact Dependencies
 </supporting-info>
 ```
 
@@ -199,10 +235,11 @@ description: <one-line summary>
 
 - **Artifact-first** — every Stage produces a committed file, not just a conversation
 - **Vertical slice** — Stage 4 implements one behavior at a time (RED → GREEN → REFACTOR)
-- **Human-in-the-loop** — every Stage gate requires explicit approval before proceeding
+- **Stage-boundary human-in-the-loop** — the seven stage transitions require explicit approval; intra-stage steps auto-proceed to reduce ceremony without sacrificing safety
 - **Evidence over assertion** — the Agent must paste actual terminal output, not claim success
 - **Blocked handoffs escalate backward** — if an artifact is missing, the Agent reports `NEEDS_CONTEXT` and halts; it never infers forward
 - **Description as trigger, not summary** *(Matt Pocock principle)* — every skill's `description` field states only *when* to use it; no workflow steps are summarised there, so the Agent always reads the full `<what-to-do>` body
+- **Brownfield-aware** — `s4-tdd` detects `mode: brownfield` in `RULES.md` and scopes coverage gates to new/modified lines only, avoiding coverage debt on legacy code
 
 ---
 
@@ -226,9 +263,9 @@ The scanner checks four dimensions per skill:
 | Check | What it verifies |
 |-------|-----------------|
 | **Q** — QA.md alignment | ≥ 3 design-intent keywords present in skill body |
-| **C1** — HARD-GATE | `<HARD-GATE>` block exists; ends with "Awaiting your approval" |
+| **C1** — HARD-GATE | `<HARD-GATE>` exists; boundary skills end with "Awaiting your approval"; intra-stage skills have "proceed immediately to" |
 | **C2** — Artifact chain | `<supporting-info>` declares explicit **Reads** and **Writes** |
-| **C3** — Matt Pocock | `description` contains no workflow steps or process verbs |
+| **C3** — Trigger language | `description` contains no workflow steps or process verbs |
 
 Exits `0` if all skills are ALIGNED; exits `1` if any are PARTIAL or DRIFTED (CI-friendly).
 
@@ -255,7 +292,7 @@ Every Skill ends with exactly one of:
 
 | Status | Meaning |
 |---|---|
-| `DONE` | Artifact produced, committed, user approved |
+| `DONE` | Artifact produced, committed, approved (or auto-proceeded at intra-stage boundary) |
 | `DONE_WITH_CONCERNS` | Done, but specific concerns listed that may affect next stage |
 | `BLOCKED` | Cannot proceed; exact blocker stated; fix required before retry |
 | `NEEDS_CONTEXT` | Missing upstream artifact; halting until provided |
