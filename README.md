@@ -38,7 +38,15 @@ For tasks that don't need the full s1–s3 requirements ceremony:
 |---|---|
 | `/s-fast-track` | Bug fix, single-file change, brownfield feature add, or rapid prototype — routes directly to the right s4 skill after one clarifying question |
 
-`/s-fast-track` is **not** a shortcut through Stage 4–7 discipline. Tests, audit, and release gates still apply. It only skips the vision/requirements/architecture ceremony when the task is small enough that those artifacts would be waste.
+`/s-fast-track` supports three **Development Modes**, selected by intent signals in the task description:
+
+| Mode | Trigger signals | TDD | s5 Review | Commit requirement |
+|---|---|---|---|---|
+| **Standard** | *(none)* | Iron Law enforced | Full | Normal |
+| **Vibe Mode** | `--vibe`, "prototype", "throwaway", "spike" | Optional (routes to `/s4-impl-task`) | Skipped | `[WIP/Prototype]` tag required |
+| **Hotfix Mode** | `--hotfix`, "quick fix", "legacy codebase" | Iron Law enforced | CRITICAL-only | Normal |
+
+Mode signal **overrides** task-type routing. Vibe Mode requires an explicit Y/n confirmation before proceeding. Standard mode behavior is unchanged from before.
 
 ---
 

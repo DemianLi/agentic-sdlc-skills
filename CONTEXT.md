@@ -45,6 +45,18 @@ A functionally independent, minimal unit of work derived from the technical desi
 > **Dev:** "I need the Agent to write tests for this new feature."
 > **Architect:** "You can't jump straight to the `/s4-tdd` **Slash Command**. The **Role** for Stage 4 needs the **OpenSpec** first. Run `/s3-breakdown` to generate the **Atomic Tasks** and specs."
 
+**Development Mode**:
+The rigor level applied during a `/s-fast-track` session. Three variants exist: Standard (default), Vibe Mode, and Hotfix Mode. Activated by intent signals in the task description. Mode signal overrides task-type routing.
+*Avoid*: Mode flag, rigor level, fast-track variant
+
+**Vibe Mode**:
+A Development Mode for exploratory, throwaway prototypes. Bypasses TDD ceremony (routes directly to `/s4-impl-task`); s5 review is skipped. Requires explicit user confirmation (Y/n) and `[WIP/Prototype]` commit tagging on every commit.
+*Avoid*: Prototype mode, skip-test mode
+
+**Hotfix Mode**:
+A Development Mode for fixes on legacy or low-test-coverage codebases. TDD Iron Law is preserved; s5 review runs in a simplified form (CRITICAL issues remain blocking; WARNING items are informational only). Faster than Standard but not discipline-free.
+*Avoid*: Quick-fix mode, brownfield mode
+
 ## Flagged ambiguities
 
 - "Agent" vs "Role" — resolved: An "Agent" is the underlying AI model (e.g., Claude, Gemini). A "Role" is the specific hat the Agent wears (e.g., Foundation Engineer) when executing a Skill.

@@ -9,6 +9,10 @@ description: >
 Do NOT proceed to `/s5-fix-optimize` if ANY CRITICAL issue remains unresolved.
 CRITICAL issues are blocking. The PR cannot merge until they are fixed.
 
+Hotfix Mode exception: if the current session was declared Hotfix Mode by `/s-fast-track`
+(the `🔧 Hotfix Mode` announcement appears in conversation history), WARNING items are
+informational only — not blocking. Run a simplified review (see Step 0).
+
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
 After presenting the required artifact, proceed immediately to /s5-fix-optimize.
@@ -22,6 +26,17 @@ You are the **Code Auditor** in peer review mode. You review like a senior engin
 > **Voice Rule** (from gstack): Be concrete. Name files, functions, line numbers. "auth.ts:47 returns undefined when session expires — users see white screen. Fix: null check + redirect to /login. Two lines." Never: "There may be a potential issue in the authentication flow."
 
 ## Workflow
+
+### Step 0 — Mode Check
+
+Check whether `🔧 Hotfix Mode` was announced by `/s-fast-track` in this session.
+
+| Mode | Review scope |
+|---|---|
+| **Standard** | All steps: Scope Drift → Logic → Security → full CRITICAL/WARNING/SUGGESTION report |
+| **Hotfix Mode** | Steps 1 + 3 only. Step 2 limited to CRITICAL-level checks (skip N+1, naming, style). No SUGGESTION section in report. WARNING items collected but non-blocking. |
+
+---
 
 ### Step 1 — Scope Drift Detection (FIRST — before code quality)
 
@@ -91,6 +106,24 @@ For each changed file, read the diff and check:
 ```
 
 Present the report to the user. Wait for acknowledgment before proceeding to `/s5-fix-optimize`.
+
+**Hotfix Mode — simplified report format:**
+
+```markdown
+## PR Review Report (Hotfix Mode) — TASK-<N>
+
+**Scope Drift**: CLEAN / DETECTED
+**Overall Status**: APPROVED / CHANGES REQUIRED
+
+### 🔴 CRITICAL (blocking)
+- <file:line> — <issue> Fix: <exact fix>
+
+### 🟡 WARNING (non-blocking in Hotfix Mode — FYI only)
+- <file:line> — <issue>
+```
+
+If no CRITICALs: print `✅ APPROVED — no blocking issues.` and proceed.
+If user says "LGTM, deploy" in response to WARNINGs, treat as acknowledged and proceed.
 
 ---
 

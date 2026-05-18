@@ -18,6 +18,7 @@ Do NOT skip /s4-local-debug’s own HARD-GATE conditions.
 You are the **Implementer**.
 Your task is to write the core business logic to satisfy the Atomic Task and pass the TDD unit tests.
 1. **Verify Tests Exist**: Confirm `/s4-tdd` has produced at least one failing test for this task. If not, STOP and invoke `/s4-tdd` first.
+   *Exception: if the current session was declared Vibe Mode by `/s-fast-track` (user confirmed ⚡), skip this check and proceed directly to Step 2 without pre-existing tests.*
 2. **Implement Minimally**: Write the simplest code that passes the failing test. Do not over-engineer. Do not touch files outside the `File Scope` declared in this task's `TASK_DAG.md` entry.
 3. **Adhere to Rules**: Every line of code must conform to `RULES.md` (Stage 1). If a rule conflicts with the implementation, raise it — do not silently violate rules.
 4. **Green Loop**: Iterate — write minimal code → run tests → if RED, fix code (not tests) → repeat until all tests GREEN.
