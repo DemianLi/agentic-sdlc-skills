@@ -38,7 +38,15 @@ AI Agent 速度快，但缺乏紀律。沒有門控時，它們會：
 |---|---|
 | `/s-fast-track` | 修 Bug、單檔修改、Brownfield 功能新增、快速原型 — 問一個澄清問題後直接路由到正確的 s4 技能 |
 
-`/s-fast-track` **不是** 跳過 Stage 4–7 紀律的捷徑。測試、審計與發布門控依然全程適用。它只跳過當任務足夠小，需求文件本身是浪費時的那些 s1–s3 流程。
+`/s-fast-track` 支援三種**開發模式**，由任務描述中的意圖訊號選擇：
+
+| 模式 | 觸發訊號 | TDD | s5 審查 | Commit 要求 |
+|---|---|---|---|---|
+| **Standard（標準）** | *（無）* | 鐵律強制執行 | 完整流程 | 正常 |
+| **Vibe Mode（探索模式）** | `--vibe`、"prototype"、"throwaway"、"spike" | 選用（直接路由至 `/s4-impl-task`） | 跳過 | 必須加 `[WIP/Prototype]` 標籤 |
+| **Hotfix Mode（熱修復模式）** | `--hotfix`、"quick fix"、"legacy codebase" | 鐵律強制執行 | 僅審 CRITICAL | 正常 |
+
+模式訊號**優先於**任務類型路由。Vibe Mode 在執行前需要明確的 Y/n 確認。Standard 模式行為與之前完全相同。
 
 ---
 
