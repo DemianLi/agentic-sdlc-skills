@@ -32,7 +32,7 @@ KEYWORDS: dict[str, list[str]] = {
     "s2-capture-vision":   ["vision", "idea", "pain point", "requirement", "business"],
     "s2-align-req":        ["align", "conflict", "ambiguity", "boundary", "clarify"],
     "s2-struct-req":       ["structured", "PRD", "User Story", "Gherkin", "BDD"],
-    "s2-snapshot-ctx":     ["snapshot", "Context", "沉澱", "知識"],
+    "s2-snapshot-ctx":     ["snapshot", "context", "requirements", "iteration"],
     "s3-eval-system":      ["existing system", "impact", "code", "Schema", "API", "evaluate"],
     "s3-design-arch":      ["design", "architecture", "data structure", "interface", "sequence"],
     "s3-breakdown-wbs":    ["atomic", "breakdown", "WBS", "minimal", "execution"],
@@ -75,6 +75,15 @@ STEPS: list[tuple[str, str]] = [
 # C4: only these skills must have a Red Flag table
 C4_SKILLS = {"s3-eval-system", "s5-pr-review", "s6-verify-release", "s5-audit-rules"}
 
+# C1: stage-boundary skills end with "Awaiting your approval";
+#     terminal skills (no downstream) use "report DONE";
+#     all other intra-stage skills use "proceed immediately to"
+BOUNDARY_SKILLS = {
+    "s1-lock-tech-stack", "s2-snapshot-ctx", "s3-build-dag",
+    "s4-local-debug", "s5-fix-optimize", "s6-verify-release", "s7-telemetry",
+}
+TERMINAL_SKILLS = {"s1-git-guardrails"}  # standalone; no downstream chain
+
 WORKFLOW_RE = re.compile(r'Step\s+\d|Workflow|->|First:|Then:|Finally:', re.IGNORECASE)
 
 
@@ -97,9 +106,16 @@ def scan_skill(skill: str, step: str, base: Path) -> dict:
     result["q_hits"] = hits
     result["q"] = "ALIGNED" if hits >= 3 else ("PARTIAL" if hits >= 1 else "DRIFTED")
 
-    # C1 — HARD-GATE + approval phrase
+    # C1 — HARD-GATE + gate phrase
+    # boundary skills must have "Awaiting your approval"
+    # intra-stage skills must have "proceed immediately to"
     result["c1_gate"]     = "HARD-GATE" in content
-    result["c1_approval"] = "Awaiting your approval" in content
+    if skill in BOUNDARY_SKILLS:
+        result["c1_approval"] = "Awaiting your approval" in content
+    elif skill in TERMINAL_SKILLS:
+        result["c1_approval"] = "report DONE" in content
+    else:
+        result["c1_approval"] = "proceed immediately to" in content
 
     # C2 — artifact chain
     result["c2_reads"]  = "Reads"  in content
@@ -165,8 +181,8 @@ def build_report(results: list, stage_filter: Optional[str]) -> str:
         "",
         "## 總覽表",
         "",
-        "| Skill | Step | Q 對齊 | C1 GATE | C1 Approval | C2 Chain | C3 Description | C4 RedFlag | 整體 |",
-        "|-------|------|--------|---------|-------------|----------|----------------|------------|------|",
+        "| Skill | Step | Q 對齊 | C1 GATE | C1 Phrase | C2 Chain | C3 Description | C4 RedFlag | 整體 |",
+        "|-------|------|--------|---------|-----------|----------|----------------|------------|------|",
     ]
 
     aligned = partial = drifted = missing = 0
@@ -206,7 +222,7 @@ def build_report(results: list, stage_filter: Optional[str]) -> str:
         "| 檢查 | 結果 |",
         "|------|------|",
         f"| C1 HARD-GATE 存在 | {sum(r.get('c1_gate',False) for r in results if r['status']!='MISSING')}/{len(results)} |",
-        f"| C1 \"Awaiting your approval\" | {sum(r.get('c1_approval',False) for r in results if r['status']!='MISSING')}/{len(results)} |",
+        f"| C1 gate phrase (boundary: 'Awaiting…' / intra: 'proceed immediately to') | {sum(r.get('c1_approval',False) for r in results if r['status']!='MISSING')}/{len(results)} |",
         f"| C2 Reads + Writes 聲明 | {sum(r.get('c2_reads',False) and r.get('c2_writes',False) for r in results if r['status']!='MISSING')}/{len(results)} |",
         f"| C3 Description 不含流程描述詞（Matt Pocock）| {sum(r.get('c3_pass',False) for r in results if r['status']!='MISSING')}/{len(results)} |",
         f"| C4 紅旗表（{len(C4_SKILLS)} 個高風險 skill）| {sum(r.get('c4_pass',False) for r in results if r.get('c4_required',False))}/{len(C4_SKILLS)} |",
@@ -219,7 +235,14 @@ def build_report(results: list, stage_filter: Optional[str]) -> str:
             issues = []
             if r["q"] != "ALIGNED": issues.append(f"Q: {r['q_hits']} keywords (需 ≥3)")
             if not r["c1_gate"]: issues.append("C1: 缺 HARD-GATE")
-            if not r["c1_approval"]: issues.append("C1: 缺 Awaiting your approval")
+            if not r["c1_approval"]:
+                if r["skill"] in BOUNDARY_SKILLS:
+                    phrase = '"Awaiting your approval"'
+                elif r["skill"] in TERMINAL_SKILLS:
+                    phrase = '"report DONE"'
+                else:
+                    phrase = '"proceed immediately to"'
+                issues.append(f"C1: 缺 {phrase}")
             if not (r["c2_reads"] and r["c2_writes"]): issues.append("C2: 缺 Reads/Writes 聲明")
             if not r["c3_pass"]: issues.append("C3: description 含流程描述詞（Matt Pocock 違規）")
             if r.get("c4_required") and not r.get("c4_pass"): issues.append("C4: 缺紅旗表")

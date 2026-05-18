@@ -47,7 +47,7 @@ def test_aligned_c1_gate(aligned):
     assert aligned["c1_gate"], "HARD-GATE block missing from fixture-aligned"
 
 def test_aligned_c1_approval(aligned):
-    assert aligned["c1_approval"], "'Awaiting your approval' missing from fixture-aligned"
+    assert aligned["c1_approval"], "'proceed immediately to' missing from fixture-aligned"
 
 def test_aligned_c2_reads(aligned):
     assert aligned["c2_reads"], "Reads declaration missing from fixture-aligned"

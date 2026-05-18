@@ -9,8 +9,8 @@ description: >
 Do NOT write the vision spec until the user has confirmed the captured intent is accurate.
 Present the draft first, then write.
 
-After presenting the required artifact, your message MUST end with exactly:
-  "Awaiting your approval to proceed."
+After presenting the required artifact, proceed immediately to /s2-align-req.
+Do NOT skip /s2-align-req's own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>
