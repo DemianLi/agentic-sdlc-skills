@@ -136,8 +136,8 @@ def scan_skill(skill: str, step: str, base: Path, eval_cases: Optional[Dict] = N
     # Tests — eval_cases.json coverage
     result["has_tests"] = verify_test_coverage(skill, eval_cases)
 
-    # C1 — HARD-GATE + gate phrase
-    result["c1_gate"] = "HARD-GATE" in content
+    # C1 — HARD-GATE + gate phrase (match opening tag only, not closing or inline text)
+    result["c1_gate"] = bool(re.search(r'<HARD-GATE>', content))
     if skill in BOUNDARY_SKILLS:
         result["c1_approval"] = "Awaiting your approval" in content
     elif skill in TERMINAL_SKILLS:
