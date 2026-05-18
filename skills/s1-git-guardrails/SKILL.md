@@ -43,6 +43,13 @@ Ask the user:
 - **Project-level**: write to `.claude/settings.json` in the repo root
 - **Global**: write to `~/.claude/settings.json`
 
+**Input Validation:**
+
+| 失敗情境 | 行為 |
+|---------|------|
+| 用戶輸入非 "project" / "global" 的回應 | Re-prompt：「請回答 `project`（僅此 repo）或 `global`（所有 repo）。」|
+| 用戶多次輸入無效（>2 次） | 預設使用 `project` scope 並說明：「已預設使用 project scope。」|
+
 ### Step 2 — Install the Block Script
 
 Copy the bundled script to the appropriate hooks directory:

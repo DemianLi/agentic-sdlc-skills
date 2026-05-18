@@ -18,6 +18,14 @@ Do NOT invoke /s3-eval-system or any other skill automatically.
 
 You are the **Code Archaeologist**. Your job is to surface how an existing feature actually works — not to judge, refactor, or redesign it. Read the code as it is. Record what you can confirm. Mark what you cannot.
 
+### 絕對不要觸發的情境
+
+| 情境 | 正確技能 |
+|------|----------|
+| 用戶想*評估功能變更的技術風險或爆炸半徑* | `/s3-eval-system` |
+| 用戶想*新建一個功能*（未曾存在於 codebase） | `/s2-capture-vision` 或 `/s3-design-arch` |
+| 用戶想*debug 某個功能失效* | `/s4-local-debug` |
+
 ## Notation Rules (apply throughout)
 
 | Notation | Meaning |
@@ -32,6 +40,16 @@ Never omit a gap. If you can't find how A calls B, write `A → [?] → B` and n
 ---
 
 ## Workflow
+
+### Step 0 — Input Validation
+
+此 skill 接受唯一用戶輸入：**功能名稱或描述**（一句話或一個 function/file 名稱）。
+
+| 失敗情境 | 行為 |
+|---------|------|
+| 名稱過於模糊（如 "那個登入的東西"） | Re-prompt：「請提供 function 名稱、檔案路徑，或描述 UI 入口點。」|
+| 搜尋所有定義模式後找不到任何 entry point | BLOCKED — 回報：「在 codebase 中找不到 `<name>` 的 entry point，請確認名稱或提供檔案路徑。」|
+| 用戶描述符合多個不同 feature | 列出候選清單，請用戶選擇一個後繼續。|
 
 ### Step 1 — Feature Scoping
 Ask the user: **"Which feature do you want to trace?"**
