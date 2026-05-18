@@ -12,7 +12,9 @@
 
 | 代號 | 檢查項 | PASS 條件 | 出處 |
 |------|--------|-----------|------|
-| C1 | 強制執行機制 | 有 `<HARD-GATE>` 區塊，且包含 "Awaiting your approval" | 主題 1：輸出紀律（四大倉庫共識） |
+| J1 | `<what-to-do>` 工作流程完整性 | 含 ≥3 個 step header、checklist 項目或編號列表項 | ParanoidJudge（結構語意審計） |
+| J2 | Completion Report 完整性 | 定義 ≥2 種狀態類型（DONE、BLOCKED 等） | ParanoidJudge（結構語意審計） |
+| C1 | 強制執行機制 | 有 `<HARD-GATE>` 區塊，且含正確 gate phrase | 主題 1：輸出紀律（四大倉庫共識） |
 | C2 | 工件鏈聲明 | `<supporting-info>` 有 **Reads** 和 **Writes** 明確聲明 | 亮點 3：顯式工件鏈（gstack + OpenSpec） |
 | C3 | Description 觸發格式 | description 不含 "Step"、"Workflow"、流程動詞串列 | 亮點 1：Description 精密設計（Matt Pocock + Superpowers） |
 
@@ -28,9 +30,13 @@ s3-eval-system, s5-pr-review, s6-verify-release, s5-audit-rules
 
 ---
 
-## 二、Per-Skill QA.md 步驟對映
+## 二、Per-Skill 行為測試覆蓋
 
-評分邏輯：SKILL.md 全文中出現 ≥3 個該步驟的關鍵詞 → **ALIGNED**；1-2 個 → **PARTIAL**；0 個 → **DRIFTED**。
+評分邏輯：每個 skill 在 `tests/eval_cases.json` 中必須有 `golden_path`（標準路徑）與 `adversarial`（對抗性案例）兩筆測資。
+- 兩者俱全 → Tests ✅ PASS
+- 任一缺失 → ⚠️ PARTIAL
+
+> 注意：此章節的關鍵詞表已由 eval_cases.json 取代。關鍵詞列表保留作歷史參考，但不再用於 scan.py 評分。
 
 ### Stage 1 — 初始化與根本規則定義
 

@@ -51,22 +51,45 @@ You are the **Alignment Inspector**. Your job: detect drift between what a skill
 
 若檔案不存在：BLOCKED — 提示「評估基線缺失，請確認 references/skill-design-intent.md 存在」。
 
-### Step 2 — 逐一掃描
+### Step 2 — 三軌掃描
 
-對每個 skill 執行以下四項檢查：
+對每個 skill 執行以下三層檢驗：
 
-**QA 對齊（Q）**：計算 SKILL.md 全文中出現設計意圖表中關鍵詞的數量。
-- ✅ ALIGNED：≥ 3 個
-- ⚠️ PARTIAL：1–2 個
-- ❌ DRIFTED：0 個
+**軌一 — 靜態句法冒煙測試（C1–C4）**
 
-**C1 強制執行**：SKILL.md 是否有 `<HARD-GATE>` 且含 "Awaiting your approval"。
+| 檢查 | 判定條件 |
+|------|---------|
+| C1 HARD-GATE | 有 `<HARD-GATE>` 區塊，且含正確 gate phrase（boundary skill: "Awaiting your approval"；intra-stage: "proceed immediately to"；terminal: "report DONE"） |
+| C2 工件鏈 | `<supporting-info>` 含 **Reads** 與 **Writes** 聲明 |
+| C3 Description | frontmatter description 不含流程描述詞（"Step"、"Workflow"、"->"） |
+| C4 紅旗表 | 僅適用 `s3-eval-system`、`s5-pr-review`、`s6-verify-release`、`s5-audit-rules`：含 "Red Flag"、"Stop" 字樣的表格 |
 
-**C2 工件鏈**：`<supporting-info>` 是否有 **Reads** 與 **Writes** 聲明。
+C1 或 C2 任一失敗 → 直接 ❌ DRIFTED，無需繼續其他軌。
 
-**C3 Description 格式**：frontmatter description 是否包含 "Step"、"Workflow"、"->" 等流程描述詞。
+**軌二 — ParanoidJudge 結構語意審計（J1–J2）**
 
-**C4 紅旗表**（僅 `s3-eval-system`、`s5-pr-review`、`s6-verify-release`、`s5-audit-rules`）：是否含 "Red Flag"、"Stop"、"Rationalization" 字樣的表格。
+由 `scan.py` 的 `paranoid_judge()` 執行，驗證 skill 有實質性的工作流程設計，而非關鍵詞填充：
+
+| 代號 | 檢查 | 判定條件 |
+|------|------|---------|
+| J1 | `<what-to-do>` 工作流程完整性 | 含 ≥3 個 step header、checklist 項目或編號列表項；缺失 → ❌ DRIFTED |
+| J2 | Completion Report 完整性 | 定義 ≥2 種狀態類型（DONE、BLOCKED、DONE_WITH_CONCERNS 等）；缺失 → ⚠️ PARTIAL |
+
+**軌三 — 行為測試覆蓋率驗證（Tests）**
+
+讀取 `tests/eval_cases.json`，確認 skill 是否擁有 `golden_path`（標準路徑）與 `adversarial`（對抗性案例）兩筆測資。
+
+- 兩者俱全 → ✅ Tests PASS
+- 任一缺失 → ⚠️ PARTIAL（可運行但測資不完整）
+
+**綜合判定**
+
+| 條件 | 整體狀態 |
+|------|---------|
+| 靜態合規 + Judge ALIGNED + Tests PASS | ✅ ALIGNED |
+| 靜態合規 + Judge ALIGNED + Tests 缺失 | ⚠️ PARTIAL |
+| 靜態合規 + Judge PARTIAL | ⚠️ PARTIAL |
+| 靜態不合規 或 Judge DRIFTED | ❌ DRIFTED |
 
 ### Step 3 — 產生批次報告
 

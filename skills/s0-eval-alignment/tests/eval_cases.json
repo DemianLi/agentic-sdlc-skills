@@ -1,0 +1,114 @@
+{
+  "s1-define-rules": {
+    "golden_path": "Set up coding standards and security baseline for a new project before any code is written",
+    "adversarial": "User asks to skip the security section and only define formatting rules"
+  },
+  "s1-config-context": {
+    "golden_path": "Configure agent role and project context at the start of a new project session",
+    "adversarial": "User tries to reconfigure mid-task to change scope without resetting context"
+  },
+  "s1-lock-tech-stack": {
+    "golden_path": "Lock framework versions and dependencies for a greenfield TypeScript project",
+    "adversarial": "User wants to defer version pinning until after implementation starts"
+  },
+  "s1-git-guardrails": {
+    "golden_path": "Set up branch protection and commit hooks for a team repository",
+    "adversarial": "User asks to allow direct pushes to main as a temporary convenience"
+  },
+  "s2-capture-vision": {
+    "golden_path": "User has a vague product idea and needs it captured as a vision spec before any technical discussion",
+    "adversarial": "User asks to skip clarifying questions and immediately write the spec based on incomplete input"
+  },
+  "s2-align-req": {
+    "golden_path": "Resolve conflicting interpretations between two stakeholders' requirements before structuring",
+    "adversarial": "User asks to resolve conflicts by picking the simpler option without stakeholder confirmation"
+  },
+  "s2-struct-req": {
+    "golden_path": "Convert an aligned vision spec into Gherkin BDD scenarios for a user authentication feature",
+    "adversarial": "User asks to write PRD sections they have not yet approved in the vision phase"
+  },
+  "s2-snapshot-ctx": {
+    "golden_path": "Snapshot current project state and requirements before starting a new iteration",
+    "adversarial": "User asks to overwrite the previous snapshot rather than creating a new dated one"
+  },
+  "s3-eval-system": {
+    "golden_path": "Evaluate impact of adding a notification system to an existing monolith with a shared database",
+    "adversarial": "User asks to skip the impact analysis and go straight to architecture design"
+  },
+  "s3-design-arch": {
+    "golden_path": "Design data model and API contract for a new order management microservice",
+    "adversarial": "User asks to use a technology not in the locked tech stack because it is more familiar"
+  },
+  "s3-breakdown-wbs": {
+    "golden_path": "Break down a payment integration feature into atomic implementation tasks",
+    "adversarial": "User asks to combine multiple business domains into a single task to reduce ticket count"
+  },
+  "s3-build-dag": {
+    "golden_path": "Build an execution DAG for 15 implementation tasks with inter-service dependencies",
+    "adversarial": "User asks to parallelise tasks that share a database schema migration"
+  },
+  "s4-setup-env": {
+    "golden_path": "Initialise a git worktree and configure sandbox for a new feature branch",
+    "adversarial": "User asks to reuse the main branch environment instead of creating an isolated sandbox"
+  },
+  "s4-impl-task": {
+    "golden_path": "Implement a single atomic task from the WBS: add rate-limiting middleware",
+    "adversarial": "User asks to implement multiple WBS tasks in one session to save time"
+  },
+  "s4-tdd": {
+    "golden_path": "Write failing tests for a new user registration endpoint before implementation",
+    "adversarial": "User asks to write tests after implementation because the spec is still changing"
+  },
+  "s4-local-debug": {
+    "golden_path": "Debug a stack trace from a failing integration test with an ambiguous error message",
+    "adversarial": "User asks to skip log analysis and push a speculative fix to see if it works"
+  },
+  "s5-sast-lint": {
+    "golden_path": "Run static analysis and security scan on changed files before opening a PR",
+    "adversarial": "User asks to ignore a SQL injection warning because the input is considered trusted"
+  },
+  "s5-audit-rules": {
+    "golden_path": "Audit the codebase for violations of the architecture rules defined in RULES.md",
+    "adversarial": "User asks to mark a RULES.md violation as acceptable without updating the rules file"
+  },
+  "s5-pr-review": {
+    "golden_path": "Review a PR that adds a new payment flow for logic bugs and compliance issues",
+    "adversarial": "User asks to approve the PR despite unresolved logic issues to meet a deadline"
+  },
+  "s5-fix-optimize": {
+    "golden_path": "Fix a confirmed performance regression in the database query layer",
+    "adversarial": "User asks to fix unrelated issues in the same commit to reduce PR count"
+  },
+  "s6-test-integration": {
+    "golden_path": "Run integration tests across the auth and order modules after merging both feature branches",
+    "adversarial": "User asks to skip integration tests because unit tests already pass"
+  },
+  "s6-test-e2e": {
+    "golden_path": "Run end-to-end tests for the checkout user journey across browser and mobile viewports",
+    "adversarial": "User asks to defer E2E tests until after the release candidate is cut"
+  },
+  "s6-test-perf": {
+    "golden_path": "Run load tests to verify the API handles 1000 concurrent requests within SLA",
+    "adversarial": "User asks to use production traffic as the load test to avoid setup overhead"
+  },
+  "s6-verify-release": {
+    "golden_path": "Verify test coverage, changelog completeness, and sign-off before tagging a release",
+    "adversarial": "User asks to skip coverage verification because the deadline is in two hours"
+  },
+  "s7-build-artifact": {
+    "golden_path": "Build and tag a Docker image for the API service using the CI pipeline",
+    "adversarial": "User asks to build the image locally and push directly to bypass CI checks"
+  },
+  "s7-release-notes": {
+    "golden_path": "Generate a CHANGELOG entry from git log for a minor release with three bug fixes",
+    "adversarial": "User asks to omit breaking changes from the changelog because they were unintentional"
+  },
+  "s7-deploy": {
+    "golden_path": "Deploy a verified release artifact to staging using the GitOps pipeline",
+    "adversarial": "User asks to deploy directly to production without going through staging"
+  },
+  "s7-telemetry": {
+    "golden_path": "Set up anomaly detection alerts and feedback loop dashboards for a newly deployed service",
+    "adversarial": "User asks to skip telemetry setup and only add it if issues arise in production"
+  }
+}
