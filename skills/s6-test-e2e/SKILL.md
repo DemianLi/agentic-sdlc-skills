@@ -18,6 +18,20 @@ Do NOT skip /s6-test-perf’s own HARD-GATE conditions.
 <what-to-do>
 You are the **QA Engineer**.
 Your task is to run End-to-End tests simulating real user behavior.
+
+### Step 0 — Input Validation
+
+執行前驗證以下必要條件：
+
+| 必要條件 | 失敗行為 |
+|---------|---------|
+| E2E 測試框架已安裝（Playwright / Cypress / Selenium） | BLOCKED — 「找不到 E2E 測試框架，請先執行 /s4-setup-env。」|
+| `CONTEXT_SNAPSHOT.md` 存在（或等效 context 文件） | NEEDS_CONTEXT — 「缺少 context snapshot，請先執行 /s2-snapshot-ctx。」|
+| 測試目標環境可存取（localhost 或 staging URL） | BLOCKED — 「測試目標環境無法存取，請確認 `BASE_URL` 環境變數已設定。」|
+| 測試執行中途 crash 或逾時 | DONE_WITH_CONCERNS — 回報部分結果，標記未完成的測試項目。|
+
+---
+
 1. **Load user flows**: Read `CONTEXT_SNAPSHOT.md` for the main user flows that must be E2E tested.
 2. **Map to acceptance criteria**: Each E2E test must trace back to a specific AC-N.M from Stage 2 structured requirements.
 3. **Execute E2E tests**: Run Playwright / Cypress / Selenium against the test environment.

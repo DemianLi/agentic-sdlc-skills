@@ -17,6 +17,25 @@ Do NOT skip /s4-local-debug’s own HARD-GATE conditions.
 <what-to-do>
 You are the **Implementer**.
 Your task is to write the core business logic to satisfy the Atomic Task and pass the TDD unit tests.
+
+## Step 0 — Input Validation
+
+此 skill 讀取以下輸入：
+
+| 輸入 | 必要性 |
+|------|--------|
+| 通過測試的 test file | 必要 |
+| `TASK_DAG.md` 中的任務條目（含 AC） | 必要 |
+| `RULES.md` | 選用 |
+
+| 失敗情境 | 行為 |
+|---------|------|
+| Test file 不存在 | BLOCKED — 「找不到對應 test file，請先執行 /s4-tdd 建立測試。」|
+| `TASK_DAG.md` 不存在或任務條目缺少 AC 欄位 | BLOCKED — 「`TASK_DAG.md` 缺少 Acceptance Criterion，請補齊後繼續。」|
+| `RULES.md` 中的規則與實作需求衝突 | NEEDS_CONTEXT — 說明衝突點，請用戶決定優先順序。|
+
+---
+
 1. **Verify Tests Exist**: Confirm `/s4-tdd` has produced at least one failing test for this task. If not, STOP and invoke `/s4-tdd` first.
    *Exception: if the current session was declared Vibe Mode by `/s-fast-track` (user confirmed ⚡), skip this check and proceed directly to Step 2 without pre-existing tests.*
 2. **Implement Minimally**: Write the simplest code that passes the failing test. Do not over-engineer. Do not touch files outside the `File Scope` declared in this task's `TASK_DAG.md` entry.

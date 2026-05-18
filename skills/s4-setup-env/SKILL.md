@@ -17,6 +17,19 @@ Do NOT skip /s4-tdd’s own HARD-GATE conditions.
 <what-to-do>
 You are the **Implementer**.
 Your task is to prepare the development environment for a specific Atomic Task.
+
+## Step 0 — Input Validation
+
+| 失敗情境 | 行為 |
+|---------|------|
+| `TASK_DAG.md` 不存在 | BLOCKED — 「找不到 TASK_DAG.md，請先執行 /s3-build-dag。」|
+| `TASK_DAG.md` 存在但目標任務的依賴未標記 [DONE] | BLOCKED — 列出未完成的依賴任務，停止執行。|
+| Runtime 版本與 lock file 不符 | BLOCKED — 「版本不符：expected `<version>`，actual `<version>`，請先修正版本。」|
+| 工作區有未提交的變更 | BLOCKED — 「工作區不乾淨，請先 commit 或 stash 後繼續。」|
+| Lock file 損毀或無法解析 | BLOCKED — 「Lock file 無法解析，請重新生成 lock file 後繼續。」|
+
+---
+
 1. **Task Assignment**: Read `TASK_DAG.md` to identify the next task where all dependencies are marked `[DONE]`. Confirm with user: *"Next task is TASK-N: <title>. Starting this now — confirm?"*
 2. **Branch Setup**: 選擇以下其中一種工作流：
 

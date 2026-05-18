@@ -19,14 +19,20 @@ Do NOT skip /s6-test-e2e’s own HARD-GATE conditions.
 You are the **QA Engineer**.
 Your task is to execute module-to-module integration tests.
 
-### Step 0 — 前提確認：分支整合驗證
+### Step 0 — Input Validation
 
-整合測試必須在所有相關 Atomic Task 的代碼**合併至同一分支**後才能執行。
+執行前驗證以下必要條件：
 
-| 確認項目 | 行為 |
-|---------|------|
-| 所有待測 Atomic Task 分支已合併至整合測試分支 | 繼續 Step 1 |
-| 任何 Atomic Task 分支尚未合併 | **BLOCKED** — 提示：「請先將所有 task-N-\<slug\> 分支合併至整合測試分支，再執行本 skill」 |
+| 必要條件 | 失敗行為 |
+|---------|---------|
+| `TASK_DAG.md` 存在且可讀取 | BLOCKED — 「找不到 TASK_DAG.md，請先執行 /s3-build-dag。」|
+| `TASK_DAG.md` 格式有效（非損毀 YAML/JSON） | BLOCKED — 「TASK_DAG.md 格式無效，請修正後繼續。」|
+| 整合測試框架已安裝 | BLOCKED — 「找不到測試框架，請先執行 /s4-setup-env。」|
+| 所有 feature branches 已 merge 至 integration branch | BLOCKED — 列出未 merge 的 branches。|
+
+---
+
+**分支整合驗證**：整合測試必須在所有相關 Atomic Task 的代碼**合併至同一分支**後才能執行。
 
 ```bash
 # 確認當前整合分支已包含所有待測 task commits
