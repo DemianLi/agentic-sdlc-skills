@@ -1,0 +1,34 @@
+[
+  {
+    "scenario": "All ambiguities resolved in vision spec",
+    "input": {
+      "vision_spec_path": "docs/specs/2026-05-19-auth-vision.md",
+      "open_questions_count": 0,
+      "ambiguities": [],
+      "contradictions": []
+    },
+    "expected_behavior": "Skip conflict identification; proceed directly to scope boundary definition with clear IN/OUT/Deferred lists",
+    "notes": "Fast path: no conflicts found, user confirms scope immediately"
+  },
+  {
+    "scenario": "Vision has multiple unresolved contradictions",
+    "input": {
+      "vision_spec_path": "docs/specs/2026-05-19-notifications-vision.md",
+      "open_questions_count": 3,
+      "ambiguities": ["real-time vs eventual consistency", "offline behavior undefined"],
+      "contradictions": ["must support push notifications AND no external dependencies"]
+    },
+    "expected_behavior": "Identify all 3 conflicts, propose resolutions one-by-one, map full decision tree for each, then present scope boundary",
+    "notes": "Blocked path: each conflict requires explicit user decision before scope approval"
+  },
+  {
+    "scenario": "Scope creep risk: implied complexity hidden in simple requirement",
+    "input": {
+      "vision_spec_path": "docs/specs/2026-05-19-billing-vision.md",
+      "requirement": "support international payments",
+      "flagged_risk": "implies currency conversion, tax handling, compliance per country"
+    },
+    "expected_behavior": "Surface the hidden scope (compliance + currency + taxes), propose scoped-down alternative (single-currency MVP), get user choice",
+    "notes": "Scope boundary must explicitly LIST what is IN vs OUT (e.g., 'currency conversion OUT, single-currency IN')"
+  }
+]

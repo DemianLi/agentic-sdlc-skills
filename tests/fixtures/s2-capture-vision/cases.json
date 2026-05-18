@@ -1,0 +1,31 @@
+[
+  {
+    "scenario": "B2C SaaS feature vision: document-sharing collaboration",
+    "input": {
+      "problem_statement": "Users cannot collaborate on shared documents in real-time",
+      "user_request": "add real-time collaboration",
+      "project_context": "B2C SaaS with 10k active users"
+    },
+    "expected_behavior": "Challenge premise (existing CRDT library?), explore scope (1 doc vs many, sync algorithm), propose 2-3 approaches, write vision doc with Problem Statement, Target Users, Proposed Approach, Out of Scope, Open Questions",
+    "notes": "Output must be committed to docs/specs/YYYY-MM-DD-<topic>-vision.md before proceeding to /s2-align-req"
+  },
+  {
+    "scenario": "Internal tool MVP: CLI dashboard for deployment monitoring",
+    "input": {
+      "problem_statement": "Team manually checks 5 different dashboards to see system health",
+      "minimum_viable_form": "single-page CLI showing pod count, error rates, last deploy time",
+      "success_criteria": "reduce dashboard-switching from 5 to 1"
+    },
+    "expected_behavior": "Verify single system (not multi-subsystem), ask ONE question at a time (purpose, constraints, who, success), propose 2-3 tech approaches (Node CLI vs Python vs Bash+Go), write vision, present section-by-section for approval",
+    "notes": "Red flag if user says both 'CLI' and 'web dashboard' — decompose into two sub-projects"
+  },
+  {
+    "scenario": "Request lacks clarity: multi-system disguised as single feature",
+    "input": {
+      "request": "build a platform with chat, billing, and analytics",
+      "project_type": "startup MVP"
+    },
+    "expected_behavior": "Immediately flag as multi-subsystem: chat (realtime messaging system), billing (payments + invoicing), analytics (event collection + dashboards). Decompose: identify independent pieces and build order. Start clarifying-question flow for FIRST sub-project only",
+    "notes": "Do not write 3 vision specs in parallel. Decompose, agree on build order, then cycle through /s2-capture-vision for each."
+  }
+]

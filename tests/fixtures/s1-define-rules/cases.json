@@ -1,0 +1,46 @@
+[
+  {
+    "scenario": "Greenfield project — user requests production-ready ruleset from scratch",
+    "input": {
+      "project_state": "new",
+      "has_rules_md": false,
+      "framework": "React + TypeScript",
+      "requirements": ["strict ESLint", "Clean Architecture", "OWASP top 10"]
+    },
+    "expected_behavior": "Skill proposes complete RULES.md with linting rules, architecture boundaries, security baselines; presents to user for approval; writes only after explicit go-ahead",
+    "notes": "User has clear vision — skill acts as validator, not inventor"
+  },
+  {
+    "scenario": "Brownfield project — merge new architectural constraint into existing RULES.md",
+    "input": {
+      "project_state": "existing",
+      "has_rules_md": true,
+      "existing_rules": ["ESLint strict", "PEP8"],
+      "new_constraint": "hexagonal-architecture with dependency inversion"
+    },
+    "expected_behavior": "Skill reads existing RULES.md, proposes new architectural boundary rule, checks for conflicts with existing rules, presents merged ruleset for approval",
+    "notes": "Must not silently override existing governance"
+  },
+  {
+    "scenario": "Conflicting rules — user wants feature X but project rules forbid it",
+    "input": {
+      "project_state": "existing",
+      "existing_rule": "Domain layer must not import from Infrastructure",
+      "user_request": "Add direct database calls in Domain model",
+      "conflict": true
+    },
+    "expected_behavior": "Skill detects violation, flags the conflict, presents three options: (1) modify the rule, (2) redesign the feature, (3) escalate to stakeholder",
+    "notes": "Governance enforcement — prevents rule drift"
+  },
+  {
+    "scenario": "Uncertain user — skill proposes rules based on project analysis",
+    "input": {
+      "project_state": "existing",
+      "codebase_size": "5000 LOC",
+      "user_clarity": "vague",
+      "user_request": "help me define best practices"
+    },
+    "expected_behavior": "Skill analyzes codebase patterns, proposes robust ruleset (e.g., module length, import cycles, test coverage ≥80%), presents with rationale, awaits approval",
+    "notes": "Guidance without autonomy — user always approves before write"
+  }
+]

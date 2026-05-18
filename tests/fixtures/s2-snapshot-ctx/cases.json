@@ -1,0 +1,33 @@
+[
+  {
+    "scenario": "Standard iteration: snapshot after structured requirements committed",
+    "input": {
+      "requirements_doc_path": "docs/specs/2026-05-19-editor-requirements.md",
+      "requirements_count": 5,
+      "is_committed": true,
+      "alignment_doc": "docs/alignment/2026-05-19-editor-alignment.md"
+    },
+    "expected_behavior": "Extract iteration goal (1 sentence), list Must-Have REQs with AC counts, extract Out of Scope, define key constraints (tech stack, performance targets, security), generate 1-page CONTEXT_SNAPSHOT.md at project root, commit with message 'docs: add context snapshot for editor iteration', notify user snapshot ready for Stage 3",
+    "notes": "Must be ≤50 lines. Only facts from committed docs, no speculation. Include Forbidden Actions section."
+  },
+  {
+    "scenario": "Snapshot generation when requirements NOT yet committed",
+    "input": {
+      "requirements_doc_path": "docs/specs/2026-05-19-notifications-requirements.md",
+      "is_committed": false,
+      "draft_stage": "waiting for user sign-off"
+    },
+    "expected_behavior": "STOP. Do NOT generate snapshot from uncommitted draft. Return message: 'Requirements doc not yet committed. Please confirm you have reviewed and approved docs/specs/2026-05-19-notifications-requirements.md, then I will commit it before generating snapshot'",
+    "notes": "Snapshot is derived from committed source of truth, not draft. This prevents snapshot drifting from actual requirements later."
+  },
+  {
+    "scenario": "New team member onboarding: reading snapshot to understand iteration",
+    "input": {
+      "snapshot_path": "CONTEXT_SNAPSHOT.md",
+      "reader_role": "backend engineer joining mid-sprint",
+      "context": "needs to understand iteration goal and constraints quickly"
+    },
+    "expected_behavior": "Snapshot is agent-readable and must enable fast scan: iteration goal clear in 1 sentence, Must-Have REQs listed with AC counts (enables test estimation), Out of Scope prevents scope creep, Key Constraints (tech stack, perf targets, security) guide implementation, Forbidden Actions prevent out-of-bounds work",
+    "notes": "Snapshot must be scannable in <2 minutes. If >50 lines, engineer skips it entirely. Brevity is essential for downstream Stage 3-7 agents."
+  }
+]

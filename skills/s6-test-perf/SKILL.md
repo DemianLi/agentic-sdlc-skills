@@ -106,6 +106,15 @@ Field rules:
 - **Upstream Dependency**: `/s6-test-e2e`.
 - **Downstream Target**: `/s6-verify-release`.
 
+
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s6-test-perf/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected outcome).
+
+Smoke test: confirm skill output structure and expected_behavior alignment for each scenario.
+
 ## Artifact Dependencies
 - **Reads**: source files, `RULES.md` (performance thresholds if defined)
 - **Writes**: `docs/tests/YYYY-MM-DD-perf-baseline.json`

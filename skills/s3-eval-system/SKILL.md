@@ -161,6 +161,14 @@ Required sections: Breaking Changes / Additive Changes / Technical Debt / Recomm
 
 Commit before transitioning.
 
+## Eval Fixtures
+
+Fixtures 位於 `tests/fixtures/s3-eval-system/cases.json`。
+
+每個 fixture 包含：`scenario`（情境描述）、`input`（輸入物件）、`expected_behavior`（預期行為）。
+
+冒煙測試：逐一確認 skill 對每個情境的輸出結構與 expected_behavior 一致。
+
 ## Artifact Dependencies
 - **Reads**: `CONTEXT_SNAPSHOT.md`, `CONTEXT.md`, `RULES.md`, `docs/adr/` (optional)
 - **Writes**: `docs/arch/YYYY-MM-DD-<topic>-impact.md`

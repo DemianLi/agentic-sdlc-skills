@@ -136,6 +136,14 @@ Required sections:
 - `## OUT of Scope` — explicit exclusions
 - `## Deferred` — acknowledged but not this iteration
 
+## Eval Fixtures
+
+Fixtures 位於 `tests/fixtures/s2-align-req/cases.json`。
+
+每個 fixture 包含：`scenario`（情境描述）、`input`（輸入物件）、`expected_behavior`（預期行為）。
+
+冒煙測試：逐一確認 skill 對每個情境的輸出結構與 expected_behavior 一致。
+
 ## Artifact Dependencies
 - **Reads**: `docs/specs/YYYY-MM-DD-<topic>-vision.md`
 - **Writes**: `docs/alignment/YYYY-MM-DD-<topic>-alignment.md`

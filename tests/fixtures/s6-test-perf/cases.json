@@ -1,0 +1,60 @@
+[
+  {
+    "scenario": "Performance baseline: capture P50/P95/P99 latency under load",
+    "input": {
+      "load_test_tool": "k6",
+      "concurrency": 100,
+      "duration_seconds": 600,
+      "warmup_iterations": 10,
+      "measured_latencies": {
+        "p50_ms": 38,
+        "p95_ms": 95,
+        "p99_ms": 180
+      }
+    },
+    "expected_behavior": "Skill captures machine-generated baseline: latency_p50_ms, latency_p95_ms, latency_p99_ms, throughput_rps, error_rate_pct. Writes perf-baseline.json with all fields from load test output. Manual estimates are NOT accepted.",
+    "notes": "Warmup iterations (≥10) discarded before measurement to ensure steady-state (JIT warm, cache warm). Baseline used by /s7-telemetry for post-deploy comparison."
+  },
+  {
+    "scenario": "SLO gate FAIL: P99 latency exceeds requirement",
+    "input": {
+      "performance_ac": "API must respond < 200ms at P99 under 100 concurrent users",
+      "measured_p99_ms": 450,
+      "target_p99_ms": 200
+    },
+    "expected_behavior": "Skill should BLOCK progression to /s6-verify-release. Status: BLOCKED with exact values: 'P99 = 450ms, target = 200ms.' Performance regressions are BLOCKING.",
+    "notes": "No 'close enough' exceptions. If metric > threshold, it FAILS, period. Gate existence = enforcement, not suggestion."
+  },
+  {
+    "scenario": "Memory leak detection: sustained load over 10 minutes",
+    "input": {
+      "test_duration_minutes": 10,
+      "memory_samples": [45, 46, 48, 51, 54, 59, 65, 72, 81, 91],
+      "pattern": "monotonic growth"
+    },
+    "expected_behavior": "Skill detects monotonic RSS growth via tracemalloc (Python) or heap snapshot (Node.js). Sets memory_leak_detected: true. Flags as slo_gate: FAIL if leak confirmed.",
+    "notes": "Optional but recommended: compare before/after snapshots. PostgreSQL: log_lock_waits = on. MySQL: innodb_print_all_deadlocks = ON."
+  },
+  {
+    "scenario": "Regression check: 20%+ worse metric vs previous baseline",
+    "input": {
+      "previous_baseline_p99_ms": 150,
+      "current_p99_ms": 185,
+      "regression_threshold_pct": 20
+    },
+    "expected_behavior": "Skill compares against previous baseline. Detects (185-150)/150 = 23.3% regression. Status: DONE_WITH_CONCERNS, listing metrics close to threshold.",
+    "notes": "Regression = metric 20%+ worse. Report numeric values for every metric, not vague descriptions."
+  },
+  {
+    "scenario": "First iteration: no baseline exists yet",
+    "input": {
+      "is_first_iteration": true,
+      "baseline_exists": false,
+      "performance_ac_defined": true,
+      "p99_ms": 180,
+      "p99_target": 200
+    },
+    "expected_behavior": "Skill still validates against Stage 2 performance AC. Even without prior baseline, must verify AC-N.M is met. Writes perf-baseline.json for future comparison. Status: DONE if SLO targets met.",
+    "notes": "First baseline has no comparison pair, but must still pass acceptance criteria defined in requirements."
+  }
+]

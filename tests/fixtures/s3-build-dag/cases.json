@@ -1,0 +1,41 @@
+[
+  {
+    "scenario": "Linear task dependency chain",
+    "input": {
+      "wbs_file": "docs/arch/2026-05-19-auth-wbs.md",
+      "tasks": [
+        {"id": "TASK-1", "name": "Create AuthSchema", "blockedBy": []},
+        {"id": "TASK-2", "name": "Implement AuthService", "blockedBy": ["TASK-1"]},
+        {"id": "TASK-3", "name": "Add Middleware", "blockedBy": ["TASK-2"]},
+        {"id": "TASK-4", "name": "Unit Test AuthService", "blockedBy": ["TASK-2"]}
+      ]
+    },
+    "expected_behavior": "skill should produce valid DAG; critical path = TASK-1 → TASK-2 → TASK-3 (9 min); TASK-4 can run parallel after TASK-2",
+    "notes": "Tests basic topological sort and critical path detection"
+  },
+  {
+    "scenario": "Parallel task entry points",
+    "input": {
+      "wbs_file": "docs/arch/2026-05-19-payment-wbs.md",
+      "tasks": [
+        {"id": "TASK-1", "name": "Payment Schema", "blockedBy": []},
+        {"id": "TASK-2", "name": "Webhook Schema", "blockedBy": []},
+        {"id": "TASK-3", "name": "Integrate Payment + Webhook", "blockedBy": ["TASK-1", "TASK-2"]}
+      ]
+    },
+    "expected_behavior": "skill should show TASK-1 and TASK-2 as parallel entry points; both can start immediately; TASK-3 starts only after both complete",
+    "notes": "Tests parallelism detection when multiple tasks have no dependencies"
+  },
+  {
+    "scenario": "Circular dependency detected",
+    "input": {
+      "wbs_file": "docs/arch/2026-05-19-circular-wbs.md",
+      "tasks": [
+        {"id": "TASK-1", "name": "ServiceA", "blockedBy": ["TASK-2"]},
+        {"id": "TASK-2", "name": "ServiceB", "blockedBy": ["TASK-1"]}
+      ]
+    },
+    "expected_behavior": "skill should detect cycle and return status BLOCKED; error message should state: 'Circular dependency detected: TASK-1 → TASK-2 → TASK-1'",
+    "notes": "Tests drift detection: ensures skill rejects invalid WBS structures"
+  }
+]

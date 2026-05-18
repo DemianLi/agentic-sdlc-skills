@@ -72,6 +72,14 @@ The resulting `RULES.md` must contain:
 3. **Forbidden Patterns** (e.g., "Do not use `any` in TypeScript", "Do not mutate state").
 4. **Toolchain Enforcement Notes** — for each rule, either a tool reference or `# manual review required`.
 
+## Eval Fixtures
+
+Fixtures 位於 `tests/fixtures/s1-define-rules/cases.json`。
+
+每個 fixture 包含：`scenario`（情境描述）、`input`（輸入物件）、`expected_behavior`（預期行為）。
+
+冒煙測試：逐一確認 skill 對每個情境的輸出結構與 expected_behavior 一致。
+
 ## Artifact Dependencies
 - **Reads**: none
 - **Writes**: `RULES.md`

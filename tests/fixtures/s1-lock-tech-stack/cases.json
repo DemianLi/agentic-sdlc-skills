@@ -1,0 +1,45 @@
+[
+  {
+    "scenario": "Greenfield Node.js project — lock framework and runtime versions",
+    "input": {
+      "project_state": "new",
+      "primary_language": "Node.js",
+      "runtime_command": "node --version && npm --version",
+      "requested_framework": "Next.js 14",
+      "requested_db": "PostgreSQL 15"
+    },
+    "expected_behavior": "Skill runs runtime version commands, records exact output (e.g., 'v18.17.0', 'npm 9.8.0'), presents complete tech stack with pinned versions, awaits user approval before writing lock files",
+    "notes": "Runtime verification is mandatory first step — output goes into RULES.md under 'Runtime Environment'"
+  },
+  {
+    "scenario": "Compatibility conflict — user requests versions that are incompatible",
+    "input": {
+      "project_state": "new",
+      "requested_stack": "Next.js 14 + Node 16",
+      "compatibility_issue": "Next.js 14 requires Node 18+"
+    },
+    "expected_behavior": "Skill detects version mismatch, alerts user immediately with specific requirement, blocks lock file generation, waits for user to resolve conflict",
+    "notes": "Early detection prevents Stage 5 SAST failures from version mismatch"
+  },
+  {
+    "scenario": "Python project — missing explicit version specification",
+    "input": {
+      "project_state": "new",
+      "primary_language": "Python",
+      "user_request": "set up FastAPI project",
+      "version_spec": "unspecified"
+    },
+    "expected_behavior": "Skill runs 'python --version' (or 'python3 --version'), records actual runtime version, generates requirements.txt with pinned dependencies (FastAPI==0.95.2, sqlalchemy==2.0.19, etc.), presents for approval",
+    "notes": "Must execute runtime command before proposing versions — never assume 'latest'"
+  },
+  {
+    "scenario": "Monolithic vs microservices mismatch — tech stack conflicts with architecture",
+    "input": {
+      "project_state": "new",
+      "architecture": "monolithic",
+      "tech_stack_request": "Kubernetes orchestration + gRPC + service mesh"
+    },
+    "expected_behavior": "Skill flags architecture mismatch, asks user to clarify intent: (1) monolithic should use simpler stack, (2) architecture decision should change to distributed",
+    "notes": "Prevents downstream Stage 3 design failures caused by misaligned tech decisions"
+  }
+]

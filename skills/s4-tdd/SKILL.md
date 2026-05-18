@@ -263,6 +263,15 @@ digraph tdd_cycle {
 - **Coverage report**: Run after all behaviors are GREEN and attach summary (lines covered / total)
 - **Commit format**: `test: add failing test for <behavior>` then `feat: implement <behavior> (TDD green)`
 
+
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s4-tdd/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected outcome).
+
+Smoke test: confirm skill output structure and expected_behavior alignment for each scenario.
+
 ## Artifact Dependencies
 - **Reads**: `TASK_DAG.md` (current Atomic Task + Acceptance Criteria)
 - **Writes**: test files (`*.test.*` / `test_*.py` / `*_test.go`), coverage report

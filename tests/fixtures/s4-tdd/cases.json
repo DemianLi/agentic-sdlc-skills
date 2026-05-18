@@ -1,0 +1,49 @@
+[
+  {
+    "scenario": "Bug fix: TDD workflow must fail first before implementation",
+    "input": {
+      "task_type": "bug_fix",
+      "action": "write_production_code_first"
+    },
+    "expected_behavior": "Skill should BLOCK and mandate: (1) write failing test, (2) run test and paste terminal output showing FAILED, (3) only then implement. No exceptions.",
+    "notes": "Iron Law enforcement: if code exists before test, DELETE it and start over."
+  },
+  {
+    "scenario": "New feature: vertical slicing (one behavior at a time)",
+    "input": {
+      "task_type": "new_feature",
+      "behaviors": ["display user profile", "save profile changes", "validate email field"],
+      "test_sequence": "RED → GREEN per behavior, not horizontal (all tests then all code)"
+    },
+    "expected_behavior": "Skill enforces vertical RED→GREEN cycles: test1→impl1→commit, test2→impl2→commit, test3→impl3→commit. Horizontal slicing (all tests then all code) is FORBIDDEN.",
+    "notes": "Each cycle: write one test, watch it FAIL, write minimal code to pass, verify full suite, commit."
+  },
+  {
+    "scenario": "Coverage gate: brownfield mode (legacy codebase)",
+    "input": {
+      "project_mode": "brownfield",
+      "new_lines_added": 45,
+      "coverage_percent_new_lines": 75
+    },
+    "expected_behavior": "Skill should ACCEPT 75% coverage of new/modified lines only (not pre-existing untested code). Report header must state: 'BROWNFIELD MODE: coverage scoped to new/modified lines only.'",
+    "notes": "Brownfield: cover YOUR changes (≥80%), not the legacy debt. Report scoped coverage summary before DONE."
+  },
+  {
+    "scenario": "Test acceptance: test passes immediately on first run",
+    "input": {
+      "test_written": true,
+      "first_run_result": "PASSED"
+    },
+    "expected_behavior": "Skill should flag: 'Test passes immediately — you are testing existing behavior. Fix the test. Do NOT proceed to GREEN.' Halt until failure is confirmed correct.",
+    "notes": "Passing test on first run = no new requirement verified. Must write a test that initially FAILS for the expected reason."
+  },
+  {
+    "scenario": "Refactor gate: all behaviors GREEN before refactoring",
+    "input": {
+      "all_tests_green": false,
+      "refactoring_request": true
+    },
+    "expected_behavior": "Skill should BLOCK refactoring until all RED→GREEN cycles complete. Error: 'Never refactor while RED. Get to GREEN first.'",
+    "notes": "Refactoring only after all acceptance criteria are green and coverage ≥ threshold."
+  }
+]

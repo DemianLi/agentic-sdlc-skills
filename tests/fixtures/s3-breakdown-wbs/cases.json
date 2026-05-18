@@ -1,0 +1,32 @@
+[
+  {
+    "scenario": "Simple single-file task decomposition",
+    "input": {
+      "design_file": "docs/arch/2026-05-19-auth-design.md",
+      "feature": "JWT authentication",
+      "components": ["AuthService", "TokenGenerator", "Middleware"]
+    },
+    "expected_behavior": "skill should produce 3-5 atomic tasks with clear inputs/outputs, each ≤5 minutes; all tasks should have explicit file scopes; blockedBy relationships documented",
+    "notes": "Tests baseline decomposition of a simple, self-contained feature"
+  },
+  {
+    "scenario": "Cross-module task with shared dependencies",
+    "input": {
+      "design_file": "docs/arch/2026-05-19-payment-design.md",
+      "feature": "Payment processing with webhook handling",
+      "components": ["PaymentService", "WebhookListener", "OrderService", "DBSchema"]
+    },
+    "expected_behavior": "skill should identify shared dependencies (DBSchema task blocks both PaymentService and WebhookListener); critical path should be clear; 6-8 tasks total",
+    "notes": "Tests atomicity and dependency accuracy when tasks must coordinate state"
+  },
+  {
+    "scenario": "Ambiguous design boundaries",
+    "input": {
+      "design_file": "docs/arch/2026-05-19-unclear-design.md",
+      "feature": "Unclear service boundary, missing API contracts",
+      "components": ["ServiceA", "ServiceB"]
+    },
+    "expected_behavior": "skill should REJECT decomposition and return status BLOCKED with specific question about unclear API contract or file boundary",
+    "notes": "Tests drift detection: ensures skill does not proceed when design is under-specified"
+  }
+]

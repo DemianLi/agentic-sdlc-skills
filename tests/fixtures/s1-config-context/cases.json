@@ -1,0 +1,46 @@
+[
+  {
+    "scenario": "Greenfield project — no CONTEXT.md exists",
+    "input": {
+      "project_state": "new",
+      "has_context_md": false,
+      "has_readme": true,
+      "domain_terms": ["user", "session", "token", "resource"]
+    },
+    "expected_behavior": "Skill creates CONTEXT.md with glossary section and AI boundaries section; presents to user for approval before writing",
+    "notes": "Foundation scenario — user defines all terms one-by-one"
+  },
+  {
+    "scenario": "Brownfield project — CONTEXT.md exists but needs expansion",
+    "input": {
+      "project_state": "existing",
+      "has_context_md": true,
+      "existing_terms": ["user", "session"],
+      "new_terms_to_add": ["audit_log", "permission_group"]
+    },
+    "expected_behavior": "Skill reads existing CONTEXT.md, proposes additions to glossary, asks user to approve each new term before merge",
+    "notes": "Incremental alignment — must not silently overwrite existing definitions"
+  },
+  {
+    "scenario": "Missing README — user has no domain vocabulary guidance",
+    "input": {
+      "project_state": "new",
+      "has_context_md": false,
+      "has_readme": false,
+      "domain_source": "user_verbal"
+    },
+    "expected_behavior": "Skill asks user to describe the project in their own words before attempting glossary extraction; documents AI boundaries explicitly",
+    "notes": "High-friction scenario — requires patient questioning to surface implicit assumptions"
+  },
+  {
+    "scenario": "User-provided term conflicts with existing glossary",
+    "input": {
+      "project_state": "existing",
+      "existing_definition": "User: a person who views content",
+      "user_statement": "Our users are API consumers",
+      "conflict": true
+    },
+    "expected_behavior": "Skill detects mismatch, calls it out: 'Your glossary defines User as X, but you seem to mean Y — which is it?', waits for clarification",
+    "notes": "Conflict resolution — must prevent silent redefinition"
+  }
+]

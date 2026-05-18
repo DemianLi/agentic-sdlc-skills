@@ -1,0 +1,78 @@
+[
+  {
+    "scenario": "Release gate PASS: all test suites passing with coverage ≥ threshold",
+    "input": {
+      "unit_test_coverage_pct": 87.3,
+      "threshold_pct": 80,
+      "unit_tests_total": 142,
+      "unit_tests_passed": 142,
+      "integration_tests_total": 18,
+      "integration_tests_passed": 18,
+      "e2e_tests_total": 5,
+      "e2e_tests_passed": 5,
+      "test_results_generated": "machine-generated from pytest --cov --json-report"
+    },
+    "expected_behavior": "Skill writes test-results.json with release_gate: PASS. All gates: unit (PASS), integration (PASS), e2e (PASS). Traceability matrix complete (every REQ-N → AC-N.M → test_case). Commits artifact before confirming DONE.",
+    "notes": "test-results.json is legal document: must be machine-generated, never manually filled. Includes timestamp, topic, traceability array with req/ac/test/status mappings."
+  },
+  {
+    "scenario": "Release gate BLOCKED: coverage below threshold",
+    "input": {
+      "unit_test_coverage_pct": 74,
+      "threshold_pct": 80,
+      "failed_module": "src/orders/"
+    },
+    "expected_behavior": "Skill BLOCKS progression to Stage 7. Status: BLOCKED with exact values: 'coverage 74% < 80% threshold in src/orders/.' No exceptions for 'off by 1%' — gate threshold is law.",
+    "notes": "Coverage gate = enforcement. Gap of 1% still fails. Stage 7 cannot proceed until coverage ≥ threshold."
+  },
+  {
+    "scenario": "Acceptance criteria traceability: orphaned AC (no test coverage)",
+    "input": {
+      "requirements_doc": "docs/specs/2024-01-01-auth-requirements.md",
+      "acceptance_criteria": ["AC-1.1", "AC-1.2", "AC-1.3"],
+      "tests_mapped": {
+        "AC-1.1": "test_login_success",
+        "AC-1.2": "test_login_invalid_password",
+        "AC-1.3": null
+      }
+    },
+    "expected_behavior": "Skill detects AC-1.3 has no test coverage. BLOCKS release: 'AC-1.3 has no test — traceability matrix incomplete.' Traceability is NON-NEGOTIABLE.",
+    "notes": "Every REQ-N from requirements doc must map to at least one AC-N.M. Every AC must map to at least one test. Missing mapping = BLOCKED."
+  },
+  {
+    "scenario": "Test artifact validation: manually created test-results.json",
+    "input": {
+      "test_results_file": "test-results.json",
+      "artifact_source": "manually_created_by_user",
+      "values_appear_correct": true
+    },
+    "expected_behavior": "Skill REJECTS manually created test-results.json. Error: 'test-results.json must be machine-generated from actual test runs. Manually created files do NOT satisfy the gate.' Mandate re-run with pytest --json-report or equivalent.",
+    "notes": "Auditability is mandatory. Manual entry loses traceability to actual test execution — breaks post-deployment investigation if issues arise."
+  },
+  {
+    "scenario": "Integration test failure: critical path not covered",
+    "input": {
+      "critical_path": "order creation → payment → inventory update → notification",
+      "integration_tests_total": 18,
+      "integration_tests_passed": 17,
+      "failed_test": "test_payment_inventory_sync",
+      "is_critical_path": true
+    },
+    "expected_behavior": "Skill flags: Integration test failure on critical path = BLOCKER. Status: BLOCKED. 'Critical path test_payment_inventory_sync failed — inventory sync broken. Fix and re-run before release.'",
+    "notes": "100% of critical paths (as defined in REQ ACs) must pass. Partial critical path coverage = BLOCKED."
+  },
+  {
+    "scenario": "E2E test coverage: main user flows identified",
+    "input": {
+      "user_flows": [
+        "sign up → verify email → login",
+        "create order → checkout → receive confirmation",
+        "browse products → add to cart → purchase"
+      ],
+      "e2e_tests_written": 3,
+      "e2e_tests_passing": 3
+    },
+    "expected_behavior": "Skill confirms 100% of main user flows covered by E2E tests. Writes test-results.json with e2e_tests: {total: 3, passed: 3, gate: PASS}.",
+    "notes": "User flows sourced from CONTEXT_SNAPSHOT.md. 100% coverage mandatory before DONE."
+  }
+]

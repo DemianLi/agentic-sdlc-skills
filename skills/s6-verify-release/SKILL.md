@@ -191,6 +191,15 @@ Required fields: `timestamp`, `topic`, `release_gate` (PASS/BLOCKED), `unit_test
 
 Commit before transitioning. Never modify `test-results.json` manually — it must be machine-generated from actual test runs.
 
+
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s6-verify-release/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected outcome).
+
+Smoke test: confirm skill output structure and expected_behavior alignment for each scenario.
+
 ## Artifact Dependencies
 - **Reads**: `docs/tests/YYYY-MM-DD-integration-results.md`, `docs/tests/YYYY-MM-DD-e2e-results.md`, `docs/tests/YYYY-MM-DD-perf-baseline.json`, `docs/specs/YYYY-MM-DD-<topic>-requirements.md`, `RULES.md` (coverage threshold)
 - **Writes**: `test-results.json`

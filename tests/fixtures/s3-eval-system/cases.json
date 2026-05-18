@@ -1,0 +1,35 @@
+[
+  {
+    "scenario": "High blast radius operation: renaming a public API field",
+    "input": {
+      "context_snapshot": "CONTEXT_SNAPSHOT.md",
+      "goal": "Rename Order.customerId → Order.userId in API",
+      "in_scope": ["OrderService", "OrderAPI", "OrderSchema"],
+      "affected_files": ["services/OrderService.ts", "api/routes/orders.ts", "models/Order.ts", "tests/orders.test.ts"]
+    },
+    "expected_behavior": "skill should classify as 🔴 BREAKING; identify that OrderAPI response contract changes; flag impact: 'All clients consuming Order.customerId must migrate'; identify affected test files needing updates",
+    "notes": "Tests risk classification and contract change detection"
+  },
+  {
+    "scenario": "Technical debt blocks implementation: oversized service module",
+    "input": {
+      "context_snapshot": "CONTEXT_SNAPSHOT.md",
+      "goal": "Add new payment validation to PaymentService",
+      "in_scope": ["PaymentService"],
+      "affected_files": ["services/PaymentService.ts (680 lines)"]
+    },
+    "expected_behavior": "skill should flag: 🔴 BLOCKING DEBT: 'PaymentService.ts exceeds RULES.md 400-line limit (680 lines); must refactor before Stage 4 can proceed'; classify change as 🟢 INTERNAL but require debt resolution first",
+    "notes": "Tests technical debt detection and blocking condition"
+  },
+  {
+    "scenario": "Additive change with no breaking impact",
+    "input": {
+      "context_snapshot": "CONTEXT_SNAPSHOT.md",
+      "goal": "Add webhook listener for payment confirmations",
+      "in_scope": ["PaymentService"],
+      "affected_files": ["services/PaymentService.ts", "listeners/WebhookListener.ts (new)"]
+    },
+    "expected_behavior": "skill should classify as 🟡 ADDITIVE; list: 'New WebhookListener.ts', 'New endpoint POST /api/webhooks/payments'; identify no existing API contracts are broken; recommend approach: 'Add new listener alongside existing PaymentService without refactoring'",
+    "notes": "Tests clean classification of safe, isolated changes"
+  }
+]

@@ -1,0 +1,35 @@
+[
+  {
+    "scenario": "CRUD API design with basic data model",
+    "input": {
+      "impact_report": "docs/arch/2026-05-19-user-management-impact.md",
+      "feature": "User profile CRUD API",
+      "constraints": ["No breaking changes to existing auth", "Max 3 endpoints"],
+      "goal": "Allow users to read and update their profiles"
+    },
+    "expected_behavior": "skill should produce design with: (1) User schema with id/email/name/createdAt, (2) GET /api/users/{id}, PUT /api/users/{id}, (3) Sequence diagram showing happy path; (4) Error cases (404, 400)",
+    "notes": "Tests standard CRUD design with clear contract boundaries"
+  },
+  {
+    "scenario": "Microservice integration requiring new endpoint + schema migration",
+    "input": {
+      "impact_report": "docs/arch/2026-05-19-payment-integration-impact.md",
+      "feature": "Add payment processing to order flow",
+      "constraints": ["Must not change existing Order schema directly", "Payment state in separate service"],
+      "goal": "Integrate payment service with order checkout"
+    },
+    "expected_behavior": "skill should design: (1) new Payment schema (id/orderId/amount/status), (2) POST /api/orders/{id}/payment endpoint, (3) sequence diagram showing payment → order state transition, (4) identify delta changes (OrderService adds paymentId FK, PaymentService new)",
+    "notes": "Tests inter-service communication and breaking change awareness"
+  },
+  {
+    "scenario": "Design conflicts with architectural rule",
+    "input": {
+      "impact_report": "docs/arch/2026-05-19-monolith-expansion-impact.md",
+      "feature": "Merge two services into monolith",
+      "constraints": ["RULES.md forbids direct DB access from UI layer"],
+      "goal": "Consolidate payment + order services"
+    },
+    "expected_behavior": "skill should REJECT design and return status BLOCKED with message: 'Proposed direct DB access from PaymentUI violates RULES.md § database-access-boundary; must route through service layer'",
+    "notes": "Tests drift detection: ensures design respects architectural ADRs"
+  }
+]

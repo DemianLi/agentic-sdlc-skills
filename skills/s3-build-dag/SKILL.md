@@ -160,6 +160,14 @@ Required sections:
 
 Commit before transitioning.
 
+## Eval Fixtures
+
+Fixtures 位於 `tests/fixtures/s3-build-dag/cases.json`。
+
+每個 fixture 包含：`scenario`（情境描述）、`input`（輸入物件）、`expected_behavior`（預期行為）。
+
+冒煙測試：逐一確認 skill 對每個情境的輸出結構與 expected_behavior 一致。
+
 ## Artifact Dependencies
 - **Reads**: `docs/arch/YYYY-MM-DD-<topic>-wbs.md`
 - **Writes**: `TASK_DAG.md`

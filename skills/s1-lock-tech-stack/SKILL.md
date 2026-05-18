@@ -11,8 +11,8 @@ Do NOT generate any lock files (package.json, go.mod, etc.) until you have run t
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
 After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to /s3-design-arch (Stage 3 System Architect).”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
+  "Awaiting your approval to proceed to /s3-design-arch (Stage 3 System Architect)."
+Do NOT generate the next stage's artifact, code, or analysis until the user
 explicitly approves. A user response that is silent on approval is NOT approval.
 </HARD-GATE>
 
@@ -68,6 +68,14 @@ Report status using exactly one of:
 ## Execution Rules
 - Do not use `^` or `~` in `package.json` for core frameworks unless explicitly requested. Pin exact versions.
 - If the user asks for a monolithic architecture, ensure the tech stack aligns with that (e.g., don't install microservice orchestration tools).
+
+## Eval Fixtures
+
+Fixtures 位於 `tests/fixtures/s1-lock-tech-stack/cases.json`。
+
+每個 fixture 包含：`scenario`（情境描述）、`input`（輸入物件）、`expected_behavior`（預期行為）。
+
+冒煙測試：逐一確認 skill 對每個情境的輸出結構與 expected_behavior 一致。
 
 ## Artifact Dependencies
 - **Reads**: `RULES.md`

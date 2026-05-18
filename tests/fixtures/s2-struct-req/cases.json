@@ -1,0 +1,32 @@
+[
+  {
+    "scenario": "User-facing product with 5 clear requirements",
+    "input": {
+      "project_type": "B2C SaaS document editor",
+      "alignment_doc": "docs/alignment/2026-05-19-editor-alignment.md",
+      "requirements_count": 5,
+      "example_requirement": "support real-time collaborative editing for up to 10 concurrent users"
+    },
+    "expected_behavior": "Choose User Stories + Acceptance Criteria format, structure each REQ with business value and testable ACs (Given/When/Then), validate each AC is binary pass/fail (can QA write automated test?), present for user sign-off, commit to docs/specs/YYYY-MM-DD-<topic>-requirements.md",
+    "notes": "Forbidden AC language: 'works correctly' → must specify measurable outcome"
+  },
+  {
+    "scenario": "Non-functional requirement vagueness: performance goal",
+    "input": {
+      "requirement": "API should be fast",
+      "alignment_approved": true
+    },
+    "expected_behavior": "Reject vague AC. Rewrite as: 'Given 100 concurrent users, when API processes search query, then response time is <200ms at P99'. Validate testability: QA can write load test → must pass",
+    "notes": "AC must be binary: either <200ms (PASS) or >=200ms (FAIL)"
+  },
+  {
+    "scenario": "Requirement structure for infrastructure/backend service",
+    "input": {
+      "project_type": "Message queue service",
+      "requirement": "support at-least-once delivery guarantee",
+      "technical_context": "distributed system with node failures"
+    },
+    "expected_behavior": "Choose PRD format with Request/Response schemas. Structure: REQ title, technical user story, ACs with retry behavior + failure modes (edge cases). Example: 'Given 1 failed node, when message enqueued, then message is retried up to 3 times with exponential backoff'",
+    "notes": "Each AC must define both happy path AND edge case (failure, timeout, conflict)"
+  }
+]
