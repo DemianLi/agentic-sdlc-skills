@@ -314,6 +314,10 @@ def main() -> None:
         "--base", default="skills",
         help="skills 目錄路徑（預設: skills）"
     )
+    parser.add_argument(
+        "--quiet", action="store_true",
+        help="只在有 DRIFTED/PARTIAL 時輸出摘要（供 git hook 使用）"
+    )
     args = parser.parse_args()
 
     base = Path(args.base)
@@ -337,26 +341,29 @@ def main() -> None:
 
     results = [scan_skill(skill, step, base, eval_cases) for skill, step in steps]
 
-    # Console summary
-    print(f"\n{'Skill':<25} {'Step':<5} {'Judge':<10} {'Tests':<6} {'C1':<4} {'C2':<4} {'C3':<9} Overall")
-    print("-" * 80)
-    for r in results:
-        if r["status"] == "MISSING":
-            print(f"{'  ' + r['skill']:<25} {r['step']:<5} {'—':<10} {'—':<6} {'—':<4} {'—':<4} {'—':<9} ❌ MISSING")
-            continue
-        c3 = "✅ PASS" if r["c3_pass"] else "❌ FAIL"
-        c1 = "✅" if (r["c1_gate"] and r["c1_approval"]) else "❌"
-        c2 = "✅" if (r["c2_reads"] and r["c2_writes"]) else "❌"
-        j  = {"ALIGNED": "✅", "PARTIAL": "⚠️ PAR", "DRIFTED": "❌ DRF"}.get(r["judge"], r["judge"])
-        t  = "✅" if r["has_tests"] else "❌"
-        print(f"  {r['skill']:<23} {r['step']:<5} {j:<10} {t:<6} {c1:<4} {c2:<4} {c3:<9} {overall_sym(r['status'])}")
-
     aligned = sum(1 for r in results if r["status"] == "ALIGNED")
     partial = sum(1 for r in results if r["status"] == "PARTIAL")
     drifted = sum(1 for r in results if r["status"] in ("DRIFTED", "MISSING"))
+
+    # Console summary
+    if not args.quiet:
+        print(f"\n{'Skill':<25} {'Step':<5} {'Judge':<10} {'Tests':<6} {'C1':<4} {'C2':<4} {'C3':<9} Overall")
+        print("-" * 80)
+        for r in results:
+            if r["status"] == "MISSING":
+                print(f"{'  ' + r['skill']:<25} {r['step']:<5} {'—':<10} {'—':<6} {'—':<4} {'—':<4} {'—':<9} ❌ MISSING")
+                continue
+            c3 = "✅ PASS" if r["c3_pass"] else "❌ FAIL"
+            c1 = "✅" if (r["c1_gate"] and r["c1_approval"]) else "❌"
+            c2 = "✅" if (r["c2_reads"] and r["c2_writes"]) else "❌"
+            j  = {"ALIGNED": "✅", "PARTIAL": "⚠️ PAR", "DRIFTED": "❌ DRF"}.get(r["judge"], r["judge"])
+            t  = "✅" if r["has_tests"] else "❌"
+            print(f"  {r['skill']:<23} {r['step']:<5} {j:<10} {t:<6} {c1:<4} {c2:<4} {c3:<9} {overall_sym(r['status'])}")
+        print(f"\n{'─'*80}")
+
     total = len(results)
-    print(f"\n{'─'*80}")
-    print(f"  {aligned}/{total} ALIGNED   {partial}/{total} PARTIAL   {drifted}/{total} DRIFTED")
+    if not args.quiet or partial > 0 or drifted > 0:
+        print(f"  {aligned}/{total} ALIGNED   {partial}/{total} PARTIAL   {drifted}/{total} DRIFTED")
 
     if args.write:
         report = build_report(results)

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Blocks commits when any s1-s7 skill has drifted from its design intent.
+# Activate once with: make install-hooks
+
+set -euo pipefail
+
+SCAN="skills/s0-eval-alignment/scripts/scan.py"
+
+if [ ! -f "$SCAN" ]; then
+    echo "[pre-commit] scan.py not found at $SCAN — skipping alignment gate" >&2
+    exit 0
+fi
+
+if ! python3 "$SCAN" --quiet; then
+    echo "" >&2
+    echo "  Commit blocked: one or more skills are DRIFTED." >&2
+    echo "  Run  python3 $SCAN  to see the full report." >&2
+    echo "  Fix the drifted skill(s) before committing." >&2
+    exit 1
+fi
