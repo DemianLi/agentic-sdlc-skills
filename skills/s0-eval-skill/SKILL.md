@@ -50,9 +50,13 @@ You are the **Skill Quality Inspector**. Diagnose, don't fix.
 - 所有具名 section（`<HARD-GATE>`、`<what-to-do>`、`<supporting-info>`、所有 `###` header）
 - 各 section 行數
 
+若讀取失敗（權限錯誤、磁碟異常）→ BLOCKED — 「讀取失敗：[原因]，請確認路徑存在且有讀取權限。」
+
 ### Step 2 — Apply Scoring Rubric
 
 載入 `references/scoring-rubric.md`（完整評分定義與判斷規則）。
+
+若 rubric 檔案不存在 → BLOCKED — 「`references/scoring-rubric.md` 不存在，無法評分。請先建立該檔案。」
 
 每個標準評分為：`✅ PASS` / `⚠️ PARTIAL` / `❌ FAIL`
 
@@ -63,9 +67,11 @@ You are the **Skill Quality Inspector**. Diagnose, don't fix.
 | 3 | 輸入清洗 | 輸入是否明列，且每個失敗情境都有定義行為？ |
 | 4 | 漸進披露 | 是否無單一 inline 區塊 > 50 行？大模板是否外部化？ |
 | 5 | 優雅降級 | 每個可能失敗的步驟是否有 fallback 或失敗標籤？ |
-| 6 | 長效維護 | 是否引用 eval fixture 目錄，且 fixture 實際存在？ |
+| 6 | 漂移監控 | 是否引用 eval fixture 目錄，且 fixture 實際存在？ |
 
 ### Step 3 — Write Evaluation Report
+
+若 `docs/skill-evals/` 不存在，自動建立該目錄後繼續；若建立失敗 → BLOCKED — 「無法建立目錄 `docs/skill-evals/`：[原因]。」
 
 寫入：`docs/skill-evals/YYYY-MM-DD-<skill-name>-eval.md`
 
@@ -75,14 +81,7 @@ You are the **Skill Quality Inspector**. Diagnose, don't fix.
 - 每個 ❌ 或 ⚠️ 的具體缺陷描述
 - 建議下一步（一句話）
 
-### Step 4 — Commit
-
-```bash
-git add docs/skill-evals/
-git commit -m "eval: skill quality report for <skill-name>"
-```
-
-### Step 5 — Present and Wait
+### Step 4 — Present and Wait
 
 呈現檔案路徑與完整報告內容。**等待明確批准，不自動進入下一階段。**
 
@@ -90,8 +89,8 @@ git commit -m "eval: skill quality report for <skill-name>"
 
 ## Completion Report
 
-- **DONE** — 報告已寫入並提交；全部 6 項已評分。
-- **DONE_WITH_CONCERNS** — 報告已提交；記錄任何評分依據模糊的標準。
+- **DONE** — 報告已寫入磁碟；全部 6 項已評分。
+- **DONE_WITH_CONCERNS** — 報告已寫入；記錄任何評分依據模糊的標準。
 - **BLOCKED** — 輸入驗證失敗；說明確切原因。
 - **NEEDS_CONTEXT** — 檔案存在但完全無法解析；說明缺少什麼。
 
