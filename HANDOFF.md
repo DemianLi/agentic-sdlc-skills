@@ -26,6 +26,20 @@ TASK_DAG.md updated    Audit report           e2e-results            CHANGELOG.m
 
 ---
 
+## Fast-Track Mode Handoffs
+
+`/s-fast-track` activates Development Modes that modify the standard handoff requirements. These apply only when a mode was explicitly declared via intent signals; unannounced sessions follow Standard rules.
+
+| Mode | s1–s3 Handoffs | Stage 4 artifacts | Stage 5 | Stage 6–7 |
+|---|---|---|---|---|
+| **Standard** | Skipped (by design) | Full — unit tests required | All three audit reports required | Unchanged |
+| **Vibe Mode** | Skipped | Unit tests optional — `[WIP/Prototype]` commit tag required on every commit | Skipped entirely | Skipped |
+| **Hotfix Mode** | Skipped | Full — unit tests required | PR review in CRITICAL-only mode (see Stage 5 → 6 below) | Unchanged |
+
+> In Vibe Mode, no formal Stage 5–7 handoff exists. The `[WIP/Prototype]` tag in the commit message is the only audit trail. Tech debt clean-up is the developer's responsibility.
+
+---
+
 ## s0-brainstorm → Stage 2 (Optional)
 
 **From**: Problem Scout (s0-brainstorm)
@@ -139,7 +153,7 @@ TASK_DAG.md updated    Audit report           e2e-results            CHANGELOG.m
 | Artifact | Path | Notes |
 |---|---|---|
 | Implementation code | `<file paths from TASK_DAG.md>` | Only files within declared TASK-N File Scope |
-| Unit test files | `*.test.ts` / `*_test.go` / `test_*.py` | One test file per TASK-N |
+| Unit test files | `*.test.ts` / `*_test.go` / `test_*.py` | One test file per TASK-N. *Vibe Mode exception: tests are optional — commit must carry `[WIP/Prototype]` tag.* |
 | Updated TASK_DAG.md | `TASK_DAG.md` | All completed tasks marked `[x]` |
 
 ### Acceptance Criteria for Stage 5 to Begin
@@ -167,7 +181,7 @@ TASK_DAG.md updated    Audit report           e2e-results            CHANGELOG.m
 
 ### Acceptance Criteria for Stage 6 to Begin
 - [ ] SAST report has `Status: PASS` (zero CRITICAL issues)
-- [ ] PR review report has `Overall Status: APPROVED`
+- [ ] PR review report has `Overall Status: APPROVED` *(Hotfix Mode: APPROVED with non-blocking WARNING items is sufficient — CRITICAL issues must still be zero)*
 - [ ] Scope Drift is `CLEAN`
 - [ ] Full unit test suite still GREEN after Stage 5 fixes
 - [ ] All three audit reports committed to `docs/audit/`
