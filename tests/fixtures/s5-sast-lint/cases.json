@@ -1,0 +1,76 @@
+[
+  {
+    "scenario": "Clean codebase — zero violations after formatting and linting",
+    "input": {
+      "linter_config": ".eslintrc.json",
+      "formatter": "prettier",
+      "sast_tool": "semgrep",
+      "formatting_issues": 0,
+      "lint_errors": 0,
+      "critical_violations": 0,
+      "sast_findings": []
+    },
+    "expected_behavior": "Skill runs formatter and linter, reports Status: PASS; outputs 'Zero Violations Confirmed' with checkmarks; proceeds to /s5-audit-rules",
+    "notes": "Greenfield scenario — no CRITICAL issues, no auto-fix needed"
+  },
+  {
+    "scenario": "Formatting violations — auto-fixed by Prettier",
+    "input": {
+      "files_with_format_issues": ["src/utils.ts", "src/auth.ts"],
+      "format_issues_count": 14,
+      "auto_fixable": true,
+      "lint_errors": 0,
+      "critical_violations": 0
+    },
+    "expected_behavior": "Skill runs formatter, auto-fixes 14 files with Prettier, then runs linter; reports Status: DONE; proceeds to /s5-audit-rules",
+    "notes": "Formatting is prerequisite — must complete before linting"
+  },
+  {
+    "scenario": "Forbidden pattern detected — TypeScript 'any' type",
+    "input": {
+      "file": "src/api.ts:23",
+      "violation": "const data: any = parseJSON(str);",
+      "rule": "no-any (RULES.md §3)",
+      "severity": "CRITICAL",
+      "auto_fixable": false
+    },
+    "expected_behavior": "Skill detects CRITICAL: 'Forbidden any type at src/api.ts:23 (RULES.md §3)'; blocks handoff to /s5-audit-rules until fixed",
+    "notes": "CRITICAL violations cannot be auto-fixed and must block"
+  },
+  {
+    "scenario": "SAST finding — SQL injection in raw query",
+    "input": {
+      "file": "src/db.ts:45",
+      "sast_tool": "semgrep",
+      "finding_type": "SQL injection vector",
+      "severity": "HIGH",
+      "pattern": "db.query(`SELECT * FROM users WHERE id = ${id}`)"
+    },
+    "expected_behavior": "Skill runs semgrep, detects HIGH SQL injection; flags CRITICAL: 'semgrep: SQL injection vector'; blocks handoff",
+    "notes": "HIGH/CRITICAL SAST findings are always blocking"
+  },
+  {
+    "scenario": "Unused variable — WARNING only (auto-fixable)",
+    "input": {
+      "file": "src/utils.ts:12",
+      "finding": "unused variable 'temp'",
+      "severity": "WARNING",
+      "auto_fixable": true
+    },
+    "expected_behavior": "Skill detects WARNING; can auto-fix by removing unused import; reports in Auto-Fixed section; does not block",
+    "notes": "WARNINGs are reported but do not block unless CRITICAL issues remain"
+  },
+  {
+    "scenario": "Multiple issues — mixed CRITICAL and WARNINGs",
+    "input": {
+      "issues": [
+        {"file": "src/auth.ts:47", "type": "no-any", "severity": "CRITICAL", "auto_fixable": false},
+        {"file": "src/utils.ts:23", "type": "unused-var", "severity": "WARNING", "auto_fixable": true}
+      ],
+      "total_critical": 1,
+      "total_warnings": 1
+    },
+    "expected_behavior": "Skill auto-fixes WARNINGs, reports CRITICAL issue as blocker; Status: BLOCKED; requires manual fix before proceeding",
+    "notes": "Presence of any CRITICAL blocks handoff regardless of WARNING count"
+  }
+]

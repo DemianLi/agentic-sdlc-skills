@@ -1,0 +1,31 @@
+[
+  {
+    "scenario": "User requests trace of a complete feature through frontend and backend",
+    "input": {
+      "feature_name": "Order Checkout Flow",
+      "description": "User clicks 'Checkout', fills payment form, submits order, receives confirmation email"
+    },
+    "expected_behavior": "Skill should: (1) ask which entry point to trace, (2) scan for candidates (frontend button handler, backend POST /api/orders), (3) trace full call chain from UI through API to database, (4) mark external boundaries (Stripe, SendGrid), (5) confidence-check for gaps, (6) generate Mermaid sequence diagram, (7) write docs/traces/YYYY-MM-DD-order-checkout.md",
+    "notes": "Should identify entry point as confirmed (source found), not inferred. Should mark external services as [external: name]"
+  },
+  {
+    "scenario": "Trace reveals a broken or missing link in the call chain",
+    "input": {
+      "feature_name": "User Authentication",
+      "known_path": "Login form → POST /api/auth → ? → JWT token returned",
+      "gap": "Middleware that validates credentials is not located in workspace"
+    },
+    "expected_behavior": "During trace, skill finds A → [?] → B gap. Confidence check triggers: C2 (broken link). Skill prepends ⚠️ LOW CONFIDENCE block. Asks user: 'Proceed with partial output or investigate further?'",
+    "notes": "Test that skill properly detects and reports gaps. Does not guess or skip silently."
+  },
+  {
+    "scenario": "Trace of a feature implemented across multiple files with side effects",
+    "input": {
+      "feature_name": "User Registration with Email Verification",
+      "entry_point": "POST /api/users",
+      "touches": ["users table", "email_verifications table", "EmailService", "external SendGrid API"]
+    },
+    "expected_behavior": "Skill should: (1) trace from entry point through service layer to DB mutations, (2) identify all side effects (email sent, verification token created), (3) map boundaries clearly (where data enters/exits each layer), (4) note external service call to SendGrid, (5) write complete trace with Confirmed Facts section listing all touched tables",
+    "notes": "Test mapping of data boundaries and side effects across component boundaries"
+  }
+]

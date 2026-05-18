@@ -216,6 +216,14 @@ Be concrete. Name files, functions, line numbers. No generalities.
 Good: "`OrderService.create()` at `backend/services/orders.py:87` calls `db.insert()` on the `orders` table"
 Bad: "The service layer creates the order in the database."
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s0-trace-feature/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
+Smoke test: Confirm skill correctly traces call chains, detects gaps (marking as [?]), confidence-checks for C1/C2/C3 conditions, and generates Mermaid diagram with proper notation.
+
 ## Artifact Dependencies
 - **Reads**: codebase source files (read-only scan)
 - **Writes**: `docs/traces/YYYY-MM-DD-<feature>-trace.md`

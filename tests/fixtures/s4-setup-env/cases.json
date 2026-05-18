@@ -1,0 +1,72 @@
+[
+  {
+    "scenario": "Node.js version mismatch: environment check fails",
+    "input": {
+      "task_id": "TASK-5",
+      "required_node_version": "18.17.0",
+      "installed_node_version": "16.19.0",
+      "lock_file": "package-lock.json",
+      "workspace_status": "clean"
+    },
+    "expected_behavior": "Skill must verify runtime matches RULES.md (or project constraints). On mismatch, report: 'Node.js version mismatch: required 18.17.0 but have 16.19.0'. BLOCK setup until correct version is installed (nvm install 18.17.0 or use runtime manager). Do NOT proceed to npm ci until runtime matches.",
+    "notes": "Environment validation must happen BEFORE branch checkout. Version mismatch is BLOCKED state."
+  },
+  {
+    "scenario": "Docker environment: initialization required",
+    "input": {
+      "task_id": "TASK-8",
+      "environment_type": "docker",
+      "docker_status": "not running",
+      "dockerfile_present": true,
+      "docker_compose_present": true
+    },
+    "expected_behavior": "Skill must detect Docker dependency and verify Docker daemon is running. Report: 'Docker required for this task. Starting docker-compose up -d'. Wait for containers to be healthy. Confirm: 'docker ps' shows all required services. Only then proceed to workspace verification.",
+    "notes": "Docker setup is prerequisite for workspace validation. Check service health before declaring environment READY."
+  },
+  {
+    "scenario": "Workspace pollution: uncommitted changes from prior task",
+    "input": {
+      "task_id": "TASK-6",
+      "git_status_output": "M src/old-feature.js\n?? test/debug.log",
+      "workspace_clean": false,
+      "current_branch": "main"
+    },
+    "expected_behavior": "Skill must run 'git status' and confirm workspace is clean. If uncommitted changes exist, report: 'Workspace has uncommitted changes from prior task — contamination risk.' Block setup and instruct: 'Either commit or git stash these changes before proceeding.' Verify with 'git status' again before declaring workspace clean.",
+    "notes": "Leftover state from previous task invalidates environment. Must explicitly check 'git status' output for untracked files and modified files."
+  },
+  {
+    "scenario": "Dependency installation from lock file",
+    "input": {
+      "task_id": "TASK-7",
+      "package_manager": "npm",
+      "lock_file_exists": true,
+      "node_modules_exists": false,
+      "runtime_version_match": true
+    },
+    "expected_behavior": "Skill must run 'npm ci' (not 'npm install') to install dependencies pinned in lock file. Report: 'Installing dependencies from package-lock.json (pinned versions)'. Verify completion with 'npm ls' to show dependency tree. Confirm all dev dependencies are present. Only then declare environment installation DONE.",
+    "notes": "Use 'npm ci' for lock file consistency, not 'npm install' which can upgrade versions."
+  },
+  {
+    "scenario": "Task assignment: next task identification from TASK_DAG.md",
+    "input": {
+      "current_task": "TASK-3",
+      "task_status": "[DONE]",
+      "next_task_candidate": "TASK-5",
+      "task_5_status": "[BLOCKED]",
+      "task_4_status": "[READY]"
+    },
+    "expected_behavior": "Skill must read TASK_DAG.md and identify first task where all dependencies are [DONE]. If TASK-5 is blocked, select TASK-4 instead. Confirm with user: 'Next task is TASK-4: <title>. Starting this now — confirm?' Only after user confirmation proceed to branch setup.",
+    "notes": "Task selection must respect DAG dependencies. Never skip dependency verification."
+  },
+  {
+    "scenario": "Branch setup: worktree vs standard mode",
+    "input": {
+      "task_id": "TASK-9",
+      "workflow_mode": "worktree_mode_with_parallel_tasks",
+      "current_directory": "/project",
+      "sibling_task_in_progress": true
+    },
+    "expected_behavior": "Skill must offer choice: standard mode (single branch) or worktree mode (parallel branches). For parallel development, create: 'git worktree add ../task-9-<slug> -b task-9-<slug>'. Change to new worktree directory. Verify separate .git/worktrees/<slug> exists. Each worktree operates independently without stash switching.",
+    "notes": "Worktree mode enables parallel development on DAG tasks. Standard mode for sequential workflow."
+  }
+]

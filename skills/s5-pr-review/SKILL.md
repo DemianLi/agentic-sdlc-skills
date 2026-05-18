@@ -195,6 +195,14 @@ Severity definitions:
 - **WARNING**: performance issue, missing error handling, naming mismatch
 - **SUGGESTION**: optional style or future-proofing improvement
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s5-pr-review/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected outcome).
+
+Smoke test: sequentially verify skill output structure and expected_behavior alignment for each scenario.
+
 ## Artifact Dependencies
 - **Reads**: `git diff`, `docs/arch/YYYY-MM-DD-<topic>-design.md`, `docs/specs/YYYY-MM-DD-<topic>-requirements.md`
 - **Writes**: PR review report

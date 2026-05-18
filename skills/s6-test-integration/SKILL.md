@@ -71,6 +71,14 @@ Required sections:
 - **Upstream Dependency**: Stage 5 Output.
 - **Downstream Target**: `/s6-test-e2e`.
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s6-test-integration/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected outcome).
+
+Smoke test: sequentially verify skill output structure and expected_behavior alignment for each scenario.
+
 ## Artifact Dependencies
 - **Reads**: source files, `docs/specs/YYYY-MM-DD-<topic>-requirements.md`
 - **Writes**: `docs/tests/YYYY-MM-DD-integration-results.md`

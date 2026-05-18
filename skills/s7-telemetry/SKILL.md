@@ -228,6 +228,14 @@ Report status using exactly one of:
 - **Upstream Dependency**: `/s7-release-notes` (CHANGELOG committed) + `/s7-deploy` (deploy.md) + `/s6-test-perf` (perf-baseline.json).
 - **Downstream Target**: `next_cycle_inputs` array → Product Manager's seed for `/s2-capture-vision`.
 
+## Eval Fixtures
+
+Fixtures 位於 `tests/fixtures/s7-telemetry/cases.json`。
+
+每個 fixture 包含：`scenario`（情境描述）、`input`（輸入物件）、`expected_behavior`（預期行為）。
+
+冒煙測試：逐一確認 skill 對每個情境的輸出結構與 expected_behavior 一致。
+
 ## Artifact Dependencies
 - **Reads**: `docs/tests/YYYY-MM-DD-perf-baseline.json`, `docs/releases/YYYY-MM-DD-<version>-deploy.md`, `CHANGELOG.md`, `docs/audit/*.md`, `test-results.json`
 - **Writes**: `docs/releases/YYYY-MM-DD-<version>-telemetry.json`

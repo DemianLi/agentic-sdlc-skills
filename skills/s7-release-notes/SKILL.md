@@ -165,6 +165,14 @@ Report status using exactly one of:
 - **Upstream Dependency**: `/s7-deploy` — deploy log must confirm the version was deployed (or dry-run completed).
 - **Downstream Target**: `/s7-telemetry` uses the CHANGELOG to populate `next_cycle_inputs`.
 
+## Eval Fixtures
+
+Fixtures 位於 `tests/fixtures/s7-release-notes/cases.json`。
+
+每個 fixture 包含：`scenario`（情境描述）、`input`（輸入物件）、`expected_behavior`（預期行為）。
+
+冒煙測試：逐一確認 skill 對每個情境的輸出結構與 expected_behavior 一致。
+
 ## Artifact Dependencies
 - **Reads**: `git log`, `docs/specs/*.md`, `docs/audit/*.md`, `docs/releases/YYYY-MM-DD-<version>-deploy.md`
 - **Writes**: `CHANGELOG.md` (appended, not overwritten)

@@ -1,0 +1,82 @@
+[
+  {
+    "scenario": "All integration tests pass — API-to-database and service boundaries verified",
+    "input": {
+      "task_dag_status": "all [x]",
+      "test_suite": "integration",
+      "total_tests": 12,
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "coverage_percent": 82,
+      "coverage_gate": 80
+    },
+    "expected_behavior": "Skill verifies all TASK-N marked [x]; runs integration suite; reports Status: DONE with 12/12 PASS; coverage gate PASS (82% >= 80%); proceeds to /s6-test-e2e",
+    "notes": "Greenfield scenario — zero failures, coverage above gate"
+  },
+  {
+    "scenario": "Integration test fails — API-to-database boundary",
+    "input": {
+      "test_name": "test-user-service-create-with-db",
+      "test_file": "tests/integration/user-service.test.ts",
+      "component_boundary": "UserService → PostgreSQL",
+      "expected": "user record saved with correct schema",
+      "actual": "transaction rollback due to schema mismatch",
+      "req_traceability": "REQ-2.1"
+    },
+    "expected_behavior": "Skill detects integration failure; flags BLOCKER: 'test-user-service-create-with-db fails at UserService → PostgreSQL boundary'; reports actual vs. expected; blocks handoff to /s6-test-e2e",
+    "notes": "Integration test failures are zero-tolerance — must fix before proceeding"
+  },
+  {
+    "scenario": "Coverage early warning — below 75% threshold",
+    "input": {
+      "total_tests": 12,
+      "passed": 12,
+      "failed": 0,
+      "coverage_percent": 71,
+      "coverage_gate": 80,
+      "coverage_early_warning_threshold": 75
+    },
+    "expected_behavior": "Skill runs integration suite (all PASS), but reports Coverage WARNING: 'current coverage 71% < 75% early warning threshold'; flags for Stage 4 backfill before final /s6-verify-release gate",
+    "notes": "Early warning helps catch coverage drift before final verification"
+  },
+  {
+    "scenario": "Incomplete task merges — not all TASK-N branches merged",
+    "input": {
+      "task_dag_tasks": ["TASK-1", "TASK-2", "TASK-3"],
+      "merged_tasks": ["TASK-1", "TASK-2"],
+      "unmerged_branches": ["task-3-implement-feature"]
+    },
+    "expected_behavior": "Skill verifies TASK_DAG status; finds TASK-3 not marked [x]; blocks: 'Please merge all task-N-<slug> branches to integration test branch before running this skill'",
+    "notes": "Integration tests must run on complete merged codebase"
+  },
+  {
+    "scenario": "Cross-service event propagation test",
+    "input": {
+      "test_name": "test-order-event-to-payment-service",
+      "component_boundary": "OrderService → PaymentService (via event bus)",
+      "event_type": "order.created",
+      "expected_payment_state": "PENDING",
+      "actual_payment_state": "NOT_FOUND",
+      "req_traceability": "REQ-3.5"
+    },
+    "expected_behavior": "Skill detects cross-service event failure; flags BLOCKER with service boundary detail; requires integration fix before E2E validation",
+    "notes": "Service-to-service integration failures require architectural review"
+  },
+  {
+    "scenario": "Cache consistency test failure",
+    "input": {
+      "test_name": "test-cache-invalidation-after-update",
+      "scenario_steps": [
+        "1. GET product (cache miss, fetch from DB)",
+        "2. UPDATE product in DB",
+        "3. GET product again (should fetch updated value)"
+      ],
+      "expected": "step 3 returns updated value",
+      "actual": "step 3 returns stale cached value",
+      "req_traceability": "REQ-4.2"
+    },
+    "expected_behavior": "Skill detects cache consistency failure; flags CRITICAL: 'Cache not invalidated after write — stale read in test-cache-invalidation-after-update'; blocks handoff",
+    "notes": "Cache integration failures affect data consistency across all flows"
+  }
+]

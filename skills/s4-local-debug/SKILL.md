@@ -168,6 +168,14 @@ digraph debug_loop {
 - **Commit message format**: `fix: <short root-cause description>\n\nRoot cause: <explanation>\nRegression test: <test name>`
 - **No debug logs**: All `console.log` / `print` / `fmt.Printf` added during Phase 4 must be removed before handoff
 
+## Eval Fixtures
+
+Fixtures 位於 `tests/fixtures/s4-local-debug/cases.json`。
+
+每個 fixture 包含：`scenario`（情境描述）、`input`（輸入物件）、`expected_behavior`（預期行為）。
+
+冒煙測試：逐一確認 skill 對每個情境的輸出結構與 expected_behavior 一致。
+
 ## Artifact Dependencies
 - **Reads**: failing test output, source files
 - **Writes**: bug fix commits, regression test

@@ -169,6 +169,14 @@ digraph git_guardrails {
 - Script: `.claude/hooks/block-dangerous-git.sh` (project) or `~/.claude/hooks/block-dangerous-git.sh` (global)
 - Settings entry: `hooks.PreToolUse[].matcher = "Bash"` pointing to the installed script
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s1-git-guardrails/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
+Smoke test: Confirm skill installs hook, adds PreToolUse entry correctly, runs verification test and receives exit code 2 for blocked commands and 0 for allowed commands.
+
 ## Artifact Dependencies
 - **Reads**: `RULES.md`
 - **Writes**: `.claude/hooks/block-dangerous-git.sh` (or `~/.claude/hooks/`), `.claude/settings.json`

@@ -1,0 +1,72 @@
+[
+  {
+    "scenario": "All main flows pass — login and checkout workflows validated",
+    "input": {
+      "context_flows": ["user-login-flow", "product-checkout-flow"],
+      "flows_type": "main",
+      "test_results": {
+        "user-login-flow": "PASS",
+        "product-checkout-flow": "PASS"
+      },
+      "ac_coverage": [
+        {"ac_id": "AC-1.1", "test_name": "test-login-redirect", "status": "PASS"},
+        {"ac_id": "AC-2.3", "test_name": "test-checkout-complete", "status": "PASS"}
+      ]
+    },
+    "expected_behavior": "Skill reports all main flows PASS; all boundary conditions validated; Status: DONE; proceeds to /s6-test-perf",
+    "notes": "Greenfield scenario — zero main flow failures"
+  },
+  {
+    "scenario": "Main flow failure — login timeout not handled",
+    "input": {
+      "context_flows": ["user-login-flow", "product-checkout-flow"],
+      "flows_type": "main",
+      "test_results": {
+        "user-login-flow": "FAIL",
+        "product-checkout-flow": "PASS"
+      },
+      "failing_step": "Step 3: session timeout validation",
+      "expected": "user redirected to /login after 30 minutes",
+      "actual": "page hangs, then 500 error"
+    },
+    "expected_behavior": "Skill detects main flow failure; flags BLOCKED: 'user-login-flow fails at session timeout validation'; halts handoff to /s6-test-perf",
+    "notes": "Main flow failures are hard blockers — cannot defer to next stage"
+  },
+  {
+    "scenario": "Secondary flow failure — with user approval to defer",
+    "input": {
+      "context_flows": [
+        {"name": "user-login-flow", "type": "main", "status": "PASS"},
+        {"name": "social-login-flow", "type": "secondary", "status": "FAIL"}
+      ],
+      "secondary_failure_reason": "Google OAuth token refresh not implemented",
+      "user_approval": "defer to post-MVP",
+      "critical_path_verified": true
+    },
+    "expected_behavior": "Skill reports main flows PASS, secondary failure DEFERRED with user acknowledgment; Status: DONE_WITH_CONCERNS; proceeds to /s6-test-perf",
+    "notes": "Secondary failures may be deferred with explicit user approval"
+  },
+  {
+    "scenario": "Edge case failure — form validation boundary test",
+    "input": {
+      "context_flows": ["form-submission-flow"],
+      "test_name": "test-empty-email-validation",
+      "ac_id": "AC-3.2",
+      "boundary_condition": "empty string in required email field",
+      "expected": "form shows error 'Email required'",
+      "actual": "form submits silently without error"
+    },
+    "expected_behavior": "Skill runs boundary validation test; detects failure in AC-3.2 coverage; flags as main flow issue; blocks until fixed",
+    "notes": "Boundary conditions from Stage 2 must be validated explicitly"
+  },
+  {
+    "scenario": "Test environment not configured",
+    "input": {
+      "playwright_config": null,
+      "test_server": null,
+      "database_state": "unknown"
+    },
+    "expected_behavior": "Skill detects missing test environment; reports Status: NEEDS_CONTEXT; states: 'E2E test environment not configured. Please set up Playwright config and provision test database.'",
+    "notes": "Cannot proceed without working test environment"
+  }
+]

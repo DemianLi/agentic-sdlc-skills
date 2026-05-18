@@ -1,0 +1,59 @@
+[
+  {
+    "scenario": "Build failure: First error only, fix and re-run",
+    "input": {
+      "failure_type": "build_error",
+      "error_message": "TypeError: Cannot read property 'map' of undefined at handlers.js:42",
+      "stack_trace_available": true,
+      "error_consistency": "reproducible"
+    },
+    "expected_behavior": "Skill must enforce REPRODUCE phase to confirm error is consistent across 2+ runs. Then MINIMISE by identifying the smallest input triggering failure. Output must show: (1) exact error message copied verbatim, (2) file:line number identified, (3) HYPOTHESIS stated before touching code.",
+    "notes": "Build errors require reading the first error only. Do not fix until hypothesis is confirmed via INSTRUMENT phase."
+  },
+  {
+    "scenario": "Test failure: Assertion diff analysis",
+    "input": {
+      "failure_type": "test_failure",
+      "test_name": "calculateTotal",
+      "assertion": "expected 150 but got 100",
+      "code_path": "src/utils/calculator.test.js:23"
+    },
+    "expected_behavior": "Skill must read the assertion diff carefully (actual vs. expected). MINIMISE by isolating which single assertion fails first. Then search for a working analog in codebase (same calculation that works). Compare side-by-side to identify hypothesis. INSTRUMENT with targeted logging. Only after confirming root cause via actual values should FIX be applied with regression test.",
+    "notes": "Red flag: never assume the obvious cause without evidence from INSTRUMENT phase."
+  },
+  {
+    "scenario": "Flaky test: Inconsistent failures",
+    "input": {
+      "failure_type": "flaky_test",
+      "test_name": "asyncTimeout",
+      "run_1": "PASSED",
+      "run_2": "FAILED",
+      "run_3": "PASSED"
+    },
+    "expected_behavior": "Skill must run test 3 times to confirm inconsistency. Report: 'NEEDS_CONTEXT: failure is intermittent — cannot diagnose reliably.' Do NOT attempt to fix flaky tests without additional context (timing constraints, environment dependencies).",
+    "notes": "Flaky tests need environmental investigation or race condition analysis, beyond the debug skill's scope."
+  },
+  {
+    "scenario": "Escalation after 3 failed attempts",
+    "input": {
+      "attempt_1_hypothesis": "Off-by-one error in loop",
+      "attempt_1_result": "still fails",
+      "attempt_2_hypothesis": "Type coercion issue",
+      "attempt_2_result": "still fails",
+      "attempt_3_hypothesis": "Race condition in async handler",
+      "attempt_3_result": "still fails"
+    },
+    "expected_behavior": "After 3 failed fix attempts on same root cause, skill must STOP current approach, report: 'BLOCKED: attempted [hyp1], [hyp2], [hyp3] — root cause still unclear.' Ask user: 'Should I try a different approach or escalate?' Do NOT proceed to 4th attempt.",
+    "notes": "3-attempt limit is hard boundary. Exceeding it signals lack of understanding, not persistence."
+  },
+  {
+    "scenario": "Regression test enforcement",
+    "input": {
+      "root_cause_confirmed": true,
+      "fix_applied": true,
+      "regression_test_written": false
+    },
+    "expected_behavior": "Skill must BLOCK handoff if fix is applied without regression test. Red flag: 'Commit fix + regression test together. Never fix without test — that is a time bomb.' TDD Iron Law applies: write test FIRST (watch it fail), apply fix, watch test PASS, commit both.",
+    "notes": "Regression test is not optional. Fix without test = guaranteed bug return."
+  }
+]

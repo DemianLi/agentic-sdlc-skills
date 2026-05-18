@@ -159,6 +159,14 @@ digraph sast_lint {
 Report file: `docs/audit/YYYY-MM-DD-<branch>-sast.md`
 Required fields: Status (PASS/BLOCKED), CRITICAL count, WARNING count, Auto-fixed count, Zero Violations Confirmed list.
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s5-sast-lint/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected outcome).
+
+Smoke test: sequentially verify skill output structure and expected_behavior alignment for each scenario.
+
 ## Artifact Dependencies
 - **Reads**: source files, `RULES.md`
 - **Writes**: SAST scan report

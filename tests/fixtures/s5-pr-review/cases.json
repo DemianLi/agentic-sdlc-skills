@@ -1,0 +1,60 @@
+[
+  {
+    "scenario": "Clean PR — scope and logic aligned with TASK_DAG",
+    "input": {
+      "git_diff_files": ["src/auth.ts", "tests/auth.test.ts"],
+      "task_dag_scope": ["src/auth.ts", "tests/auth.test.ts"],
+      "has_null_checks": true,
+      "has_race_conditions": false,
+      "critical_issues": 0
+    },
+    "expected_behavior": "Skill produces APPROVED status with no CRITICAL issues; SCOPE DRIFT: CLEAN; proceeds to /s5-fix-optimize",
+    "notes": "Greenfield scenario — all files in scope, no logic defects"
+  },
+  {
+    "scenario": "Scope drift — modified file not in TASK_DAG",
+    "input": {
+      "git_diff_files": ["src/auth.ts", "src/payment.ts"],
+      "task_dag_scope": ["src/auth.ts"],
+      "unscoped_file": "src/payment.ts",
+      "has_task_for_payment": false
+    },
+    "expected_behavior": "Skill detects scope drift CRITICAL; flags: 'src/payment.ts was modified but is not in the scope of assigned TASK-N'; blocks handoff",
+    "notes": "Must catch scope violations before logic review"
+  },
+  {
+    "scenario": "Logic defect — missing null check causes null dereference",
+    "input": {
+      "file": "src/auth.ts:47",
+      "code_pattern": "session.user.id without null check",
+      "error_path": "when session expires, returns 500",
+      "has_explicit_error_handling": false
+    },
+    "expected_behavior": "Skill flags CRITICAL: 'session.user accessed without null check. When session expires, throws 500. Fix: if (!session.user) return res.redirect(/login)';'",
+    "notes": "Logic review catches error handling gaps"
+  },
+  {
+    "scenario": "Security defect — user input passed to raw SQL query",
+    "input": {
+      "file": "src/db.ts:82",
+      "code_pattern": "const query = `SELECT * FROM users WHERE id = ${userId}`;",
+      "vulnerability": "SQL injection",
+      "parameterized": false
+    },
+    "expected_behavior": "Skill flags CRITICAL: 'SQL injection vector: raw userId in query string. Fix: use parameterized query: db.query(SELECT * FROM users WHERE id = ?, [userId])'",
+    "notes": "Security spot-check catches injection vectors"
+  },
+  {
+    "scenario": "Hotfix Mode — WARNINGs are non-blocking",
+    "input": {
+      "session_announcement": "🔧 Hotfix Mode",
+      "issues_found": [
+        {"severity": "CRITICAL", "count": 0},
+        {"severity": "WARNING", "count": 2}
+      ],
+      "user_acknowledgment": "LGTM, deploy"
+    },
+    "expected_behavior": "Skill applies Hotfix Mode rules: WARNINGs are informational only (not blocking); proceeds to /s5-fix-optimize if user acknowledges",
+    "notes": "Hotfix Mode simplifies review scope — no SUGGESTION section"
+  }
+]

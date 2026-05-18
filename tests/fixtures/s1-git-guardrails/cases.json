@@ -1,0 +1,38 @@
+[
+  {
+    "scenario": "First-time setup at project level with verification test",
+    "input": {
+      "scope": "project",
+      "project_path": "/path/to/project",
+      "blocked_patterns": ["git push", "git reset --hard", "git clean -f", "git branch -D", "git checkout .", "git restore ."]
+    },
+    "expected_behavior": "Skill should: (1) ask if guardrails apply to project or global, (2) install block-dangerous-git.sh to .claude/hooks/, (3) add PreToolUse hook entry to .claude/settings.json, (4) run verification test with 'git reset --hard' input, (5) receive exit code 2 and blocking message, (6) offer optional customization of blocked patterns",
+    "notes": "Critical: verification test must pass before declaring DONE. Exit code 2 = actual block. Settings.json parse must succeed."
+  },
+  {
+    "scenario": "User wants to customize blocked patterns",
+    "input": {
+      "scope": "global",
+      "patterns_to_adjust": {
+        "add": ["git rebase -i"],
+        "remove": ["git branch -D"]
+      }
+    },
+    "expected_behavior": "Skill should: (1) install hook to ~/.claude/hooks/, (2) during Step 5 customization, ask user which patterns to add/remove, (3) edit BLOCKED_PATTERNS array in script, (4) re-run verification test with new patterns, (5) confirm updated guardrails active",
+    "notes": "Optional step but MUST ask. Silence ≠ agreement to defaults."
+  },
+  {
+    "scenario": "Verify hook blocks destructive commands and allows safe ones",
+    "input": {
+      "commands_to_test": [
+        "git push origin main",
+        "git reset --hard HEAD~1",
+        "git clean -fd",
+        "git status",
+        "git log --oneline"
+      ]
+    },
+    "expected_behavior": "Blocked commands (push, reset --hard, clean -fd) should receive exit code 2 with ⛔ message. Allowed commands (status, log) should exit code 0. Test should verify both blocking AND allowing work correctly.",
+    "notes": "Test that hook is selective, not a blanket blocker. Safe commands must pass through."
+  }
+]

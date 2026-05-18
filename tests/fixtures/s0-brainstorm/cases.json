@@ -1,0 +1,32 @@
+[
+  {
+    "scenario": "User describes vague frustration with project onboarding",
+    "input": {
+      "problem_feeling": "New developers waste too much time setting up the dev environment",
+      "domain": "DevOps / onboarding",
+      "context": "We have 5 developers, 3 are new this quarter"
+    },
+    "expected_behavior": "Skill should: (1) reflect back the vague feeling, (2) ask 2-3 visual questions to externalize the problem, (3) map problem space (who/frequency/cost/workaround), (4) generate 3 framings (User Pain / System Inefficiency / Missing Abstraction), (5) reality-check each, (6) ask user to choose one, (7) write problem-draft.md with all sections",
+    "notes": "Test that skill diverges before converging—no solutions proposed before user chooses a framing"
+  },
+  {
+    "scenario": "User has competing interpretations of same problem",
+    "input": {
+      "problem_feeling": "Our CI/CD pipeline is slow",
+      "interpretations": ["infrastructure is undersized", "tests are too many", "caching is broken"],
+      "context": "Pipeline takes 15+ minutes on every PR"
+    },
+    "expected_behavior": "Skill should ask visual questions to distinguish whether problem is capacity (infrastructure), test coverage (strategy), or cache (execution). Generate 3 framings that each represent one lens. User selects which framing resonates.",
+    "notes": "Verify skill does NOT assume—each framing is equally valid until reality-checked"
+  },
+  {
+    "scenario": "User realizes during brainstorm that problem is already solved by existing tool",
+    "input": {
+      "problem_feeling": "We need better way to track technical debt",
+      "initial_context": "Developers use sticky notes and a spreadsheet",
+      "after_reality_check": "Jira already supports technical debt tracking; it's just not configured"
+    },
+    "expected_behavior": "During reality-check, skill asks 'Does a tool/process already solve this?' User discovers yes. Skill marks framing as 'ALREADY SOLVED'. Problem statement may still be valuable (gaps in adoption), or user may decide not to proceed.",
+    "notes": "Test that skill surfaces solved problems and doesn't waste time on non-problems"
+  }
+]

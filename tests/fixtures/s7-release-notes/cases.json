@@ -1,0 +1,71 @@
+[
+  {
+    "scenario": "Generate CHANGELOG from git log with REQ mappings",
+    "input": {
+      "prev_tag": "v0.9.0",
+      "current_tag": "v1.0.0",
+      "commits": [
+        {"hash": "abc123", "message": "feat: add word_count function", "req": "REQ-1"},
+        {"hash": "def456", "message": "feat: add char_count function", "req": "REQ-2"},
+        {"hash": "ghi789", "message": "fix: handle edge case in punctuation", "req": "REQ-5"}
+      ],
+      "deploy_mode": "live",
+      "changelog_exists": false
+    },
+    "expected_behavior": "Create CHANGELOG.md header, prepend ## [v1.0.0] - YYYY-MM-DD with Added/Fixed sections linked to REQ-N, commit with message 'docs: add CHANGELOG entry for v1.0.0', proceed to /s7-telemetry",
+    "notes": "No existing CHANGELOG - create with header and current version block"
+  },
+  {
+    "scenario": "CHANGELOG update with breaking changes and migration guide",
+    "input": {
+      "prev_tag": "v1.0.0",
+      "current_tag": "v2.0.0",
+      "commits": [
+        {"hash": "jkl012", "message": "feat!: rename word_count to count_words", "breaking": true},
+        {"hash": "mno345", "message": "fix: correct sentence boundary detection"}
+      ],
+      "breaking_changes": [{"feature": "word_count", "old": "word_count(text)", "new": "count_words(text)"}],
+      "changelog_exists": true,
+      "deploy_mode": "live"
+    },
+    "expected_behavior": "Prepend ## [v2.0.0] section to existing CHANGELOG.md, include Breaking Changes block with migration steps, commit, proceed to /s7-telemetry",
+    "notes": "Migration guide required when breaking changes present"
+  },
+  {
+    "scenario": "CHANGELOG entry for dry-run deployment",
+    "input": {
+      "prev_tag": "v1.5.0",
+      "current_tag": "v1.6.0",
+      "commits": [
+        {"hash": "pqr678", "message": "docs: improve API documentation"}
+      ],
+      "deploy_mode": "dry-run",
+      "changelog_exists": true
+    },
+    "expected_behavior": "Prepend ## [v1.6.0] section with Note: 'This release was validated via dry-run. No live deployment was performed.', commit, proceed to /s7-telemetry",
+    "notes": "Dry-run note added to distinguish from live releases"
+  },
+  {
+    "scenario": "CHANGELOG without deploy log triggers BLOCKED",
+    "input": {
+      "deploy_log_exists": false,
+      "current_tag": "v3.0.0"
+    },
+    "expected_behavior": "BLOCKED: deploy log missing. Cannot write release notes for an undeployed version.",
+    "notes": "Hard-gate violation - deploy log required before CHANGELOG update"
+  },
+  {
+    "scenario": "Prepend to existing CHANGELOG with Unreleased section",
+    "input": {
+      "current_tag": "v0.2.0",
+      "changelog_exists": true,
+      "has_unreleased_section": true,
+      "commits": [
+        {"hash": "stu901", "message": "feat: add performance metrics tracking"}
+      ],
+      "deploy_mode": "live"
+    },
+    "expected_behavior": "Insert ## [v0.2.0] block after ## [Unreleased] line, commit, maintain existing version history intact",
+    "notes": "Respects existing structure and Unreleased placeholder"
+  }
+]

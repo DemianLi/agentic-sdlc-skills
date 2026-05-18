@@ -1,0 +1,62 @@
+[
+  {
+    "scenario": "Live deployment to PyPI with all smoke tests passing",
+    "input": {
+      "deploy_mode": "live",
+      "artifact": "dist/string-stats-api-1.0.0-py3-none-any.whl",
+      "target": "PyPI",
+      "version": "1.0.0",
+      "smoke_tests": ["import", "version_check", "core_function"]
+    },
+    "expected_behavior": "Deploy artifact to PyPI via twine, execute all smoke tests (PASS/FAIL), write deploy.md with Status: DEPLOYED, commit deploy log, proceed to /s7-release-notes",
+    "notes": "Smoke tests produce binary PASS/FAIL per test"
+  },
+  {
+    "scenario": "Staging deployment with smoke test failure",
+    "input": {
+      "deploy_mode": "live",
+      "artifact": "dist/api-service-2.0.0-py3-none-any.whl",
+      "target": "staging",
+      "version": "2.0.0",
+      "smoke_tests": ["health_check", "critical_endpoint"],
+      "test_results": {"health_check": "FAIL", "critical_endpoint": "PASS"}
+    },
+    "expected_behavior": "Deploy to staging, execute smoke tests, detect FAIL in health_check, write deploy.md with Status: FAILED, report specific failure and recommend rollback decision to user",
+    "notes": "Blocked status - requires user approval for rollback"
+  },
+  {
+    "scenario": "Dry-run mode simulation for local validation",
+    "input": {
+      "deploy_mode": "dry-run",
+      "artifact": "dist/lib-0.5.0.tar.gz",
+      "target": null,
+      "version": "0.5.0",
+      "commands": ["pip install --dry-run", "docker build --no-cache"]
+    },
+    "expected_behavior": "Simulate install/build with [DRY-RUN] prefix in logs, execute smoke tests on locally installed artifact, write deploy.md with deploy_mode: 'dry-run' and Status: DRY-RUN, commit, proceed to /s7-release-notes",
+    "notes": "No real deployment performed, status is DRY-RUN"
+  },
+  {
+    "scenario": "Docker image push to registry missing artifact",
+    "input": {
+      "deploy_mode": "live",
+      "artifact": null,
+      "target": "Docker Hub",
+      "version": "1.5.0"
+    },
+    "expected_behavior": "BLOCKED: artifact from /s7-build-artifact is not available. Cannot proceed with deployment.",
+    "notes": "Hard-gate violation - missing artifact blocks deploy"
+  },
+  {
+    "scenario": "GitOps mode: merge to main triggers CD pipeline",
+    "input": {
+      "deploy_mode": "gitops",
+      "artifact": "dist/service-3.0.0.whl",
+      "target": "main branch (ArgoCD)",
+      "version": "3.0.0",
+      "cd_system": "ArgoCD"
+    },
+    "expected_behavior": "Create PR and merge to main, wait for ArgoCD sync via 'argocd app wait <app> --sync', execute smoke tests on deployed instance, write deploy.md with deploy_mode: 'gitops', Status: DEPLOYED, proceed to /s7-release-notes",
+    "notes": "GitOps: deployment is merge to main, CD pipeline handles actual deployment"
+  }
+]

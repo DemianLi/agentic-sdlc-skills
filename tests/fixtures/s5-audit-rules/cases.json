@@ -1,0 +1,68 @@
+[
+  {
+    "scenario": "Layer dependency violation: domain layer imports from infrastructure",
+    "input": {
+      "file_path": "src/domain/user-service.ts",
+      "code_snippet": "import { DatabaseConnection } from '../infrastructure/db-connection'",
+      "rules_md_constraints": "LAYER_RULE: Domain layer MUST NOT import Infrastructure layer",
+      "architecture_layers": ["domain", "application", "infrastructure"]
+    },
+    "expected_behavior": "Skill must load RULES.md and detect layer crossing violation at src/domain/user-service.ts. Report: '🔴 CRITICAL: Layer violation at src/domain/user-service.ts:3 — domain layer imports infrastructure.DatabaseConnection. Violates RULES.md LAYER_RULE.' BLOCK handoff to /s5-pr-review. Do NOT auto-fix architectural violations.",
+    "notes": "Forbidden crossings are architectural red lines. User decision required to fix via refactoring or rule change."
+  },
+  {
+    "scenario": "API contract mismatch: endpoint schema differs from design doc",
+    "input": {
+      "endpoint": "POST /api/users",
+      "design_doc": "docs/arch/2026-05-18-user-mgmt-design.md",
+      "design_spec": "request: { name: string, email: string, age: integer } response: { id: uuid, created_at: timestamp }",
+      "implementation": "request: { name: string, email: string } response: { id: uuid }"
+    },
+    "expected_behavior": "Skill must verify implementation matches every endpoint schema in design doc exactly. Report: '🔴 CRITICAL: API contract mismatch at POST /api/users — missing 'age' field in request (design doc requires it). Missing 'created_at' field in response.' BLOCK handoff until contract is corrected.",
+    "notes": "Design doc is the source of truth. Code must match it exactly, not the other way around."
+  },
+  {
+    "scenario": "Naming compliance: public identifiers match domain glossary",
+    "input": {
+      "identifier": "fetchUserData",
+      "context_md_glossary": "User domain terminology: 'User', 'Profile', 'Account' — use these consistently",
+      "implementation_uses": "fetchUserData, getUserInfo, getAccountDetails",
+      "violation": "mixed terminology (User vs Account vs Info)"
+    },
+    "expected_behavior": "Skill must check CONTEXT.md for domain glossary. Report violations: '🔴 CRITICAL: Naming inconsistency at src/api/routes.ts:12 — function 'getUserInfo' violates glossary. Use 'fetchUserProfile' (User domain term) consistently.' List all naming deviations by file:line.",
+    "notes": "Consistent naming prevents conceptual drift. Glossary violations are CRITICAL."
+  },
+  {
+    "scenario": "File scope compliance: only task-scoped files modified",
+    "input": {
+      "task_id": "TASK-7",
+      "task_dag_scope": "[src/api/auth-routes.ts, src/domain/auth-service.ts, tests/auth.test.ts]",
+      "files_actually_modified": ["src/api/auth-routes.ts", "src/domain/auth-service.ts", "src/utils/helpers.ts", "tests/auth.test.ts"],
+      "extra_files": ["src/utils/helpers.ts"]
+    },
+    "expected_behavior": "Skill must load TASK_DAG.md and verify only listed files were modified. Report: '🔴 CRITICAL: Scope violation — file src/utils/helpers.ts was modified but is NOT in TASK-7 scope. Task scope is: [auth-routes.ts, auth-service.ts, auth.test.ts].' BLOCK handoff. Instruct: revert extra files or document scope change with PM approval.",
+    "notes": "Scope creep violates task boundaries. Even small utility file changes outside scope are violations."
+  },
+  {
+    "scenario": "Clean audit report: zero violations",
+    "input": {
+      "files_modified": ["src/api/payment-routes.ts", "src/domain/payment-service.ts", "tests/payment.test.ts"],
+      "task_scope": "TASK-12: [payment-routes.ts, payment-service.ts, payment.test.ts]",
+      "layer_checks": "all valid (no cross-layer imports)",
+      "api_contracts": "all match design doc exactly",
+      "naming": "all consistent with CONTEXT.md glossary"
+    },
+    "expected_behavior": "Skill must report: 'DONE — zero architectural violations detected. All API contracts match design doc. Naming aligned with domain glossary. File scope verified. Proceeding to /s5-pr-review.'",
+    "notes": "Clean audit shows all architectural rules respected. Proceed to next stage only after zero violations confirmed."
+  },
+  {
+    "scenario": "Design doc missing or outdated",
+    "input": {
+      "architecture_change": "refactored payment processor layer",
+      "design_doc_expected": "docs/arch/2026-05-18-payment-design.md",
+      "design_doc_status": "not found OR last updated 2026-01-01"
+    },
+    "expected_behavior": "Skill must attempt to load design doc. If missing or stale (>90 days), report: 'NEEDS_CONTEXT: design document docs/arch/2026-05-18-payment-design.md not found or outdated. Cannot verify API contracts without current architecture spec.' BLOCK and instruct: 'PM must update or create design doc before audit can proceed.'",
+    "notes": "Design doc is mandatory baseline. Missing design docs block the audit."
+  }
+]

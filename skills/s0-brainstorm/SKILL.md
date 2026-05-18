@@ -182,6 +182,14 @@ Required sections:
 
 This file is the ONLY output. No architecture. No tech choices. No implementation hints.
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s0-brainstorm/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
+Smoke test: Confirm skill output structure and behavior match expected_behavior for each scenario.
+
 ## Artifact Dependencies
 - **Reads**: none
 - **Writes**: `docs/brainstorm/YYYY-MM-DD-<topic>-problem-draft.md` (optional — 產出可選)

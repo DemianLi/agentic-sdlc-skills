@@ -1,0 +1,77 @@
+[
+  {
+    "scenario": "Live deployment with healthy metrics and no anomalies",
+    "input": {
+      "deploy_mode": "live",
+      "version": "1.0.0",
+      "pre_baseline": {"latency_p99_ms": 0.187, "error_rate_pct": 0.0, "throughput_rps": 14838},
+      "post_metrics": {"latency_p99_ms": 0.190, "error_rate_pct": 0.0, "throughput_rps": 14650},
+      "slo_limits": {"latency_p99_ms": 1.0, "error_rate_pct": 1.0},
+      "anomalies_detected": []
+    },
+    "expected_behavior": "Detect no anomalies (P99 delta 3% of SLO < 5%), set status: 'healthy', rollback_triggered: false, extract next_cycle_inputs from audit/SAST/PR review, write telemetry.json, commit, report DONE with next_cycle_inputs ready",
+    "notes": "Normal variance - no action required"
+  },
+  {
+    "scenario": "Dry-run simulation with post-deploy metrics from re-run perf suite",
+    "input": {
+      "deploy_mode": "dry-run",
+      "version": "0.5.0",
+      "simulation_mode": true,
+      "pre_baseline": {"latency_p99_ms": 0.004, "error_rate_pct": 0.0, "throughput_rps": 9500},
+      "post_metrics": {"latency_p99_ms": 0.009, "error_rate_pct": 0.0, "throughput_rps": 9400},
+      "warmup_iterations_matched": true
+    },
+    "expected_behavior": "Collect post-deploy from perf test re-run (not live monitoring), set simulation_mode: true, detect sub-ms noise (0.5% of SLO), set status: 'healthy', rollback_triggered: false, commit telemetry.json, report DONE",
+    "notes": "Warmup iterations parity verified - fair comparison"
+  },
+  {
+    "scenario": "Live deployment with anomaly detected (15% SLO consumed)",
+    "input": {
+      "deploy_mode": "live",
+      "version": "2.0.0",
+      "pre_baseline": {"latency_p99_ms": 0.150, "throughput_rps": 10000},
+      "post_metrics": {"latency_p99_ms": 0.300, "throughput_rps": 8000},
+      "slo_limits": {"latency_p99_ms": 1.0},
+      "anomaly_latency_delta": "15%"
+    },
+    "expected_behavior": "Calculate SLO-delta: (0.300 - 0.150) / 1.0 = 15% > 5% threshold, log anomaly in anomalies array, set status: 'degraded', rollback_triggered: false (below 20% threshold), report DONE_WITH_CONCERNS listing the anomaly",
+    "notes": "Detected but below critical threshold - noted for next iteration"
+  },
+  {
+    "scenario": "Production error rate spike triggers rollback decision",
+    "input": {
+      "deploy_mode": "live",
+      "version": "1.5.0",
+      "error_rate_pre": 0.1,
+      "error_rate_post": 2.5,
+      "slo_limits": {"error_rate_pct": 1.0}
+    },
+    "expected_behavior": "Detect error_rate_post (2.5%) > 1% SLO and > 2× baseline, present rollback decision to user with specific metric/threshold/actual values, report BLOCKED awaiting user authorization",
+    "notes": "Critical issue - requires user approval before rollback"
+  },
+  {
+    "scenario": "Missing perf-baseline.json hard-gate violation",
+    "input": {
+      "deploy_log_exists": true,
+      "changelog_exists": true,
+      "perf_baseline_exists": false,
+      "version": "3.0.0"
+    },
+    "expected_behavior": "NEEDS_CONTEXT: docs/tests/YYYY-MM-DD-perf-baseline.json missing. Cannot compare pre/post metrics without baseline.",
+    "notes": "Hard-gate violation - baseline required for anomaly detection"
+  },
+  {
+    "scenario": "Extract next_cycle_inputs from PR review deferred items",
+    "input": {
+      "deploy_mode": "dry-run",
+      "version": "0.3.0",
+      "pr_review_deferred": [{"item": "Add OpenAPI spec", "priority": "LOW"}],
+      "sast_low_severity": [{"issue": "Potential null pointer", "file": "utils.py"}],
+      "changelog_deprecated": [{"item": "Legacy query_v1 endpoint"}],
+      "anomalies": []
+    },
+    "expected_behavior": "Synthesize next_cycle_inputs array with entries from pr-review (LOW), sast (LOW), changelog (MEDIUM), all actionable one-sentence items, write telemetry.json with complete next_cycle_inputs, commit, report DONE",
+    "notes": "Seeds next Product Manager session - comprehensive handoff"
+  }
+]

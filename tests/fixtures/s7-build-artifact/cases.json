@@ -1,0 +1,64 @@
+[
+  {
+    "scenario": "Python wheel build from passing test-results.json",
+    "input": {
+      "project_type": "python_library",
+      "test_results_gate": "PASS",
+      "manifest": "pyproject.toml",
+      "version": "1.0.0",
+      "build_tool": "python -m build"
+    },
+    "expected_behavior": "Build artifact: dist/<name>-1.0.0-py3-none-any.whl, capture SHA-256, create git tag v1.0.0, report Build Summary with all fields populated",
+    "notes": "Standard Python library release path"
+  },
+  {
+    "scenario": "Docker image build for service with failing release_gate",
+    "input": {
+      "project_type": "python_service",
+      "test_results_gate": "BLOCKED",
+      "manifest": "Dockerfile",
+      "version": "2.1.0",
+      "build_tool": "docker build"
+    },
+    "expected_behavior": "BLOCKED: release_gate is not PASS. Stage 7 is unconditionally blocked until Stage 6 issues are resolved.",
+    "notes": "Should fail pre-flight check, not proceed with build"
+  },
+  {
+    "scenario": "Node.js package build with missing version in manifest",
+    "input": {
+      "project_type": "node_library",
+      "test_results_gate": "PASS",
+      "manifest": "package.json",
+      "version": null,
+      "build_tool": "npm pack"
+    },
+    "expected_behavior": "NEEDS_CONTEXT: no version found in project manifest. Set version before building.",
+    "notes": "Pre-flight check fails, blocks build"
+  },
+  {
+    "scenario": "Go binary build with monorepo context",
+    "input": {
+      "project_type": "go_binary",
+      "test_results_gate": "PASS",
+      "manifest": "go.mod",
+      "version": "3.2.1",
+      "build_tool": "go build",
+      "is_monorepo": true
+    },
+    "expected_behavior": "Build binary to dist/<name>, capture SHA-256, skip git tag (monorepo context), report git_tag: 'skipped (monorepo context)' in Build Summary",
+    "notes": "Monorepo caveat applies - no git tag created"
+  },
+  {
+    "scenario": "npm package build success with reproducible output",
+    "input": {
+      "project_type": "node_library",
+      "test_results_gate": "PASS",
+      "manifest": "package.json",
+      "version": "0.5.0",
+      "build_tool": "npm pack",
+      "reproducible": true
+    },
+    "expected_behavior": "Build artifact: dist/<name>-0.5.0.tgz, capture SHA-256, create git tag v0.5.0, report reproducible: yes, transition to /s7-deploy",
+    "notes": "Pinned dependencies ensure reproducibility"
+  }
+]

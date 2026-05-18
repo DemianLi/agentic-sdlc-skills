@@ -1,0 +1,79 @@
+[
+  {
+    "scenario": "CRITICAL issue: null pointer dereference in production code",
+    "input": {
+      "pr_review_report": "docs/reviews/PR-123-review.md",
+      "critical_issue": "Null pointer dereference at src/api/handlers.ts:45 when user.profile is undefined",
+      "current_test_status": "failing",
+      "test_name": "testUserProfileRetrieval"
+    },
+    "expected_behavior": "Skill must (1) Load PR review report, (2) Apply minimal fix: add null check before accessing user.profile, (3) Run full test suite: 'npm test' (or pytest), (4) Confirm all tests GREEN. Commit fix with message: 'fix: add null check for user.profile (+ regression test)'. Report: 'CRITICAL issue resolved. Test suite GREEN. Proceeding to Stage 6.'",
+    "notes": "CRITICAL issues block handoff. Must verify all tests GREEN before declaring DONE."
+  },
+  {
+    "scenario": "WARNING issue: performance optimization approved by reviewer",
+    "input": {
+      "pr_review_report": "docs/reviews/PR-123-review.md",
+      "warning_issue": "WARNING: O(n²) loop at src/utils/search.ts:28 — optimize to O(n log n)",
+      "reviewer_approval": true,
+      "current_performance_test_result": "PASSED (baseline)"
+    },
+    "expected_behavior": "Skill must (1) Check reviewer approval (YES), (2) Apply optimization: replace nested loops with sorted binary search, (3) Run full test suite including performance tests, (4) Confirm all tests still PASS and performance improves. Commit: 'refactor: optimize search algorithm O(n²) → O(n log n)'. Report optimization metrics.",
+    "notes": "Optimization only if reviewer approved AND safe without changing test behavior."
+  },
+  {
+    "scenario": "SUGGESTION issue: refactoring request NOT approved by user",
+    "input": {
+      "pr_review_report": "docs/reviews/PR-123-review.md",
+      "suggestion_issue": "SUGGESTION: extract long function (120 lines) into smaller helpers",
+      "user_approval": false,
+      "test_suite_status": "all GREEN"
+    },
+    "expected_behavior": "Skill must check user approval. If not approved, SKIP this suggestion. Report: 'SUGGESTION: extract function — NOT approved by user. Skipping.' Do NOT refactor without explicit user approval. Proceed to next issue.",
+    "notes": "SUGGESTION items require explicit user approval. Do not auto-implement."
+  },
+  {
+    "scenario": "Test regression after optimization attempt",
+    "input": {
+      "optimization_attempted": "refactor calculateTotal function",
+      "test_suite_before": "16/16 tests PASSED",
+      "test_suite_after": "15/16 tests PASSED",
+      "failing_test": "testCalculateTotalWithNegativeValues"
+    },
+    "expected_behavior": "Skill must detect test regression: 'Optimization introduced regression — testCalculateTotalWithNegativeValues now fails. Reverting optimization and confirming original tests GREEN.' Report: 'Original test suite GREEN restored. This optimization cannot be safely applied — requires design change (out of scope). Reporting to user for decision.'",
+    "notes": "Red flag: never hide test failures. Regression = optimization must be reverted or escalated."
+  },
+  {
+    "scenario": "CRITICAL + WARNING issues in sequence",
+    "input": {
+      "pr_review_items": [
+        {"type": "CRITICAL", "issue": "memory leak in event listener", "file": "src/events.ts:18"},
+        {"type": "WARNING", "issue": "duplicate code in two modules", "file": "src/utils/validators.ts:5, src/api/validators.ts:5"}
+      ],
+      "test_suite_initial": "12/16 tests FAILED"
+    },
+    "expected_behavior": "Skill must prioritize: (1) Fix CRITICAL memory leak first, run tests, confirm passing. (2) Then apply WARNING (code deduplication), run tests again, confirm still passing. Report each fix with test output. Final status: 'All CRITICAL and WARNING issues resolved. Test suite GREEN (16/16). Ready for Stage 6.'",
+    "notes": "CRITICAL issues first, then WARNING. Each must pass full test suite before proceeding."
+  },
+  {
+    "scenario": "Full test suite GREEN requirement before handoff",
+    "input": {
+      "fixes_applied": 3,
+      "test_results": "14/15 tests PASSED, 1 test SKIPPED due to flaky timing",
+      "handoff_approval": false
+    },
+    "expected_behavior": "Skill must enforce: 'BLOCKED: 1 test result is not GREEN. Test results must show ALL tests PASSED (or properly documented as infrastructure-level skip, not code-level skip). Investigate flaky test timing and fix root cause OR confirm timing skip is documented in test.' Run test suite again until fully GREEN.",
+    "notes": "HARD GATE: no handoff if any test is not GREEN. Every test must be either PASSED or have documented valid skip reason."
+  },
+  {
+    "scenario": "Fix requires design change (out of scope)",
+    "input": {
+      "critical_issue": "API response schema cannot be fixed without breaking backward compatibility",
+      "current_design": "response includes deprecated 'userId' field",
+      "reviewer_feedback": "must remove 'userId' to comply with new API contract",
+      "scope_limitation": "s5-fix-optimize is fix layer, not design layer"
+    },
+    "expected_behavior": "Skill must detect design conflict: 'BLOCKED: fixing this CRITICAL issue requires API contract redesign (out of Stage 5 scope). Design change must be approved by PM in Stage 1. Report conflict: backcompat breaking change vs. new contract. Decision needed: deprecate field or rollback new contract requirement.'",
+    "notes": "Design changes are out of scope for fix-optimize stage. Escalate to user for decision."
+  }
+]

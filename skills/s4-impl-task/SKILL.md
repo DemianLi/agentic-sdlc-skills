@@ -47,6 +47,14 @@ Report status using exactly one of:
 - **Upstream Dependency**: `/s4-tdd`.
 - **Downstream Target**: `/s4-local-debug`.
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s4-impl-task/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
+Smoke test: Confirm skill verifies failing tests exist, writes minimal code to pass them, enforces File Scope discipline, detects RULES.md violations, and updates TASK_DAG.md correctly.
+
 ## Artifact Dependencies
 - **Reads**: test files (from s4-tdd), `TASK_DAG.md`
 - **Writes**: production source files

@@ -126,6 +126,14 @@ Report status using exactly one of:
 - **Upstream Dependency**: `/s6-verify-release` — `test-results.json` with `release_gate: "PASS"` is the entry token.
 - **Downstream Target**: `/s7-deploy` reads the artifact path and SHA-256 from the build summary.
 
+## Eval Fixtures
+
+Fixtures 位於 `tests/fixtures/s7-build-artifact/cases.json`。
+
+每個 fixture 包含：`scenario`（情境描述）、`input`（輸入物件）、`expected_behavior`（預期行為）。
+
+冒煙測試：逐一確認 skill 對每個情境的輸出結構與 expected_behavior 一致。
+
 ## Artifact Dependencies
 - **Reads**: `test-results.json`, `pyproject.toml` / `package.json` / `go.mod`, source files
 - **Writes**: `dist/<artifact>` (or Docker image layer cache), local git tag `v<version>`
