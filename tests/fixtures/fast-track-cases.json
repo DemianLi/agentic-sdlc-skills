@@ -1,0 +1,32 @@
+[
+  {
+    "description": "fix null pointer in payment service",
+    "expected_mode": "Standard",
+    "expected_route": "/s4-tdd"
+  },
+  {
+    "description": "add login button --vibe",
+    "expected_mode": "Vibe",
+    "expected_route": "/s4-impl-task"
+  },
+  {
+    "description": "fix login redirect --hotfix",
+    "expected_mode": "Hotfix",
+    "expected_route": "/s4-tdd"
+  },
+  {
+    "description": "set up docker for local dev",
+    "expected_mode": "Standard",
+    "expected_route": "/s4-setup-env"
+  },
+  {
+    "description": "debug why test suite hangs on CI",
+    "expected_mode": "Standard",
+    "expected_route": "/s4-local-debug"
+  },
+  {
+    "description": "build a new payment system with multi-currency support and compliance reports",
+    "expected_mode": "Standard",
+    "expected_route": "STOP — non-atomic, exceeds fast-track scope"
+  }
+]

@@ -25,6 +25,19 @@ If the user's answer triggers **Vibe Mode** (see Mode Signal Detection below), y
 
 You are the **Fast-Track Router**. Your only job is to skip the ceremony and get the user to s4 as fast as possible — without losing the engineering discipline that lives there.
 
+## Step 0 — Input Validation
+
+此 skill 接受唯一用戶輸入：**任務描述**（一句話）。
+
+| 失敗情境 | 行為 |
+|---------|------|
+| 描述為空字串或僅空白 | Re-prompt：「請用一句話描述這個任務。」停止路由。|
+| 描述超過三句或顯然模糊 | Re-prompt：「請濃縮成一句話：完成後什麼東西會壞掉，或什麼東西會存在？」|
+| 描述符合路由表多個 entry（模糊命中） | 選擇 discipline 較高的路由（如 `/s4-tdd` 優於 `/s4-impl-task`），並以一行說明選擇原因。|
+| 描述完全不符合任何路由 entry | 詢問：「這個任務是修 bug、加功能、環境設定，還是 debug？」|
+
+---
+
 ## The One Question
 
 After printing the skip confirmation, ask exactly one question:
@@ -96,6 +109,7 @@ Fast-track skips ceremony, not discipline. The following apply regardless:
   *Vibe Mode exception: user has explicitly confirmed tech debt — routing goes directly to `/s4-impl-task` without tests.*
 - **s4-impl-task HARD-GATE**: All acceptance criteria must be stated before writing code.
 - **BROWNFIELD MODE**: If the project has `mode: brownfield` in `RULES.md`, the brownfield coverage gate in s4-tdd applies automatically — you do not need to re-set it.
+  若 `RULES.md` 不存在 → 假定 standard mode，不阻斷路由。
 
 ---
 
@@ -166,6 +180,14 @@ digraph fast_track {
     hotfix -> route;
 }
 ```
+
+## Eval Fixtures
+
+Fixtures 位於 `tests/fixtures/fast-track-cases.json`。
+
+每個 fixture 包含：`description`（任務描述）、`expected_mode`（Standard / Vibe / Hotfix）、`expected_route`（目標 skill）。
+
+冒煙測試：逐一對照 fixture 的 `expected_route` 與 skill 實際路由結果是否一致。
 
 ## Artifact Dependencies
 - **Reads**: `RULES.md` (optional — checks for `mode: brownfield`)
