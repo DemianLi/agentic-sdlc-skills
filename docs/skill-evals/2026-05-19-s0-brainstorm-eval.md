@@ -7,29 +7,34 @@
 
 | # | Criterion | Score | Evidence |
 |---|-----------|-------|----------|
-| 1 | 衝突防禦 | ✅ | Line 12, 138: names `/s2-capture-vision` with clear downstream relationship |
-| 2 | 雙向阻斷 | ❌ | Line 13: "Do NOT invoke" block mentions only 1 skill; needs ≥2 concrete counter-examples |
-| 3 | 輸入清洗 | ✅ | No external user inputs required (operates on user conversation only). PASS with note: "ambient context only" |
-| 4 | 漸進披露 | ✅ | Max inline block: dot diagram 26 lines (146-171); markdown template 44 lines (104-119). Both < 50 lines |
-| 5 | 優雅降級 | ✅ | Artifact Dependencies (line 186-187): Reads=none, Writes=optional file. No high-risk external dependencies |
-| 6 | 漂移監控 | ❌ | No `tests/fixtures/` reference found in SKILL.md; no drift monitoring fixtures on disk |
+| 1 | 衝突防禦 | ⚠️ PARTIAL | Lines 138-142: Mentions `/s2-capture-vision` as downstream, but no adjacent skills named with specific differences explaining the boundary |
+| 2 | 雙向阻斷 | ❌ FAIL | No "絕對不要觸發" or "Do NOT use" block found; no negative trigger examples listed |
+| 3 | 輸入清洗 | ⚠️ PARTIAL | Accepts vague problem descriptions, but no explicit input specification; no failure scenarios with defined behavior documented |
+| 4 | 漸進披露 | ✅ PASS | Workflow steps are clear and concise; visual questions (lines 35-42), problem space table (lines 52-59), framings (lines 68-72)—no single inline block exceeds 50 lines |
+| 5 | 優雅降級 | ⚠️ PARTIAL | File write to `docs/brainstorm/YYYY-MM-DD-<topic>-problem-draft.md` has no fallback defined, but write is low blast-radius |
+| 6 | 漂移監控 | ✅ PASS | Line 187 references `tests/fixtures/s0-brainstorm/cases.json`; fixture file exists with 3 test cases |
 
-**Total**: 4/6 PASS — **DRAFT**
+**Total**: 2/6 PASS — **DRAFT**
 
 ## Defect Details
 
 ### ❌ FAIL — Criterion 2: 雙向阻斷 (Negative Triggers)
-- **Location**: Line 13
-- **Defect**: `<HARD-GATE>` block contains "Do NOT invoke /s2-capture-vision or any other skill automatically" but provides only 1 concrete blocked skill. Rubric requires ≥2 concrete counter-examples.
-- **Impact**: Over-generalization risk. When this skill is invoked alongside others, routing system lacks explicit examples of what should NOT trigger brainstorm.
-- **Evidence**: Scoring rubric line 29: "≥2 concrete counter-examples" required for PASS
+- **Location**: Entire document
+- **Defect**: No negative trigger block exists. Skill lists what TO DO (Steps 1–7) but never explicitly states when NOT to invoke this skill or scenarios where it would produce wrong output.
+- **Impact**: In production with many s0-* skills, routing confusion could invoke s0-brainstorm for problems already ready for s2-capture-vision, wasting tokens and user time on re-brainstorming.
 
-### ❌ FAIL — Criterion 6: 漂移監控 (Drift Monitoring)
-- **Location**: SKILL.md lines 1-189
-- **Defect**: No reference to `tests/fixtures/` directory found in SKILL.md. Fixture system on disk exists (e.g., `/tests/fixtures/fast-track-cases.json`) but this skill does not reference it for offline eval.
-- **Impact**: No baseline fixtures to detect skill drift as models evolve. If problem-generation logic degrades, no automated regression check exists.
-- **Evidence**: Scoring rubric line 85-87: "referenced in SKILL.md AND exists on disk" required for PASS
+### ⚠️ PARTIAL — Criterion 1: 衝突防禦 (Semantic Anti-Collision)
+- **Location**: Lines 138-142 (`<supporting-info>` section)
+- **Gap**: `/s2-capture-vision` is mentioned as "downstream target," but the boundary is not explained. What problem statement features justify routing to s2 vs. staying in s0 for more brainstorm iterations? Never stated.
+
+### ⚠️ PARTIAL — Criterion 3: 輸入清洗 (Input Linting)
+- **Location**: Lines 16-131
+- **Gap**: Step 1 says "Ask the user to describe," but what if they refuse? What if their description is single-word gibberish? What minimum input quality is required to proceed? No fallback behavior defined (re-prompt n times? BLOCKED?).
+
+### ⚠️ PARTIAL — Criterion 5: 優雅降級 (Graceful Degradation)
+- **Location**: Line 102 (Step 7 — file write)
+- **Gap**: If file write fails (permissions, path doesn't exist, disk full), skill has no fallback. Should either: (a) catch write errors and offer to dump to stdout, or (b) mark as BLOCKED with explicit error message.
 
 ## Recommended Next Step
 
-Add ≥2 concrete negative-trigger examples to the `<HARD-GATE>` block (line 10-14), e.g., "Do NOT invoke when user provides a detailed spec (use /s1-refine-spec instead)" and "Do NOT invoke when the problem is already solved by an existing tool". Then create or link `tests/fixtures/brainstorm-fixture.md` with a test case and add reference at line 186 in supporting-info.
+Add a "Do NOT use this skill if" block in `<what-to-do>` listing ≥2 concrete counter-examples (e.g., "if problem statement already exists," "if user has already chosen a framing"), then re-evaluate Criterion 2.

@@ -7,43 +7,27 @@
 
 | # | Criterion | Score | Evidence |
 |---|-----------|-------|----------|
-| 1 | 衝突防禦 | ✅ | Line 7: frontmatter mentions "獨立於 s1-s7 流程，完成後可銜接 /s3-eval-system"; line 180: supporting-info explains downstream difference (input to system evaluation) |
-| 2 | 雙向阻斷 | ❌ | Line 14: "Do NOT invoke /s3-eval-system" names 1 skill only. Lines 156-160 "Red Flags" section is internal checklist, not negative triggers. Needs ≥2 concrete blocked scenarios with reasons |
-| 3 | 輸入清洗 | ⚠️ | Line 37-38: asks user "Which feature do you want to trace?"; accepts varied input types. But no explicit failure scenario table (missing path, non-existent feature, etc.). Partially defined: user input present, failure handling incomplete |
-| 4 | 漸進披露 | ✅ | Largest inline block: markdown output template (106-149) = 44 lines. < 50 lines. Process flow dot diagram small. Both acceptable |
-| 5 | 優雅降級 | ✅ | Artifact Dependencies (line 220-221): Reads=source files (read-only), Writes=output file. Step 4 (lines 86-87) includes LOW CONFIDENCE block with fallback ask-user path ("proceed or investigate?"). Graceful degradation via checkpoint |
-| 6 | 漂移監控 | ❌ | No reference to `tests/fixtures/` found in SKILL.md. Root-level `/tests/fixtures/` exists but skill does not reference it; no specific trace-feature test fixtures on disk |
+| 1 | 衝突防禦 | ✅ PASS | Lines 21-27: Table explicitly names `/s3-eval-system`, `/s2-capture-vision`, `/s4-local-debug` with specific differences (evaluate vs. trace vs. debug) |
+| 2 | 雙向阻斷 | ✅ PASS | Lines 21-27: "絕對不要觸發的情境" table with 3 concrete counter-examples; each row specifies the wrong skill's trigger condition |
+| 3 | 輸入清洗 | ✅ PASS | Lines 44-52: Input validation table defines failure scenarios (vague name, not found, multiple matches) with defined behavior (re-prompt, BLOCKED, list candidates) |
+| 4 | 漸進披露 | ✅ PASS | Low-confidence block (lines 111–121) ~10 lines; Mermaid template (lines 132–148) ~16 lines; no single inline block exceeds 50 lines |
+| 5 | 優雅降級 | ⚠️ PARTIAL | Multiple file reads (codebase scanning) have no fallback defined; line 169 requires "Commit the file to git before reporting completion" with no BLOCKED fallback if commit fails |
+| 6 | 漂移監控 | ✅ PASS | Line 239: References `tests/fixtures/s0-trace-feature/cases.json`; fixture exists with 3 test scenarios covering complete traces, gap detection, and side effects |
 
-**Total**: 3/6 PASS — **DRAFT**
+**Total**: 5/6 PASS — **NEAR READY**
 
 ## Defect Details
 
-### ❌ FAIL — Criterion 2: 雙向阻斷 (Negative Triggers)
-- **Location**: Line 14
-- **Defect**: `<HARD-GATE>` block names only "/s3-eval-system" as blocked. Line 156-160 "Red Flags" is an internal checklist, not a negative-trigger block. Rubric requires ≥2 concrete counter-examples in a dedicated block.
-- **Impact**: Routing confusion. System cannot distinguish between "trace a feature" vs. "evaluate impact of feature changes" (overlap with s3-eval-system) without explicit negative examples.
-- **Evidence**: Scoring rubric line 29: "≥2 concrete counter-examples" for PASS
-
-### ⚠️ PARTIAL — Criterion 3: 輸入清洗 (Input Linting)
-- **Location**: Line 37-38, 48-55
-- **Defect**: Inputs are implicitly present (user picks entry point at line 48-55, specifies feature name at line 37). But no explicit failure scenario table. Missing: "What if entry point not found?", "What if workspace is empty?", "What if user provides ambiguous spec?"
-- **Impact**: Step 4 (line 77-88) shows LOW CONFIDENCE warning mechanism but doesn't pre-define failure handling strategy.
-- **Recommendation**: Add explicit failure scenario table after Step 1, e.g.:
-  ```
-  | Failure Scenario | Behavior |
-  | Feature name too vague | Ask user for clarification (file path or function name) |
-  | No entry points found | BLOCKED — state "searched X patterns, found nothing" |
-  | User cancels confirmation | DONE_WITH_CONCERNS — report what was found before cancel |
-  ```
-
-### ❌ FAIL — Criterion 6: 漂移監控 (Drift Monitoring)
-- **Location**: SKILL.md lines 1-222
-- **Defect**: No reference to `tests/fixtures/` in SKILL.md. Root-level fixtures exist but are shared across skills; no trace-feature-specific fixtures defined.
-- **Impact**: No offline eval set to catch drift if trace output format or depth changes.
-- **Evidence**: Scoring rubric line 85: "referenced in SKILL.md AND exists on disk" required for PASS
+### ⚠️ PARTIAL — Criterion 5: 優雅降級 (Graceful Degradation)
+- **Location**: Lines 77–85 (Step 3 — Full Chain Trace), Line 169 (git commit requirement)
+- **Gap**: 
+  - Step 3 reads workspace files with no fallback if a file is unreadable (permission denied, missing). Should state: "If file unreadable, mark as `[? — permission denied]`."
+  - Line 169: "Commit the file to git before reporting completion" is a write operation with no fallback. If git commit fails (unstaged changes, merge conflict), skill has no recovery path.
+- **Impact**: Read-only failures have low blast-radius, but the final git commit could silently fail, leaving the trace artifact uncommitted and incomplete.
 
 ## Recommended Next Step
 
-1. Add ≥2 concrete negative-trigger examples to `<HARD-GATE>` (line 10-14), e.g., "Do NOT invoke when user wants to evaluate impact (use /s3-eval-system)" and "Do NOT invoke when no codebase access exists"
-2. Add explicit input failure scenario table in Step 1 (after line 38)
-3. Create `tests/fixtures/trace-feature-fixture.md` with a traced feature example and reference it in supporting-info (line 220)
+1. Add fallback behavior for unreadable files in Step 3 (e.g., mark as `[? — unreadable]` and continue).
+2. Wrap the git commit in try-catch logic: if commit fails, offer to save artifact with BLOCKED status and let user commit manually.
+
+This will elevate Criterion 5 to PASS, making the skill PRODUCTION READY (6/6).

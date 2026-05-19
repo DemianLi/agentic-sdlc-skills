@@ -7,43 +7,19 @@
 
 | # | Criterion | Score | Evidence |
 |---|-----------|-------|----------|
-| 1 | 衝突防禦 | ✅ | Lines 55–59: `<supporting-info>` names "Stage 3 (Task DAG)" (upstream) and `/s4-impl-task` & `/s4-tdd` (downstream) with explicit "Implementer" identity |
-| 2 | 雙向阻斷 | ✅ | Lines 7–15: `<HARD-GATE>` block with 1 hard condition; Lines 39–46: "Red Flags" table with 3 concrete anti-patterns (skipping version check, starting without task selection, trusting old environment) |
-| 3 | 輸入清洗 | ⚠️ | Lines 17–37 list steps (TASK_DAG.md, branch setup, environment validation) but failure scenarios lack explicit behavior: missing TASK_DAG.md, no unmet dependencies, version mismatch responses undefined |
-| 4 | 漸進披露 | ✅ | Step list (lines 17–37) is ~30 lines of procedural text; bash examples at lines 24–32 are ~9 lines; dot graph (lines 62–83) is external reference; no single inline block exceeds 50 lines |
-| 5 | 優雅降級 | ⚠️ | Lines 34–36 say "Run the project's environment check" and "npm ci / go mod download" but provide no fallback if version mismatch detected or dependencies unavailable; Step 4 workspace verification has no error path |
-| 6 | 漂移監控 | ❌ | No reference to `tests/fixtures/` or offline eval fixture directory in SKILL.md |
+| 1 | 衝突防禦 | ✅ | Line 71 explicitly names upstream `/s4-impl-task` and `/s4-tdd`. Line 5 description distinguishes role: "at the start of each atomic task to verify workspace is clean." Different from debug (post-failure) and TDD (test-first). |
+| 2 | 雙向阻斷 | ✅ | Lines 7–10 HARD-GATE; lines 23–29 Input Validation table with 5 concrete failure scenarios: TASK_DAG.md 不存在, 依賴未標記, 版本不符, 未提交變更, Lock file 損毀. All marked BLOCKED. |
+| 3 | 輸入清洗 | ✅ | Lines 21–29 Input Validation section explicitly lists all failure scenarios with defined behaviors (all BLOCKED with specific messages). Inputs: TASK_DAG.md, runtime version, lock file, git status. |
+| 4 | 漸進披露 | ✅ | Steps 1–4 (lines 33–50) are brief. Worktree code block (lines 41–46) ~7 lines. Red Flags table (lines 54–58) ~3 rows. Process Flow diagram (lines 75–96) ~20 lines. All inline blocks well under 50 lines. |
+| 5 | 優雅降級 | ✅ | External dependencies: reading TASK_DAG.md, git operations, version checks. Lines 23–29 cover all failure cases with BLOCKED handlers. Lines 55–58 Red Flags explicitly call out hidden assumptions. |
+| 6 | 漂移監控 | ✅ | Line 100 references `tests/fixtures/s4-setup-env/cases.json`. Verified: fixture exists on disk. |
 
-**Total**: 3.5/6 PASS — NEAR READY
+**Total**: 6/6 PASS — **PRODUCTION READY**
 
 ## Defect Details
 
-### ⚠️ PARTIAL — Criterion 3: 輸入清洗
-- **Location**: Lines 17–46
-- **Gap**:
-  - Step 1: "Read TASK_DAG.md to identify next task" — no defined behavior if TASK_DAG.md doesn't exist or is malformed
-  - Step 1: "all dependencies are marked [DONE]" — no guidance on what "unmet dependencies" means in artifact context
-  - Step 3: "must match lock file" — no explicit BLOCKED response if version mismatch detected; suggestion to "install from lock file" but no fallback if lock file is corrupted
-  - Step 4: "no uncommitted changes" — no defined behavior if dirty workspace found; does it BLOCKED or PARTIAL?
-- **Impact**: Implementer may fail silently or with unclear error state; validation steps lack decision trees
-
-### ⚠️ PARTIAL — Criterion 5: 優雅降級
-- **Location**: Lines 34–37
-- **Gap**:
-  - Step 3: Environment validation references external checks (node/go/python version) but provides no fallback if mismatch detected — suggests "install from lock file" but if lock file is unavailable or corrupted, step fails with no recovery path
-  - Step 4: Workspace verification ("no uncommitted changes") has no error recovery — is workspace cleaned, or is skill BLOCKED until user intervenes?
-- **Impact**: High-risk environment setup can fail without clear recovery guidance; users stuck in failed state
-
-### ❌ FAIL — Criterion 6: 漂移監控
-- **Location**: Entire SKILL.md
-- **Defect**: No reference to `tests/fixtures/` directory; no offline test cases for environment setup validation (e.g., missing node_modules, version mismatch scenarios, dirty workspace states)
-- **Impact**: Cannot verify environment validation logic remains consistent; skill behavior may drift across Claude versions
+None — all criteria met at PASS level.
 
 ## Recommended Next Step
 
-**Action**: Add explicit failure handling + fixture reference
-1. Add to Step 1: "If TASK_DAG.md missing → BLOCKED: user must define task list"
-2. Add to Step 3: "If version mismatch detected → BLOCKED: (show mismatch); user must resolve before proceeding"
-3. Add to Step 4: "If workspace dirty → BLOCKED: commit or stash changes; state which files are uncommitted"
-4. Add `<supporting-info>`: "Drift monitoring via `tests/fixtures/s4-setup-env/` (example cases: missing lock file, version mismatch, dirty workspace, unmet dependencies)"
-
+No action required. Skill is production-ready.

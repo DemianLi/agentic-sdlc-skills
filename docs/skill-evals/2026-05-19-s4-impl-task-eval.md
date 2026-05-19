@@ -7,41 +7,41 @@
 
 | # | Criterion | Score | Evidence |
 |---|-----------|-------|----------|
-| 1 | 衝突防禦 | ✅ | Lines 44–48: `<supporting-info>` names `/s4-tdd` (upstream) and `/s4-local-debug` (downstream) with explicit role identity as "Implementer" |
-| 2 | 雙向阻斷 | ✅ | Lines 7–15: `<HARD-GATE>` block with 1 hard condition; Lines 27–34 "Red Flags" table provides 3 concrete anti-patterns (code style refactor, out-of-scope modifications, premature implementation) |
-| 3 | 輸入清洗 | ⚠️ | Lines 17–26 list inputs (test files, TASK_DAG.md) but failure scenarios (missing tests, ambiguous AC, locked branch) have no explicit behavior defined beyond "STOP and invoke /s4-tdd" |
-| 4 | 漸進披露 | ✅ | Lines 27–34 "Red Flags" inline table is 8 rows (~30 lines); Step list (lines 20–25) is procedural, not repetitive boilerplate; no inline block exceeds 50 lines |
-| 5 | 優雅降級 | ⚠️ | Lines 20–25 step 2 says "Do not touch files outside File Scope" but no fallback if File Scope is unclear; Step 5 writes to TASK_DAG.md with no error path if update fails (write-dependent, high blast-radius) |
-| 6 | 漂移監控 | ❌ | No reference to `tests/fixtures/` or any offline eval fixture directory in SKILL.md |
+| 1 | 衝突防禦 | ❌ FAIL | Lines 65–67: Upstream (`/s4-tdd`) and downstream (`/s4-local-debug`) named, but no adjacent s4-* skills compared; no explanation of how impl-task differs from tdd, debug, or optimize |
+| 2 | 雙向阻斷 | ⚠️ PARTIAL | Lines 46–52: "Red Flags" list 3 implementation pitfalls, but no "Do NOT use this skill if" block; counter-examples describe code anti-patterns, not invocation scenarios |
+| 3 | 輸入清洗 | ✅ PASS | Lines 23–35: Inputs explicitly listed (test file, TASK_DAG.md, RULES.md) with failure scenarios (missing test, missing AC, rules conflict) and defined behavior (BLOCKED, NEEDS_CONTEXT) |
+| 4 | 漸進披露 | ✅ PASS | No large inline code blocks; implementation guidance is concise with clear step numbers |
+| 5 | 優雅降級 | ⚠️ PARTIAL | Multiple file reads (test file, TASK_DAG.md, RULES.md) with no explicit fallback if read fails; lines 39–44 execute tests but no timeout or crash-recovery strategy defined |
+| 6 | 漂移監控 | ✅ PASS | Line 71: References `tests/fixtures/s4-impl-task/cases.json`; fixture exists with 3 scenarios (simple implementation, rule conflict, scope discipline) |
 
-**Total**: 3.5/6 PASS — NEAR READY
+**Total**: 3/6 PASS — **DRAFT**
 
 ## Defect Details
 
-### ⚠️ PARTIAL — Criterion 3: 輸入清洗
-- **Location**: Lines 17–26
-- **Gap**: Task inputs (test files, TASK_DAG.md, RULES.md) are listed, but failure scenarios lack defined behavior:
-  - If test file doesn't exist → Step 1 says "STOP and invoke /s4-tdd first" but doesn't specify BLOCKED vs. PARTIAL
-  - If TASK_DAG.md entry is incomplete → no guidance on which AC field is required
-  - If RULES.md conflicts with implementation → Step 3 says "raise it" but no escalation path defined
-- **Impact**: Implementer may proceed with incomplete information without clear understanding of required vs. optional inputs
+### ❌ FAIL — Criterion 1: 衝突防禦 (Semantic Anti-Collision)
+- **Location**: Lines 65–67 (`<supporting-info>`)
+- **Defect**: Downstream target is `/s4-local-debug`, but how does impl-task differ from it? When would a user invoke impl-task vs. tdd? The skill description (lines 4–5) says "after /s4-tdd has produced failing tests," but what if user has existing tests not written by s4-tdd? Does impl-task still apply?
+- **Impact**: Routing confusion in a cluster of s4-* skills (tdd, impl-task, local-debug, setup-env). User could invoke wrong skill or invoke this one redundantly.
 
-### ⚠️ PARTIAL — Criterion 5: 優雅降級
-- **Location**: Lines 20–25 (Step 2), Line 25 (Step 5)
+### ⚠️ PARTIAL — Criterion 2: 雙向阻斷 (Negative Triggers)
+- **Location**: Lines 46–52
+- **Gap**: "Red Flags" describe what NOT to do during implementation (refactor after green, modify out-of-scope files, pre-implement future tasks), but skill lacks explicit invocation anti-patterns. When should user NOT call this skill?
+  - Missing example: "Do NOT use if all tests are already GREEN" (should go to s4-local-debug instead).
+  - Missing example: "Do NOT use if TASK_DAG.md doesn't exist" (should be BLOCKED or ask user to run s3-build-dag first).
+
+### ⚠️ PARTIAL — Criterion 5: 優雅降級 (Graceful Degradation)
+- **Location**: Lines 39–44 (test execution)
 - **Gap**: 
-  - Step 2 references "File Scope declared in this task's `TASK_DAG.md` entry" but provides no fallback if File Scope is ambiguous or missing
-  - Step 5 writes to `TASK_DAG.md` (checkpoint operation) with no error handling if the file is locked, corrupted, or unwritable
-- **Impact**: High blast-radius write without fallback means silent failure to mark task complete, breaking DAG tracking
+  - Test file read failures not handled; if file is unreadable, skill has no fallback.
+  - Line 43: "run tests in loop until all tests GREEN" — what if test runner crashes, hangs, or times out? No timeout defined. No recovery strategy.
+  - TASK_DAG.md updates (line 44) assume write succeeds; no rollback if update fails mid-way.
+- **Impact**: Low blast-radius for reads, but high-impact for test execution hangs or file write corruption.
 
-### ❌ FAIL — Criterion 6: 漂移監控
-- **Location**: Entire SKILL.md
-- **Defect**: No reference to `tests/fixtures/` directory; no offline test cases provided for drift monitoring as model versions evolve
-- **Impact**: Cannot verify skill behavior remains stable across Claude versions; drift undetectable
+## Recommended Next Steps
 
-## Recommended Next Step
+1. Add explicit "Do NOT use if" section listing ≥2 invocation anti-patterns (e.g., "if tests are already green," "if TASK_DAG.md missing," "if user has not run /s4-tdd yet").
+2. Define timeout for test loop (e.g., "if tests hang for >2 minutes, report BLOCKED and ask user to debug test suite manually").
+3. Add try-catch for TASK_DAG.md write with fallback: if update fails, report BLOCKED and show user the exact line that failed.
 
-**Action**: Add ≥1 fixture directory reference + define fallback for missing/ambiguous inputs
-1. Add to `<what-to-do>` (after Step 1): explicit BLOCKED condition for missing test files
-2. Add `<supporting-info>` note: "Drift monitoring via `tests/fixtures/s4-impl-task/` (example cases: duplicate implementation, over-engineered code, file scope violation)"
-3. For Step 5: wrap TASK_DAG.md update in error handling note
+This will address Criterion 1 (FAIL) and improve Criterion 2 & 5 to move skill toward NEAR READY.
 
