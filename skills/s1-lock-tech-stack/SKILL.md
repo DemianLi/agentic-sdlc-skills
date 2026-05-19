@@ -41,6 +41,17 @@ Your immediate task is to lock down the technology stack to prevent dependency d
 3. **Artifact Generation**: Generate the definitive dependency lock files (e.g., `package.json`, `go.mod`, `requirements.txt`, `docker-compose.yml`) containing specific, pinned versions. No `^` or `~` for core frameworks.
 4. **ADR Generation**: Create an ADR in `docs/adr/` detailing *why* this specific stack was chosen. Use the three-condition trigger from `s1-config-context`.
 
+### 絕對不要觸發的情境
+
+**Do NOT use this skill when:**
+
+| 情境 | 改用 |
+|------|------|
+| 你只想更新 RULES.md 的 lint 規則或禁止模式（不改依賴版本） | `/s1-define-rules` — 規範治理；不涉及 package 版本 |
+| 你要升級單一依賴版本（不是初始化 lock file） | 直接執行 `npm update <package>` 並手動審核 lock diff；此 skill 用於初始鎖定，不用於升級 |
+
+---
+
 ## Red Flags — 停下來重新考慮
 
 | 如果你在想… | 現實是 |
@@ -64,6 +75,15 @@ Report status using exactly one of:
 - **Mindset**: You hate "it works on my machine". You believe in deterministic builds. You enforce strict semantic versioning.
 - **Upstream Dependency**: `/s1-config-context`.
 - **Downstream Target**: Stage 3 (System Architect) relies on this stack to design the system; Stage 4 (Implementer) relies on these exact dependencies to write code.
+
+## Semantic Boundary
+
+| Skill | 用途 | 差別 |
+|-------|------|------|
+| `s1-lock-tech-stack` | 鎖定框架、語言版本、核心依賴的精確版本號 | 輸出 lock file；關注「用哪個版本的工具」 |
+| `s1-define-rules` | 定義這些工具的使用規範（lint、禁止模式） | 輸出 RULES.md；前提是已選定工具 |
+| `s1-config-context` | 初始化 AI 角色邊界與 CONTEXT.md | AI 配置；不涉及依賴版本 |
+| `s1-git-guardrails` | 安裝安全 hook 防止破壞性 git 操作 | 安全防護；不管依賴版本 |
 
 ## Execution Rules
 - Do not use `^` or `~` in `package.json` for core frameworks unless explicitly requested. Pin exact versions.

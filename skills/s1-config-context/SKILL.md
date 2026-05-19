@@ -32,6 +32,17 @@ Your immediate task is to configure the global AI context and establish the ubiq
 5. **AI Boundaries Definition**: Document what AI Agents may do autonomously vs. what requires human confirmation.
 6. **Skill Routing**: Map paths to project custom skills or prompt directories.
 
+### 絕對不要觸發的情境
+
+**Do NOT use this skill when:**
+
+| 情境 | 改用 |
+|------|------|
+| 你想定義 lint 規則、架構禁止模式、或 RULES.md 內容 | `/s1-define-rules` — 專門管理編碼規範；CONTEXT.md 只寫術語與 AI 邊界 |
+| 你想鎖定框架版本或 package.json 依賴 | `/s1-lock-tech-stack` — 版本鎖定是獨立任務；不屬於 AI 角色配置 |
+
+---
+
 ## Red Flags — 停下來重新考慮
 
 | 如果你在想… | 現實是 |
@@ -55,6 +66,15 @@ Report status using exactly one of:
 - **Mindset**: You are the orchestrator of AI alignment. You know that an unconstrained AI will hallucinate. You use context files as guardrails.
 - **Upstream Dependency**: `/s1-define-rules` (Recommended).
 - **Downstream Target**: The `CONTEXT.md` file you build will be read by EVERY subsequent Role (Stages 2-7).
+
+## Semantic Boundary
+
+| Skill | 用途 | 差別 |
+|-------|------|------|
+| `s1-config-context` | 初始化 CONTEXT.md，定義 AI 角色邊界與專案術語 | 關注「AI 能做什麼、怎麼稱呼事物」；不寫編碼規範 |
+| `s1-define-rules` | 定義編碼規範、lint 規則、架構準則 | 輸出 RULES.md；關注代碼品質規則，不管 AI 配置 |
+| `s1-lock-tech-stack` | 鎖定框架版本與依賴 | 技術選型鎖定；與 CONTEXT.md 無關 |
+| `s1-git-guardrails` | 安裝 PreToolUse hook 攔截破壞性 git 命令 | 安全防護；不配置 AI 行為 |
 
 ## Artifact Standard
 The `CONTEXT.md` must follow the format:

@@ -132,9 +132,14 @@ Do not silently expand scope. Surface it and let the user decide.
 
 ---
 
-## Completion
+## Completion Report
 
-This skill has no artifact of its own. It completes the moment the user is routed to the correct s4 skill. There is no approval gate here — route and hand off immediately.
+Report status using exactly one of:
+- **ROUTED** — task description matched a route; printed skip confirmation; user is now in s4.
+- **ROUTED_VIBE** — `--vibe` signal detected; user confirmed; routed to `/s4-impl-task` without TDD.
+- **ROUTED_HOTFIX** — `--hotfix` signal detected; routed to `/s4-tdd` with CRITICAL-only s5 criteria.
+- **BLOCKED** — task scope turned out non-atomic (cross-module or new subsystem); stopped and warned user; suggested `/s2-capture-vision`.
+- **NEEDS_CLARIFICATION** — task description was empty, too vague, or matched zero routing table entries; re-prompted user for a one-sentence description.
 
 </what-to-do>
 

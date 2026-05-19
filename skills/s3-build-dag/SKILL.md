@@ -122,6 +122,15 @@ Report status using exactly one of:
 - **Upstream Dependency**: `/s3-breakdown-wbs` — the full task list with dependencies.
 - **Downstream Target**: Stage 4 Implementer reads `TASK_DAG.md` as their first action. The checklist `[ ]` boxes are the Agent's progress tracker.
 
+## Semantic Boundary
+
+| Skill | 用途 | 差別 |
+|-------|------|------|
+| `s3-build-dag` | 根據 Atomic Tasks 建立執行 DAG，計算關鍵路徑與並行機會 | 定義「什麼順序、哪些可並行」；不改任務內容 |
+| `s3-breakdown-wbs` | 拆解 OpenSpec 為 Atomic Tasks | 定義「做什麼」；不管執行順序 |
+| `s4-impl-task` | 執行 DAG 中的單一 Atomic Task | 消費 TASK_DAG.md；不建立 DAG |
+| `s3-design-arch` | 設計技術方案與接口 | 更前置；輸出設計文件，不排序任務 |
+
 ## Process Flow
 
 ```dot

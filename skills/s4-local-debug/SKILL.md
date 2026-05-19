@@ -136,6 +136,15 @@ At the end of this skill, report status using exactly one of:
 - **Upstream Dependency**: `/s4-impl-task` (implementation complete but failing).
 - **Downstream Target**: Stage 5 (Code Auditor) — only hand off code where **all tests pass** and **no debug logs remain**.
 
+## Semantic Boundary
+
+| Skill | 用途 | 差別 |
+|-------|------|------|
+| `s4-local-debug` | 診斷 tests GREEN 後仍行為異常的根因；系統化調試 | 調試已實現但行為錯誤的代碼；需先有 GREEN 狀態 |
+| `s4-impl-task` | 讓失敗測試從紅轉綠 | 首次實現；測試已存在但代碼未寫 |
+| `s4-tdd` | 建立失敗測試（紅燈） | 只寫測試；不動 production code |
+| `s4-setup-env` | 配置開發環境與 worktree | 環境問題；若 IDE/依賴異常先用此 skill |
+
 ## Process Flow
 
 ```dot

@@ -97,6 +97,15 @@ Report status using exactly one of:
 - **Upstream Dependency**: `/s3-design-arch` OpenSpec document.
 - **Downstream Target**: `/s3-build-dag` uses these tasks as nodes in the dependency graph.
 
+## Semantic Boundary
+
+| Skill | 用途 | 差別 |
+|-------|------|------|
+| `s3-breakdown-wbs` | 拆解 OpenSpec 為 Atomic Tasks，定義「做什麼」 | 輸出 WBS；關注任務內容與驗收條件 |
+| `s3-build-dag` | 根據 WBS 建立執行 DAG，定義「什麼順序做」 | 輸出 TASK_DAG.md；不定義任務內容，只排序 |
+| `s3-design-arch` | 設計技術方案與 OpenSpec | 更前置；輸出設計文件，不拆分任務 |
+| `s3-eval-system` | 評估現有系統的影響範圍 | 分析現況；不做任務拆解 |
+
 ## Process Flow
 
 ```dot
