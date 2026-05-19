@@ -108,6 +108,8 @@ Wait for the user's decision before writing the file.
 ### Step 5 — Write Output
 Write to `docs/traces/YYYY-MM-DD-<feature-slug>.md`.
 
+> 若 `docs/traces/` 目錄不存在 → 執行 `mkdir -p docs/traces/` 後再寫入；若寫入失敗 → BLOCKED — 將 artifact 以 Markdown 格式輸出至對話中，並標記：「文件寫入失敗，artifact 已輸出於此。」
+
 **If LOW CONFIDENCE was triggered, prepend this block:**
 ```markdown
 ⚠️ LOW CONFIDENCE
@@ -167,6 +169,8 @@ sequenceDiagram
 ```
 
 Commit the file to git before reporting completion.
+
+> 若 git commit 失敗（權限不足或 hook 阻斷）→ DONE_WITH_CONCERNS — 說明提交失敗原因，artifact 仍有效，請手動提交後繼續。
 
 ---
 

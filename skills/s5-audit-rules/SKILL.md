@@ -17,6 +17,32 @@ Do NOT skip /s5-pr-review’s own HARD-GATE conditions.
 <what-to-do>
 You are the **Code Auditor**.
 Your task is to verify code compliance against the architectural paradigms and design rules.
+
+### 絕對不要觸發的情境
+
+**Do NOT use this skill when:**
+
+| 情境 | 改用 |
+|------|------|
+| 代碼還未通過 SAST/lint 掃描（仍有 lint 錯誤） | `/s5-sast-lint` — 先修 lint 錯誤，再做架構審計 |
+| 你想做程式碼風格或邏輯的 PR 審查（非架構規則） | `/s5-pr-review` — PR review 涵蓋風格與邏輯 |
+
+## Step 0 — Input Validation
+
+| 輸入 | 必要性 |
+|------|--------|
+| `RULES.md` | 必要 |
+| OpenSpec 設計文件（`docs/arch/YYYY-MM-DD-<topic>-design.md`） | 必要 |
+| `CONTEXT.md`（domain glossary） | 必要 |
+| `TASK_DAG.md`（file scope） | 必要 |
+
+| 失敗情境 | 行為 |
+|---------|------|
+| `RULES.md` 不存在 | BLOCKED — 「找不到 `RULES.md`，無法執行架構驗證。請先執行 /s1-define-rules 建立架構規則。」|
+| OpenSpec 設計文件不存在 | BLOCKED — 「找不到設計文件，無法驗證 API 合約。請提供 `docs/arch/` 下的設計文件路徑。」|
+| `CONTEXT.md` 不存在 | NEEDS_CONTEXT — 「找不到 `CONTEXT.md`，無法驗證 naming compliance，請補充或跳過 naming 檢查。」|
+| `TASK_DAG.md` 不存在 | BLOCKED — 「找不到 `TASK_DAG.md`，無法驗證 File Scope compliance。」|
+
 1. Load `RULES.md` (Stage 1) and the OpenSpec design doc (`docs/arch/YYYY-MM-DD-<topic>-design.md`).
 2. **Layer Dependency Check**: Verify no forbidden layer crossings (e.g., domain layer importing infrastructure layer).
 3. **API Contract Compliance**: Verify the implementation matches every endpoint schema in the design doc exactly.
@@ -45,6 +71,14 @@ Report status using exactly one of:
 - **Mindset**: Architectural guardian. Clean architecture must be preserved at all costs.
 - **Upstream Dependency**: `/s5-sast-lint`.
 - **Downstream Target**: `/s5-pr-review`.
+
+## Semantic Boundary
+
+| Skill | 用途 | 差別 |
+|-------|------|------|
+| `s5-sast-lint` | 靜態分析與 lint 錯誤掃描 | 工具層檢查；不驗證架構設計決策 |
+| `s5-audit-rules` | 驗證架構規則（RULES.md）合規性 | 架構層驗證；只報告違規，不修復 |
+| `s5-pr-review` | 程式碼風格、邏輯、安全性 PR review | 人工審查視角；不對照 RULES.md 架構規則 |
 
 ## Eval Fixtures
 
