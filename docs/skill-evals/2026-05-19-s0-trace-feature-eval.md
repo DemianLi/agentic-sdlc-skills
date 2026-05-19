@@ -1,33 +1,25 @@
-# Skill Eval — s0-trace-feature — 2026-05-19
+# Skill Eval — s0-trace-feature — 2026-05-19 (re-eval)
 
 **File**: `skills/s0-trace-feature/SKILL.md`
 **Evaluator**: s0-eval-skill
+**Previous score**: 5/6 NEAR READY
+**Re-eval trigger**: C5 fixes applied
 
 ## Score Summary
 
 | # | Criterion | Score | Evidence |
 |---|-----------|-------|----------|
-| 1 | 衝突防禦 | ✅ PASS | Lines 21-27: Table explicitly names `/s3-eval-system`, `/s2-capture-vision`, `/s4-local-debug` with specific differences (evaluate vs. trace vs. debug) |
-| 2 | 雙向阻斷 | ✅ PASS | Lines 21-27: "絕對不要觸發的情境" table with 3 concrete counter-examples; each row specifies the wrong skill's trigger condition |
-| 3 | 輸入清洗 | ✅ PASS | Lines 44-52: Input validation table defines failure scenarios (vague name, not found, multiple matches) with defined behavior (re-prompt, BLOCKED, list candidates) |
-| 4 | 漸進披露 | ✅ PASS | Low-confidence block (lines 111–121) ~10 lines; Mermaid template (lines 132–148) ~16 lines; no single inline block exceeds 50 lines |
-| 5 | 優雅降級 | ⚠️ PARTIAL | Multiple file reads (codebase scanning) have no fallback defined; line 169 requires "Commit the file to git before reporting completion" with no BLOCKED fallback if commit fails |
-| 6 | 漂移監控 | ✅ PASS | Line 239: References `tests/fixtures/s0-trace-feature/cases.json`; fixture exists with 3 test scenarios covering complete traces, gap detection, and side effects |
+| 1 | 衝突防禦 | ✅ PASS | `### 絕對不要觸發的情境` table names 3 adjacent skills with specific diffs: s3-eval-system (risk assessment), s2-capture-vision/s3-design-arch (new feature), s4-local-debug (debugging) |
+| 2 | 雙向阻斷 | ✅ PASS | `### 絕對不要觸發の情境` block in `<what-to-do>` with 3 concrete invocation counter-examples |
+| 3 | 輸入清洗 | ✅ PASS | Step 0 Input Validation: 3 failure scenarios (vague name → re-prompt; no entry point found → BLOCKED; multiple feature matches → list and ask) |
+| 4 | 漸進披露 | ✅ PASS | Output format example ~30 lines; Step 3 trace rules checklist ~5 lines; no block exceeds 50 lines |
+| 5 | 優雅降級 | ✅ PASS | Step 5: `docs/traces/` not found → mkdir-p + BLOCKED for write failure; git commit failure → DONE_WITH_CONCERNS with manual commit instruction |
+| 6 | 漂移監控 | ✅ PASS | `tests/fixtures/s0-trace-feature/cases.json` referenced and exists on disk |
 
-**Total**: 5/6 PASS — **NEAR READY**
+**Total**: 6/6 — **PRODUCTION READY**
 
-## Defect Details
+## Fix Summary
 
-### ⚠️ PARTIAL — Criterion 5: 優雅降級 (Graceful Degradation)
-- **Location**: Lines 77–85 (Step 3 — Full Chain Trace), Line 169 (git commit requirement)
-- **Gap**: 
-  - Step 3 reads workspace files with no fallback if a file is unreadable (permission denied, missing). Should state: "If file unreadable, mark as `[? — permission denied]`."
-  - Line 169: "Commit the file to git before reporting completion" is a write operation with no fallback. If git commit fails (unstaged changes, merge conflict), skill has no recovery path.
-- **Impact**: Read-only failures have low blast-radius, but the final git commit could silently fail, leaving the trace artifact uncommitted and incomplete.
-
-## Recommended Next Step
-
-1. Add fallback behavior for unreadable files in Step 3 (e.g., mark as `[? — unreadable]` and continue).
-2. Wrap the git commit in try-catch logic: if commit fails, offer to save artifact with BLOCKED status and let user commit manually.
-
-This will elevate Criterion 5 to PASS, making the skill PRODUCTION READY (6/6).
+| Criterion | Before | After |
+|-----------|--------|-------|
+| C5 優雅降級 | ⚠️ PARTIAL — `docs/traces/` write and git commit had no fallback | ✅ mkdir-p + BLOCKED for write failure; DONE_WITH_CONCERNS for git commit failure |

@@ -1,47 +1,27 @@
-# Skill Eval — s4-impl-task — 2026-05-19
+# Skill Eval — s4-impl-task — 2026-05-19 (re-eval)
 
 **File**: `skills/s4-impl-task/SKILL.md`
 **Evaluator**: s0-eval-skill
+**Previous score**: 3/6 DRAFT
+**Re-eval trigger**: C1/C2/C5 fixes applied
 
 ## Score Summary
 
 | # | Criterion | Score | Evidence |
 |---|-----------|-------|----------|
-| 1 | 衝突防禦 | ❌ FAIL | Lines 65–67: Upstream (`/s4-tdd`) and downstream (`/s4-local-debug`) named, but no adjacent s4-* skills compared; no explanation of how impl-task differs from tdd, debug, or optimize |
-| 2 | 雙向阻斷 | ⚠️ PARTIAL | Lines 46–52: "Red Flags" list 3 implementation pitfalls, but no "Do NOT use this skill if" block; counter-examples describe code anti-patterns, not invocation scenarios |
-| 3 | 輸入清洗 | ✅ PASS | Lines 23–35: Inputs explicitly listed (test file, TASK_DAG.md, RULES.md) with failure scenarios (missing test, missing AC, rules conflict) and defined behavior (BLOCKED, NEEDS_CONTEXT) |
-| 4 | 漸進披露 | ✅ PASS | No large inline code blocks; implementation guidance is concise with clear step numbers |
-| 5 | 優雅降級 | ⚠️ PARTIAL | Multiple file reads (test file, TASK_DAG.md, RULES.md) with no explicit fallback if read fails; lines 39–44 execute tests but no timeout or crash-recovery strategy defined |
-| 6 | 漂移監控 | ✅ PASS | Line 71: References `tests/fixtures/s4-impl-task/cases.json`; fixture exists with 3 scenarios (simple implementation, rule conflict, scope discipline) |
+| 1 | 衝突防禦 | ✅ PASS | `<supporting-info>` §Semantic Boundary table names s4-tdd / s4-impl-task / s4-local-debug / s4-setup-env with specific diffs per stage |
+| 2 | 雙向阻斷 | ✅ PASS | `### 絕對不要觸發的情境` block lists 3 counter-examples: no failing tests → /s4-tdd; tests GREEN but behavior wrong → /s4-local-debug; env issues → /s4-setup-env |
+| 3 | 輸入清洗 | ✅ PASS | Step 0 Input Validation: 3 required inputs listed; 3 failure scenarios with BLOCKED/NEEDS_CONTEXT behavior |
+| 4 | 漸進披露 | ✅ PASS | Steps 1–5 are tight bullets; Red Flags table is 3 rows; no single block exceeds 50 lines |
+| 5 | 優雅降級 | ✅ PASS | Production file write failure → BLOCKED with path + reason; TASK_DAG.md update failure → BLOCKED with manual fallback instruction |
+| 6 | 漂移監控 | ✅ PASS | `tests/fixtures/s4-impl-task/cases.json` referenced and exists on disk |
 
-**Total**: 3/6 PASS — **DRAFT**
+**Total**: 6/6 — **PRODUCTION READY**
 
-## Defect Details
+## Fix Summary
 
-### ❌ FAIL — Criterion 1: 衝突防禦 (Semantic Anti-Collision)
-- **Location**: Lines 65–67 (`<supporting-info>`)
-- **Defect**: Downstream target is `/s4-local-debug`, but how does impl-task differ from it? When would a user invoke impl-task vs. tdd? The skill description (lines 4–5) says "after /s4-tdd has produced failing tests," but what if user has existing tests not written by s4-tdd? Does impl-task still apply?
-- **Impact**: Routing confusion in a cluster of s4-* skills (tdd, impl-task, local-debug, setup-env). User could invoke wrong skill or invoke this one redundantly.
-
-### ⚠️ PARTIAL — Criterion 2: 雙向阻斷 (Negative Triggers)
-- **Location**: Lines 46–52
-- **Gap**: "Red Flags" describe what NOT to do during implementation (refactor after green, modify out-of-scope files, pre-implement future tasks), but skill lacks explicit invocation anti-patterns. When should user NOT call this skill?
-  - Missing example: "Do NOT use if all tests are already GREEN" (should go to s4-local-debug instead).
-  - Missing example: "Do NOT use if TASK_DAG.md doesn't exist" (should be BLOCKED or ask user to run s3-build-dag first).
-
-### ⚠️ PARTIAL — Criterion 5: 優雅降級 (Graceful Degradation)
-- **Location**: Lines 39–44 (test execution)
-- **Gap**: 
-  - Test file read failures not handled; if file is unreadable, skill has no fallback.
-  - Line 43: "run tests in loop until all tests GREEN" — what if test runner crashes, hangs, or times out? No timeout defined. No recovery strategy.
-  - TASK_DAG.md updates (line 44) assume write succeeds; no rollback if update fails mid-way.
-- **Impact**: Low blast-radius for reads, but high-impact for test execution hangs or file write corruption.
-
-## Recommended Next Steps
-
-1. Add explicit "Do NOT use if" section listing ≥2 invocation anti-patterns (e.g., "if tests are already green," "if TASK_DAG.md missing," "if user has not run /s4-tdd yet").
-2. Define timeout for test loop (e.g., "if tests hang for >2 minutes, report BLOCKED and ask user to debug test suite manually").
-3. Add try-catch for TASK_DAG.md write with fallback: if update fails, report BLOCKED and show user the exact line that failed.
-
-This will address Criterion 1 (FAIL) and improve Criterion 2 & 5 to move skill toward NEAR READY.
-
+| Criterion | Before | After |
+|-----------|--------|-------|
+| C1 衝突防禦 | ❌ FAIL — no s4-* skill boundary table | ✅ Semantic Boundary table, 4 skills with diffs |
+| C2 雙向阻斷 | ⚠️ PARTIAL — Red Flags ≠ invocation triggers | ✅ 絕對不要觸發 table, 3 invocation counter-examples |
+| C5 優雅降級 | ⚠️ PARTIAL — production writes no fallback | ✅ BLOCKED for file write + TASK_DAG.md update failure |
