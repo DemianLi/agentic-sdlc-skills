@@ -1,7 +1,7 @@
 # Skill Design Intent — Evaluation Baseline
 
 Source of truth: `QA.md` (7-stage, 4-substep SDLC outline)
-Last updated: 2026-05-18
+Last updated: 2026-05-19
 
 ---
 
@@ -123,7 +123,7 @@ Keywords: `RULES.md`, `編碼規範`, `Lint`, `架構範式`, `安全性`
 Keywords: `CONTEXT.md`, `上下文`, `AI 代理`, `邊界`, `詞彙`
 
 **s1-git-guardrails** → QA 1.2 (supporting — repo safety baseline)
-Keywords: `Git`, `.gitignore`, `branch`, `hook`, `保護`
+Keywords: `git`, `branch`, `hook`, `block`, `dangerous`
 
 **s1-lock-tech-stack** → QA 1.3 技術棧與依賴鎖定
 Keywords: `技術棧`, `依賴`, `語言版本`, `框架`, `鎖定`
@@ -133,16 +133,16 @@ Keywords: `技術棧`, `依賴`, `語言版本`, `框架`, `鎖定`
 ### Stage 2 — Requirement Alignment
 
 **s2-capture-vision** → QA 2.1 原始構思捕獲
-Keywords: `構思`, `業務`, `痛點`, `需求`, `vision`
+Keywords: `vision`, `scope`, `problem`, `spec`, `questions`
 
 **s2-align-req** → QA 2.2 需求對齊與衝突消除
-Keywords: `對齊`, `衝突`, `邊界`, `澄清`, `共識`
+Keywords: `衝突`, `邊界`, `alignment`, `resolved`, `scope`
 
 **s2-struct-req** → QA 2.3 需求結構化描述
 Keywords: `REQ`, `AC`, `acceptance criterion`, `結構化`, `標準化`
 
 **s2-snapshot-ctx** → QA 2.4 文檔沉澱與快照
-Keywords: `CONTEXT_SNAPSHOT`, `快照`, `沉澱`, `迭代`
+Keywords: `CONTEXT_SNAPSHOT`, `snapshot`, `committed`, `iteration`, `requirements`
 
 ---
 
@@ -181,26 +181,26 @@ Keywords: `調試`, `堆疊追蹤`, `根因`, `復現`, `hypothesis`
 ### Stage 5 — Code Review & Verification
 
 **s5-sast-lint** → QA 5.1 靜態代碼分析
-Keywords: `SAST`, `Lint`, `靜態分析`, `安全性`, `漏洞`
+Keywords: `SAST`, `Lint`, `static analysis`, `security`, `vulnerability`
 
 **s5-audit-rules** → QA 5.2 根本規則合規審查
 Keywords: `合規`, `RULES.md`, `架構範式`, `違規`, `compliance`
 
 **s5-pr-review** → QA 5.3 代碼評審與意見反饋
-Keywords: `PR`, `評審`, `重構`, `breaking change`, `代碼審查`
+Keywords: `PR`, `diff`, `review`, `drift`, `代碼審查`
 
 **s5-fix-optimize** → QA 5.4 排障與結構優化
-Keywords: `修復`, `優化`, `regression`, `重構`, `迭代`
+Keywords: `fix`, `refactor`, `iterate`, `優化`, `regression`
 
 ---
 
 ### Stage 6 — Dynamic Testing
 
 **s6-test-integration** → QA 6.1 自動化整合測試
-Keywords: `整合測試`, `integration`, `接口`, `模組`, `contract`
+Keywords: `整合測試`, `integration`, `module`, `coverage`, `gate`
 
 **s6-test-e2e** → QA 6.2 端到端與邊界驗證
-Keywords: `E2E`, `端到端`, `用戶行為`, `邊界條件`, `Playwright`
+Keywords: `E2E`, `Playwright`, `user flow`, `edge case`, `Cypress`
 
 **s6-test-perf** → QA 6.3 效能與壓力測試
 Keywords: `P50`, `P95`, `P99`, `throughput`, `SLO`
@@ -248,7 +248,7 @@ Record confirmed intentional or accepted deviations so the scanner does not repo
 
 | Skill | Check | Deviation | Accepted? |
 |-------|-------|-----------|-----------|
-| s3-eval-system | C1c | Step 5c body says "Wait for explicit approval" but HARD-GATE says "proceed immediately" | ⚠️ Unresolved contradiction — body text not updated with overhaul |
+| s3-eval-system | C1c | Step 5c body previously said "Wait for explicit approval" but HARD-GATE says "proceed immediately" | ✅ Resolved 2026-05-19 — Step 5c updated to match auto-proceed model |
 | s1-config-context | C2 | **Reads**: none — this is correct (s1-config-context has no upstream artifact) | ✅ Intentional |
 | s1-git-guardrails | C1c | Does not contain "proceed immediately to" — intentional; classified as standalone utility (see C1-exempt list above) | ✅ Resolved 2026-05-18 |
 

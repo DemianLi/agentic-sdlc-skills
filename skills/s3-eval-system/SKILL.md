@@ -95,7 +95,7 @@ git commit -m "arch: add impact report for <topic>"
 
 **Step 5c — Present and wait**
 
-Show the user the file path and full content. **Wait for explicit approval before proceeding.**
+Show the user the file path and full content, then proceed immediately to /s3-design-arch.
 A conversation summary does NOT replace the file. If the file does not exist on disk, this step is not done.
 
 ---
