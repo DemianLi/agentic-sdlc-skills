@@ -21,6 +21,20 @@ explicitly approves. A user response that is silent on approval is NOT approval.
 <what-to-do>
 You are the **Code Auditor** (acting in a paired-programming capacity).
 Your task is to iterate on the review feedback to fix issues and optimize structure.
+
+## Input Validation
+
+Before making any changes, verify required inputs exist:
+
+| Required Input | Where to find | If missing |
+|---|---|---|
+| PR review report with ≥1 CRITICAL or WARNING | `docs/audit/YYYY-MM-DD-<branch>-pr-review.md` | `NEEDS_CONTEXT`: nothing to fix without a review — run `/s5-pr-review` first |
+| Full test suite passing (pre-fix baseline) | Run `npm test` / `pytest` | If suite is RED before you start, report `BLOCKED`: fixing review items on a broken suite corrupts the regression signal |
+
+If the PR review report only has SUGGESTIONs (no CRITICALs, no WARNINGs), confirm with the user before proceeding — this skill may not be needed.
+
+---
+
 1. Load the PR review report from `/s5-pr-review` — address CRITICAL issues first, then WARNINGs.
 2. For each CRITICAL issue: apply the minimal targeted fix. Run full test suite. Confirm GREEN.
 3. For each WARNING issue: apply optimization only if it can be done safely without changing test behavior.

@@ -60,27 +60,8 @@ Only include categories that have at least one entry. Do not invent entries.
 
 ### Step 3 — Write CHANGELOG.md Entry
 
-Format (Keep a Changelog + Semantic Versioning):
-
-```markdown
-## [v1.0.0] - 2026-05-16
-
-### Added
-- `word_count(text)` — counts whitespace-separated words (REQ-1)
-- `char_count(text)` — counts total characters excluding whitespace (REQ-2)
-- `sentence_count(text)` — counts sentences by terminal punctuation (REQ-3)
-- `paragraph_count(text)` — counts non-empty paragraphs separated by blank lines (REQ-4)
-- REST API endpoint `POST /api/analyze` returning all four metrics (REQ-5)
-
-### Fixed
-- (list any bugs fixed in Stage 5)
-
-### Breaking Changes
-- (list any, or omit section if none)
-
-### Migration Guide
-- (required if Breaking Changes section is non-empty; omit if no breaking changes)
-```
+Format (Keep a Changelog + Semantic Versioning). Full templates with examples:
+→ `references/changelog-template.md`
 
 Rules:
 - Each entry links to a REQ-N where applicable: `(REQ-1)`
@@ -90,32 +71,14 @@ Rules:
 
 ### 條件性產出 — 升級指南 & API 變更文檔
 
-若本次版本包含 **breaking changes** 或 **API 異動**，在 CHANGELOG entry 之後額外附加以下段落（或獨立寫入 `UPGRADE.md`）：
+若本次版本包含 **breaking changes** 或 **API 異動**，在 CHANGELOG entry 之後額外附加以下段落：
 
 | 觸發條件 | 額外產出 |
 |---------|---------|
 | Breaking Changes 段落非空 | 升級指南（遷移步驟） |
 | 任何 endpoint 增刪改 | API 變更摘要 |
 
-**升級指南格式**：
-```markdown
-## Upgrade Guide — v<prev> → v<current>
-
-### Breaking Changes
-- **<功能名稱>**：舊行為 → 新行為
-  - 遷移：將 `<舊呼叫>` 改為 `<新呼叫>`
-```
-
-**API 變更摘要格式**：
-```markdown
-## API Changes — v<current>
-
-| 變更類型 | Endpoint / Method | 說明 |
-|---------|-------------------|------|
-| Added   | POST /api/v2/... | 新增端點 |
-| Removed | GET /api/v1/...  | 已移除，請改用 v2 |
-| Changed | POST /api/...    | 回傳格式新增 `meta` 欄位 |
-```
+格式見 `references/changelog-template.md`。
 
 ### Step 4 — Prepend to CHANGELOG.md
 
@@ -187,25 +150,6 @@ Fixtures 位於 `tests/fixtures/s7-release-notes/cases.json`。
 [s7-release-notes] → CHANGELOG.md
         ↓
 [s7-telemetry] → docs/releases/.../telemetry.json
-```
-
-## CHANGELOG Format Reference
-
-```
-# Changelog                                    ← one-time header
-
-## [Unreleased]                                ← placeholder for next version
-
-## [v1.0.0] - 2026-05-16                      ← current version block
-### Added
-- Feature X (REQ-1)
-### Fixed
-- Bug Y (REQ-2)
-### Breaking Changes
-- (if any)
-
-## [v0.9.0] - 2026-04-01                      ← previous version (if exists)
-...
 ```
 
 ## Process Flow

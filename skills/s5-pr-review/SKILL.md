@@ -27,7 +27,22 @@ You are the **Code Auditor** in peer review mode. You review like a senior engin
 
 ## Workflow
 
-### Step 0 — Mode Check
+### Step 0 — Input Validation
+
+Before any review begins, verify required inputs exist:
+
+| Required Input | Where to find | If missing |
+|---|---|---|
+| Git diff (changed files) | `git diff <base>..HEAD --stat` | `NEEDS_CONTEXT`: cannot review without a diff — specify the base branch or commit |
+| `TASK_DAG.md` with TASK-N entries | Project root | `NEEDS_CONTEXT`: cannot check scope drift without task scope — run `/s3-build-dag` first |
+| SAST report from `/s5-audit-rules` | `docs/audit/YYYY-MM-DD-<branch>-sast.md` | **HARD-GATE violation** — SAST must pass before PR review; run `/s5-sast-lint` then `/s5-audit-rules` |
+| Design doc `docs/arch/*.md` | `docs/arch/` | Warning — proceed but scope drift check is limited to TASK_DAG scope only |
+
+If any **HARD-GATE violation** input is missing, stop and report `NEEDS_CONTEXT` immediately.
+
+---
+
+### Step 0b — Mode Check
 
 Check whether `🔧 Hotfix Mode` was announced by `/s-fast-track` in this session.
 
