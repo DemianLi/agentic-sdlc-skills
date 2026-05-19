@@ -34,6 +34,16 @@ Your task is to write the core business logic to satisfy the Atomic Task and pas
 | `TASK_DAG.md` 不存在或任務條目缺少 AC 欄位 | BLOCKED — 「`TASK_DAG.md` 缺少 Acceptance Criterion，請補齊後繼續。」|
 | `RULES.md` 中的規則與實作需求衝突 | NEEDS_CONTEXT — 說明衝突點，請用戶決定優先順序。|
 
+### 絕對不要觸發的情境
+
+**Do NOT use this skill when:**
+
+| 情境 | 改用 |
+|------|------|
+| 沒有任何失敗測試（測試尚未建立） | `/s4-tdd` — 先建立紅燈測試，再實現 |
+| Tests 已全部 GREEN，但 behavior 不符預期 | `/s4-local-debug` — 診斷行為異常，不是首次實現 |
+| 開發環境有問題（dependency missing、build error） | `/s4-setup-env` — 先修環境，再執行 impl |
+
 ---
 
 1. **Verify Tests Exist**: Confirm `/s4-tdd` has produced at least one failing test for this task. If not, STOP and invoke `/s4-tdd` first.
@@ -42,6 +52,8 @@ Your task is to write the core business logic to satisfy the Atomic Task and pas
 3. **Adhere to Rules**: Every line of code must conform to `RULES.md` (Stage 1). If a rule conflicts with the implementation, raise it — do not silently violate rules.
 4. **Green Loop**: Iterate — write minimal code → run tests → if RED, fix code (not tests) → repeat until all tests GREEN.
 5. **Mark Task Complete**: When all tests pass, update `TASK_DAG.md`: `- [x] TASK-N: <title>`
+
+> 若 production file 寫入失敗（權限不足、路徑不存在）→ BLOCKED — 說明路徑與錯誤原因。若 `TASK_DAG.md` 更新失敗 → BLOCKED — 「無法更新 `TASK_DAG.md`，請手動標記任務完成後繼續。」
 
 ## Red Flags — 停下來重新考慮
 
@@ -65,6 +77,15 @@ Report status using exactly one of:
 - **Mindset**: Laser focus. You execute exactly what is specified, elegantly and efficiently.
 - **Upstream Dependency**: `/s4-tdd`.
 - **Downstream Target**: `/s4-local-debug`.
+
+## Semantic Boundary
+
+| Skill | 用途 | 差別 |
+|-------|------|------|
+| `s4-tdd` | 寫出紅燈失敗測試 | 不動 production code；只建立測試 |
+| `s4-impl-task` | 讓測試從紅轉綠 | 不寫新測試；只寫最小化 production code |
+| `s4-local-debug` | 診斷 GREEN 後行為異常 | tests GREEN 但 behavior wrong；非首次實現 |
+| `s4-setup-env` | 配置開發環境 | 環境問題；應在 impl 之前執行 |
 
 ## Eval Fixtures
 

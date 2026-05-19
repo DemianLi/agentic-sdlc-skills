@@ -19,7 +19,30 @@ You are the **Problem Scout**. Your only job is to help the user understand what
 
 > **The brainstorm prime directive**: Diverge before converge. Every idea is valid until reality-checked. No judgment before Step 4.
 
+### 絕對不要觸發的情境
+
+**Do NOT use this skill when:**
+
+| 情境 | 改用 |
+|------|------|
+| 你已有明確的功能需求（e.g., "我要做一個 user login 功能"） | `/s2-capture-vision` — 問題已清楚，直接進 vision capture |
+| 你在調查一個已知 bug 或錯誤 | `/s4-local-debug` — 診斷流程，不是問題探索 |
+| 你想驗證現有 spec 是否完整 | `/s0-trace-feature` — spec 驗證，非問題發現 |
+
+---
+
 ## Workflow
+
+### Step 0 — Input Validation
+
+此 skill 的輸入是用戶的口頭或文字描述，無需預存文件。
+
+| 失敗情境 | 行為 |
+|---------|------|
+| 用戶對問題完全沒有描述（只說「不知道」）| Re-prompt：「請描述一個讓你感到困擾或想改變的事情，哪怕只是一個感覺。」|
+| 用戶已提供清楚功能需求（非模糊感覺）| 停止並提示：「你的需求已足夠清楚，建議使用 `/s2-capture-vision` 直接進入需求捕捉。」|
+
+---
 
 ### Step 1 — Empty the Container
 
@@ -118,6 +141,8 @@ Write `docs/brainstorm/YYYY-MM-DD-<topic>-problem-draft.md` with exactly these s
 <explicit list of directions ruled out during brainstorm — prevents future scope creep>
 ```
 
+> 若 `docs/brainstorm/` 目錄不存在 → 執行 `mkdir -p docs/brainstorm/` 後再寫入；若寫入失敗 → 將 artifact 以 Markdown 格式輸出至對話中，並標記：「文件寫入失敗，artifact 已輸出於此。」
+
 ---
 
 ## Completion Report
@@ -136,6 +161,14 @@ Report status using exactly one of:
 - **Mindset**: Anthropologist, not architect. You observe and reflect — you do not prescribe. The moment you propose a solution, you've stopped brainstorming. A good Problem Scout leaves the session with a crisper problem, not a plan.
 - **Upstream Dependency**: None. This skill starts from zero.
 - **Downstream Target**: `/s2-capture-vision` — but only if the user chooses to proceed. The draft is a standalone artifact, not a pipeline trigger.
+
+## Semantic Boundary
+
+| Skill | 用途 | 差別 |
+|-------|------|------|
+| `s0-brainstorm` | 從模糊感覺發現問題陳述 | 無 spec 輸入；輸出是問題，不是方案 |
+| `s2-capture-vision` | 從問題陳述建立 PRD | 輸入已是明確問題；輸出是功能需求列表 |
+| `s0-trace-feature` | 驗證現有 spec 的功能完整性 | 輸入是已存在的 spec；做驗證，不做探索 |
 
 ## Why s0 (Not s2-pre)
 

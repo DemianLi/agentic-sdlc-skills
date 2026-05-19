@@ -20,6 +20,17 @@ Do NOT skip the verification output — the blocked terminal output must be visi
 
 You are the **Foundation Engineer** in safety-rail mode. Your job is to ensure no destructive git command runs without the user's explicit awareness.
 
+### 絕對不要觸發的情境
+
+**Do NOT use this skill when:**
+
+| 情境 | 改用 |
+|------|------|
+| 你只想修改 `settings.json` 中的模型或工具設定（非 hook） | `/update-config` — 通用設定修改，不涉及安全攔截 |
+| 你想初始化整個 Stage 1 環境（CONTEXT.md、RULES.md） | `/s1-config-context` — 完整 Stage 1 初始化流程 |
+
+---
+
 ## Blocked Commands
 
 These patterns are intercepted before execution:
@@ -68,6 +79,8 @@ cp <skill-path>/scripts/block-dangerous-git.sh ~/.claude/hooks/
 chmod +x ~/.claude/hooks/block-dangerous-git.sh
 ```
 
+> 若 `mkdir` 或 `cp` 失敗（權限不足）→ BLOCKED — 報告具體錯誤，要求用戶手動建立目錄並複製腳本。
+
 ### Step 3 — Add the PreToolUse Hook
 
 Merge the following into the target `settings.json` under `hooks.PreToolUse`. Do NOT replace existing entries — append to the array:
@@ -86,6 +99,8 @@ Merge the following into the target `settings.json` under `hooks.PreToolUse`. Do
 
 Replace `<absolute-path-to>` with the actual absolute path to the installed script.
 
+> 若 `settings.json` 不存在或 JSON 解析失敗 → BLOCKED — 「`settings.json` 格式錯誤，hook 未寫入。請確認文件為有效 JSON 後重試。」
+
 ### Step 4 — Verify
 
 Run the verification test and paste the output:
@@ -103,6 +118,8 @@ Exit code: 2
 ```
 
 Exit code `2` = Claude Code will block the command and show the stderr message to the user.
+
+> 若驗證輸出的 exit code ≠ 2 → BLOCKED — 「Hook 驗證失敗，護欄未生效。請檢查腳本路徑與 `settings.json` 設定是否正確。」
 
 ### Step 5 — Customization (optional)
 
@@ -137,6 +154,14 @@ Report status using exactly one of:
 - **Mindset**: Irreversibility is the enemy. Every command that can't be undone in one step is a command that deserves a pause. The hook doesn't prevent the user from running the command — it just ensures Claude won't run it autonomously.
 - **Upstream Dependency**: Stage 1 setup (`s1-config-context`, `s1-define-rules`).
 - **Downstream Impact**: Active for all subsequent stages (2–7). The user can always run blocked commands manually in their terminal.
+
+## Semantic Boundary
+
+| Skill | 用途 | 差別 |
+|-------|------|------|
+| `s1-git-guardrails` | 安裝 PreToolUse hook 攔截破壞性 git 命令 | 只管安全 hook 安裝與驗證 |
+| `s1-config-context` | 初始化 CONTEXT.md 與基礎 `settings.json` | 管理 project 元資料；不安裝安全攔截 hook |
+| `update-config` | 修改 Claude Code 的任意 `settings.json` 設定 | 通用設定修改；不涉及攔截邏輯 |
 
 ## How the Hook Works
 
