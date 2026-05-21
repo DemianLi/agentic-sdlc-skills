@@ -9,6 +9,7 @@ on:
       - main
     paths:
       - 'skills/**'
+  workflow_dispatch:
 
 jobs:
   alignment:
