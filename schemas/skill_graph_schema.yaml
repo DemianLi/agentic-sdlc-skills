@@ -1,0 +1,189 @@
+skills:
+  s1-define-rules:
+    stage: 1
+    requires: []
+    outputs:
+      - RULES.md
+
+  s1-config-context:
+    stage: 1
+    requires: []
+    outputs:
+      - CONTEXT.md
+
+  s1-lock-tech-stack:
+    stage: 1
+    requires:
+      - s1-define-rules
+      - s1-config-context
+    outputs:
+      - docs/adr/*-tech-stack.md
+
+  s1-git-guardrails:
+    stage: 1
+    requires:
+      - s1-define-rules
+    outputs: []
+
+  s2-capture-vision:
+    stage: 2
+    requires:
+      - s1-lock-tech-stack
+    outputs:
+      - docs/specs/*-vision.md
+
+  s2-align-req:
+    stage: 2
+    requires:
+      - s2-capture-vision
+    outputs:
+      - docs/specs/*-alignment.md
+
+  s2-struct-req:
+    stage: 2
+    requires:
+      - s2-align-req
+    outputs:
+      - docs/specs/*-requirements.md
+
+  s2-snapshot-ctx:
+    stage: 2
+    requires:
+      - s2-struct-req
+    outputs:
+      - CONTEXT_SNAPSHOT.md
+
+  s3-eval-system:
+    stage: 3
+    requires:
+      - s2-snapshot-ctx
+    outputs:
+      - docs/arch/*-impact.md
+
+  s3-design-arch:
+    stage: 3
+    requires:
+      - s3-eval-system
+    outputs:
+      - docs/arch/*-design.md
+
+  s3-breakdown-wbs:
+    stage: 3
+    requires:
+      - s3-design-arch
+    outputs:
+      - docs/arch/*-wbs.md
+
+  s3-build-dag:
+    stage: 3
+    requires:
+      - s3-breakdown-wbs
+    outputs:
+      - TASK_DAG.md
+
+  s4-setup-env:
+    stage: 4
+    requires:
+      - s3-build-dag
+    outputs: []
+
+  s4-impl-task:
+    stage: 4
+    requires:
+      - s4-setup-env
+    outputs: []
+
+  s4-tdd:
+    stage: 4
+    requires:
+      - s4-setup-env
+    outputs: []
+
+  s4-local-debug:
+    stage: 4
+    requires:
+      - s4-impl-task
+      - s4-tdd
+    outputs: []
+
+  s5-sast-lint:
+    stage: 5
+    requires:
+      - s4-local-debug
+    outputs:
+      - docs/audit/*-sast.md
+
+  s5-audit-rules:
+    stage: 5
+    requires:
+      - s5-sast-lint
+    outputs:
+      - docs/audit/*-audit.md
+
+  s5-pr-review:
+    stage: 5
+    requires:
+      - s5-audit-rules
+    outputs:
+      - docs/audit/*-pr-review.md
+
+  s5-fix-optimize:
+    stage: 5
+    requires:
+      - s5-pr-review
+    outputs: []
+
+  s6-test-integration:
+    stage: 6
+    requires:
+      - s5-fix-optimize
+    outputs:
+      - docs/tests/*-integration-results.md
+
+  s6-test-e2e:
+    stage: 6
+    requires:
+      - s6-test-integration
+    outputs:
+      - docs/tests/*-e2e-results.md
+
+  s6-test-perf:
+    stage: 6
+    requires:
+      - s6-test-e2e
+    outputs:
+      - docs/tests/*-perf-baseline.json
+
+  s6-verify-release:
+    stage: 6
+    requires:
+      - s6-test-perf
+    outputs:
+      - test-results.json
+
+  s7-build-artifact:
+    stage: 7
+    requires:
+      - s6-verify-release
+    outputs: []
+
+  s7-release-notes:
+    stage: 7
+    requires:
+      - s7-build-artifact
+    outputs:
+      - CHANGELOG.md
+
+  s7-deploy:
+    stage: 7
+    requires:
+      - s7-release-notes
+    outputs:
+      - docs/releases/*-deploy.md
+
+  s7-telemetry:
+    stage: 7
+    requires:
+      - s7-deploy
+    outputs:
+      - docs/releases/*-telemetry.json

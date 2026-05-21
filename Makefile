@@ -1,4 +1,4 @@
-.PHONY: install-hooks scan test
+.PHONY: install-hooks scan test status next
 
 install-hooks:
 	git config core.hooksPath .githooks
@@ -9,3 +9,10 @@ scan:
 
 test:
 	pytest skills/s0-eval-alignment/tests/ -v
+
+status:
+	python3 skills/s0-eval-alignment/scripts/engine.py --mode fluid --status
+
+next:
+	python3 skills/s0-eval-alignment/scripts/engine.py --next
+
