@@ -7,7 +7,6 @@ nodes, and performs topological sorting and cycle detection.
 
 import glob
 import os
-import re
 import sys
 from pathlib import Path
 from typing import Dict, List, Set, Union, Optional
@@ -122,6 +121,14 @@ class SkillGraphEngine:
                     f"Supported keys are: {', '.join(sorted(valid_keys))} (check for typos like 'requiers' or 'outpus')"
                 )
 
+            # Validate value types
+            if not isinstance(skill_info.get("stage", 1), int):
+                raise ValueError(f"Skill '{skill_name}': 'stage' must be an integer")
+            for key in ("requires", "outputs"):
+                val = skill_info.get(key, [])
+                if not isinstance(val, list):
+                    raise ValueError(f"Skill '{skill_name}': '{key}' must be a list, got {type(val).__name__}")
+
             for req in skill_info.get("requires", []):
                 if req not in self.skills:
                     raise ValueError(
@@ -184,24 +191,6 @@ class SkillGraphEngine:
 
         return order
 
-    def _is_task_dag_fully_checked(self) -> bool:
-        """
-        Checks if TASK_DAG.md exists in workspace and contains no unchecked tasks.
-        """
-        dag_path = self.workspace_dir / "TASK_DAG.md"
-        if not dag_path.exists():
-            return False
-
-        content = dag_path.read_text(encoding="utf-8")
-        # Check if there is any unchecked task '[ ]'
-        # Matches '[ ]' with any number of spaces inside the bracket
-        unchecked = re.findall(r'\[\s*\]', content)
-        # Check if there is at least one checked task '[x]' or '[X]'
-        checked = re.findall(r'\[[xX]\]', content)
-
-        # It is considered complete if there is a task checklist AND no unchecked items
-        return len(checked) > 0 and len(unchecked) == 0
-
     def get_completed_nodes(self, completed_overrides: Optional[Set[str]] = None, mode: Optional[str] = None) -> Set[str]:
         """
         Dynamically inspects the filesystem to determine completion status.
@@ -219,15 +208,8 @@ class SkillGraphEngine:
                 continue
 
             outputs = skill_info.get("outputs", [])
-            
-            # Special logic for Stage 4 skills which may not have static output files
-            # but are tracked via TASK_DAG.md checking
-            if skill_name.startswith("s4-") and not outputs:
-                if self._is_task_dag_fully_checked():
-                    self_completed.add(skill_name)
-                    continue
 
-            # 2.1 Enhancement: Sentinel file check for empty outputs
+            # Sentinel file check for empty outputs
             if not outputs:
                 sentinel_file = self.workspace_dir / f".{skill_name}.done"
                 if sentinel_file.exists():
@@ -265,14 +247,14 @@ class SkillGraphEngine:
         return completed
 
     def _get_all_dependencies(self, node: str) -> Set[str]:
-        """Helper to recursively find all dependencies of a node."""
+        """Helper to find all transitive dependencies of a node (iterative)."""
         deps = set()
-        def visit(n: str):
-            for req in self.skills[n].get("requires", []):
-                if req not in deps:
-                    deps.add(req)
-                    visit(req)
-        visit(node)
+        stack = list(self.skills[node].get("requires", []))
+        while stack:
+            dep = stack.pop()
+            if dep not in deps:
+                deps.add(dep)
+                stack.extend(self.skills[dep].get("requires", []))
         return deps
 
     def get_bypassed_dependencies(self, completed_overrides: Optional[Set[str]] = None) -> Dict[str, List[str]]:
@@ -378,6 +360,11 @@ def main() -> None:
         action="store_true",
         help="Validate the YAML schema (checks syntax, undefined dependencies, and cycles)"
     )
+    parser.add_argument(
+        "--compact",
+        action="store_true",
+        help="Collapse BLOCKED list into stage-grouped counts (reduces noise when many skills are blocked)"
+    )
 
     args = parser.parse_args()
 
@@ -452,10 +439,18 @@ def main() -> None:
 
     print(f"\n🔒 BLOCKED SKILLS ({len(blocked)}):")
     if blocked:
-        for node, deps in blocked.items():
-            stage = engine.skills[node].get("stage", 1)
-            print(f"  [ ] Stage {stage}: {node}")
-            print(f"      Missing: {', '.join(deps)}")
+        if args.compact:
+            stage_counts: dict = {}
+            for node in blocked:
+                stage = engine.skills[node].get("stage", 1)
+                stage_counts[stage] = stage_counts.get(stage, 0) + 1
+            for stage in sorted(stage_counts):
+                print(f"  [Stage {stage}] {stage_counts[stage]} blocked  (omit --compact to expand)")
+        else:
+            for node, deps in blocked.items():
+                stage = engine.skills[node].get("stage", 1)
+                print(f"  [ ] Stage {stage}: {node}")
+                print(f"      Missing: {', '.join(deps)}")
     else:
         print("  (None)")
 

@@ -269,35 +269,24 @@ def test_glob_outputs_completion(mock_project):
     assert next_nodes == ["s2-capture-vision"]
 
 
-def test_stage_4_task_dag_handling(mock_project):
+def test_stage_4_sentinel_handling(mock_project):
     schema_file, workspace_dir = mock_project
     engine = SkillGraphEngine(schema_file, workspace_dir)
 
     # Force upstream completed
     overrides = {"s1-define-rules", "s1-config-context", "s1-lock-tech-stack", "s2-capture-vision"}
-    
-    # CASE 1: TASK_DAG.md doesn't exist
+
+    # CASE 1: No sentinel file → s4-impl-task not completed
     assert "s4-impl-task" not in engine.get_completed_nodes(overrides)
 
-    # CASE 2: TASK_DAG.md exists with unchecked items '[ ]'
-    dag_file = workspace_dir / "TASK_DAG.md"
-    dag_file.write_text("""
-# TASK DAG
-- [x] Task 1: Setup env
-- [ ] Task 2: Code implementation
-""", encoding="utf-8")
-    assert "s4-impl-task" not in engine.get_completed_nodes(overrides)
-
-    # CASE 3: TASK_DAG.md is fully completed (no unchecked, at least one checked)
-    dag_file.write_text("""
-# TASK DAG
-- [x] Task 1: Setup env
-- [x] Task 2: Code implementation
-""", encoding="utf-8")
+    # CASE 2: Sentinel file exists → s4-impl-task completed
+    sentinel = workspace_dir / ".s4-impl-task.done"
+    sentinel.touch()
     completed = engine.get_completed_nodes(overrides)
     assert "s4-impl-task" in completed
-    # No next nodes since everything is done
-    assert engine.get_next_nodes(overrides) == []
+
+    sentinel.unlink()
+    assert "s4-impl-task" not in engine.get_completed_nodes(overrides)
 
 
 def test_fluid_vs_strict_modes(mock_project):
