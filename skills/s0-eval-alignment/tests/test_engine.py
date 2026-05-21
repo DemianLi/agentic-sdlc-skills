@@ -327,3 +327,111 @@ def test_fluid_vs_strict_modes(mock_project):
     assert "s1-lock-tech-stack" in bypassed
     # The bypassed dependencies should be s1-define-rules and s1-config-context
     assert set(bypassed["s1-lock-tech-stack"]) == {"s1-define-rules", "s1-config-context"}
+
+
+# ---------------------------------------------------------------------------
+# 4. V2.1 Refactoring & Enhancement Tests
+# ---------------------------------------------------------------------------
+
+def test_schema_typo_validation(tmp_path):
+    schema_file = tmp_path / "schema_typo.yaml"
+    # Contains typo "requiers" instead of "requires"
+    schema_file.write_text("""
+skills:
+  a-task:
+    stage: 1
+    requiers: []
+    outputs: []
+""", encoding="utf-8")
+    
+    with pytest.raises(ValueError) as exc_info:
+        SkillGraphEngine(schema_file, tmp_path)
+    assert "Invalid configuration keys found in skill 'a-task'" in str(exc_info.value)
+    assert "requiers" in str(exc_info.value)
+
+
+def test_sentinel_file_completion(tmp_path):
+    schema_file = tmp_path / "schema_sentinel.yaml"
+    schema_file.write_text("""
+skills:
+  s1-define-rules:
+    stage: 1
+    requires: []
+    outputs:
+      - RULES.md
+  s1-git-guardrails:
+    stage: 1
+    requires:
+      - s1-define-rules
+    outputs: []
+""", encoding="utf-8")
+
+    engine = SkillGraphEngine(schema_file, tmp_path)
+    
+    # 1. Initially, nothing is complete
+    assert engine.get_completed_nodes() == set()
+    
+    # 2. Complete the upstream rules file
+    (tmp_path / "RULES.md").write_text("rules", encoding="utf-8")
+    assert engine.get_completed_nodes() == {"s1-define-rules"}
+    
+    # 3. Create sentinel file for git-guardrails (empty outputs skill)
+    sentinel = tmp_path / ".s1-git-guardrails.done"
+    sentinel.touch()
+    
+    # 4. Now both should be completed
+    assert engine.get_completed_nodes() == {"s1-define-rules", "s1-git-guardrails"}
+
+
+def test_iterative_dfs_sorting_and_cycle(tmp_path):
+    schema_file = tmp_path / "schema_complex.yaml"
+    schema_file.write_text("""
+skills:
+  d-task:
+    stage: 4
+    requires: [c-task]
+    outputs: []
+  c-task:
+    stage: 3
+    requires: [b-task]
+    outputs: []
+  b-task:
+    stage: 2
+    requires: [a-task]
+    outputs: []
+  a-task:
+    stage: 1
+    requires: []
+    outputs: []
+""", encoding="utf-8")
+
+    engine = SkillGraphEngine(schema_file, tmp_path)
+    order = engine.topological_sort()
+    assert order == ["a-task", "b-task", "c-task", "d-task"]
+
+
+def test_fluid_grouped_suggestions_logic(mock_project):
+    schema_file, workspace_dir = mock_project
+    engine = SkillGraphEngine(schema_file, workspace_dir, mode="fluid")
+
+    # Complete the s2-capture-vision file, bypassing stage 1 upstream files
+    vision_dir = workspace_dir / "docs" / "specs"
+    vision_dir.mkdir(parents=True, exist_ok=True)
+    (vision_dir / "0001-vision.md").write_text("vision", encoding="utf-8")
+
+    completed = engine.get_completed_nodes()
+    assert "s2-capture-vision" in completed
+
+    # Verify that bypassed dependencies are correctly calculated
+    bypassed_info = engine.get_bypassed_dependencies()
+    assert "s2-capture-vision" in bypassed_info
+    
+    # Group unique bypassed skills to verify grouping logic correctness
+    all_bypassed = set()
+    for missing in bypassed_info.values():
+        all_bypassed.update(missing)
+        
+    assert "s1-define-rules" in all_bypassed
+    assert "s1-config-context" in all_bypassed
+    assert "s1-lock-tech-stack" in all_bypassed
+

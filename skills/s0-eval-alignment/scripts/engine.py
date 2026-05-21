@@ -105,10 +105,23 @@ class SkillGraphEngine:
 
     def _validate_schema(self) -> None:
         """
-        Ensures all requires are defined skills in the graph and detects cycles early.
+        Ensures all requires are defined skills in the graph, detects cycles early,
+        and validates that each skill contains only valid fields to prevent typos.
         """
-        # Ensure all referenced dependencies exist in the graph
+        valid_keys = {"stage", "requires", "outputs"}
+        # Ensure all referenced dependencies exist in the graph and have valid structures
         for skill_name, skill_info in self.skills.items():
+            if not isinstance(skill_info, dict):
+                raise ValueError(f"Skill '{skill_name}' configuration must be a dictionary.")
+            
+            # Check for invalid keys (typo detection)
+            invalid_keys = set(skill_info.keys()) - valid_keys
+            if invalid_keys:
+                raise ValueError(
+                    f"Invalid configuration keys found in skill '{skill_name}': {', '.join(sorted(invalid_keys))}. "
+                    f"Supported keys are: {', '.join(sorted(valid_keys))} (check for typos like 'requiers' or 'outpus')"
+                )
+
             for req in skill_info.get("requires", []):
                 if req not in self.skills:
                     raise ValueError(
@@ -121,38 +134,54 @@ class SkillGraphEngine:
         """
         Returns a topologically sorted list of skill names.
         Raises CycleDependencyError if a cycle is detected.
+        Uses an iterative DFS with a stack to avoid recursion limit issues.
         """
-        # DFS-based topological sorting with node coloring
         # 0 = unvisited (white), 1 = visiting (gray), 2 = visited (black)
         visited = {node: 0 for node in self.skills}
         order: List[str] = []
+        path: List[str] = []
 
-        def dfs(node: str, path: List[str]) -> None:
-            visited[node] = 1  # gray (visiting)
-            path.append(node)
+        for start_node in self.skills:
+            if visited[start_node] != 0:
+                continue
 
-            for neighbor in self.skills[node].get("requires", []):
-                state = visited[neighbor]
-                if state == 1:
-                    # Found a cycle!
-                    cycle_start = path.index(neighbor)
-                    cycle_path = path[cycle_start:] + [neighbor]
-                    path_str = " -> ".join(cycle_path)
-                    raise CycleDependencyError(
-                        f"Cycle detected: {path_str}"
-                    )
-                elif state == 0:
-                    dfs(neighbor, path)
+            # Stack element: (node, state)
+            # state: 0 = first visit (push neighbors), 1 = post-order processing (backtracking)
+            stack = [(start_node, 0)]
 
-            visited[node] = 2  # black (visited)
-            path.pop()
-            order.append(node)
+            while stack:
+                curr, state = stack.pop()
 
-        for node in self.skills:
-            if visited[node] == 0:
-                dfs(node, [])
+                if state == 0:
+                    if visited[curr] == 2:
+                        continue
+                    
+                    visited[curr] = 1  # visiting (gray)
+                    path.append(curr)
+                    
+                    # Push backtracking marker to stack first
+                    stack.append((curr, 1))
 
-        # The DFS order has dependencies first because we append at the end of post-order
+                    # Iterate through neighbors in reverse order to preserve original sorting direction
+                    for req in reversed(self.skills[curr].get("requires", [])):
+                        req_state = visited[req]
+                        if req_state == 1:
+                            # Found a cycle! Build the cycle path cleanly.
+                            cycle_start = path.index(req)
+                            cycle_path = path[cycle_start:] + [req]
+                            path_str = " -> ".join(cycle_path)
+                            raise CycleDependencyError(
+                                f"Cycle detected: {path_str}"
+                            )
+                        elif req_state == 0:
+                            stack.append((req, 0))
+                else:
+                    # Post-order backtrack
+                    if visited[curr] == 1:
+                        visited[curr] = 2  # visited (black)
+                        path.pop()
+                        order.append(curr)
+
         return order
 
     def _is_task_dag_fully_checked(self) -> bool:
@@ -177,6 +206,8 @@ class SkillGraphEngine:
         """
         Dynamically inspects the filesystem to determine completion status.
         Supports both 'fluid' and 'strict' modes.
+        Also supports checking for sentinel files (e.g., '.{skill_name}.done')
+        for skills with no defined output files.
         """
         current_mode = mode or self.mode
         overrides = completed_overrides or set()
@@ -196,8 +227,13 @@ class SkillGraphEngine:
                     self_completed.add(skill_name)
                     continue
 
+            # 2.1 Enhancement: Sentinel file check for empty outputs
             if not outputs:
-                # If a skill has no outputs and is not in overrides, it's not complete
+                sentinel_file = self.workspace_dir / f".{skill_name}.done"
+                if sentinel_file.exists():
+                    self_completed.add(skill_name)
+                    continue
+                # If no outputs, no override, and no sentinel file, it is incomplete
                 continue
 
             # Check files on disk
@@ -423,15 +459,30 @@ def main() -> None:
     else:
         print("  (None)")
 
-    # Print Adaptive Catch-up Suggestions in fluid mode
+    # Print Adaptive Catch-up Suggestions in fluid mode (grouped by stage)
     if args.mode == "fluid" and bypassed_info:
         print("\n💡 ADAPTIVE CATCH-UP SUGGESTIONS (智慧補足建議):")
-        for node, missing in bypassed_info.items():
-            print(f"  • Downstream skill '{node}' is completed, but its upstream dependency is missing.")
-            for m in missing:
+        print("-" * 60)
+        
+        # Collect all unique bypassed skills
+        all_bypassed_skills = set()
+        for missing in bypassed_info.values():
+            all_bypassed_skills.update(missing)
+            
+        # Group unique bypassed skills by stage
+        stage_groups = {}
+        for skill in all_bypassed_skills:
+            stage = engine.skills[skill].get("stage", 1)
+            stage_groups.setdefault(stage, []).append(skill)
+            
+        # Print grouped suggestions in stage order
+        for stage in sorted(stage_groups.keys()):
+            skills_in_stage = sorted(stage_groups[stage])
+            print(f"  [Stage {stage}] 補全建議 ({len(skills_in_stage)} 個):")
+            for m in skills_in_stage:
                 missing_outputs = engine.skills[m].get("outputs", [])
-                outputs_str = f" ({', '.join(missing_outputs)})" if missing_outputs else ""
-                print(f"    👉 Recommendation: Run bypassed skill '{m}' to reverse-generate{outputs_str}")
+                outputs_str = f" ➔ 產生 {', '.join(missing_outputs)}" if missing_outputs else " (環境配置/工具類哨兵標記)"
+                print(f"    👉 補完 '{m}'{outputs_str}")
                 
     print("=" * 60 + "\n")
 
