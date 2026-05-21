@@ -23,7 +23,7 @@ jobs:
           python-version: '3.9'
 
       - name: Install pytest
-        run: pip install pytest --quiet
+        run: pip install pytest pyyaml --quiet
 
       - name: Run smoke tests
         run: pytest skills/s0-eval-alignment/tests/ -v
