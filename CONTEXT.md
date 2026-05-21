@@ -1,6 +1,6 @@
 # Agentic Skill System
 
-This context defines the ubiquitous language for the Agentic Software Development Lifecycle (SDLC) framework. The core pipeline has 7 sequential stages (Foundation Engineer → Release Manager); two additional standalone skills (Stage 0) operate outside the pipeline and may be used at any time. It establishes how AI Agents are directed through different phases of software development using specialized, atomic instructions.
+This context defines the ubiquitous language for the Agentic Software Development Lifecycle (SDLC) framework. The core pipeline has 7 sequential stages (Foundation Engineer → Release Manager); four standalone skills (Stage 0) operate outside the pipeline and may be used at any time. It establishes how AI Agents are directed through different phases of software development using specialized, atomic instructions.
 
 ## Language
 
@@ -21,7 +21,7 @@ The user-facing trigger for a Skill, following the naming convention `/s{StageNu
 *Avoid*: Trigger, Command Line, Input
 
 **Standalone Skill**:
-A Skill with the `/s0-` prefix that operates outside the s1–s7 pipeline. It produces an artifact that may optionally feed into the pipeline but is never a required gate. Current standalone skills: `/s0-brainstorm`, `/s0-trace-feature`.
+A Skill with the `/s0-` prefix that operates outside the s1–s7 pipeline. It produces an artifact that may optionally feed into the pipeline but is never a required gate. Current standalone skills: `/s0-brainstorm`, `/s0-trace-feature`, `/s0-eval-skill`, `/s0-eval-alignment`.
 *Avoid*: Pre-stage skill, utility skill
 
 **OpenSpec**:
@@ -56,6 +56,26 @@ A Development Mode for exploratory, throwaway prototypes. Bypasses TDD ceremony 
 **Hotfix Mode**:
 A Development Mode for fixes on legacy or low-test-coverage codebases. TDD Iron Law is preserved; s5 review runs in a simplified form (CRITICAL issues remain blocking; WARNING items are informational only). Faster than Standard but not discipline-free.
 *Avoid*: Quick-fix mode, brownfield mode
+
+**Skill Graph**:
+The declarative YAML file (`schemas/skill_graph_schema.yaml`) that encodes all skill dependencies. Each node declares its `stage`, `requires` (upstream skills that must complete first), and `outputs` (glob-matchable artifact paths used to detect completion). The graph is acyclic; `SkillGraphEngine` validates this on initialization.
+*Avoid*: Dependency map, skill tree, pipeline config
+
+**SkillGraphEngine**:
+The Python runtime (`skills/s0-eval-alignment/scripts/engine.py`) that loads the Skill Graph, performs topological sorting, detects dependency cycles, and computes `completed`, `next`, and `blocked` node sets. Exposes a CLI and a Python API. Operates in `fluid` mode (default) or `strict` mode.
+*Avoid*: Graph runner, topology checker
+
+**Fluid Mode**:
+The default `SkillGraphEngine` navigation mode. Completion is determined purely by filesystem presence of declared `outputs` (or sentinel files). Skills whose upstream dependencies were skipped are reported as advisory catch-up suggestions rather than hard blockers.
+*Avoid*: Soft mode, advisory mode
+
+**Strict Mode**:
+A `SkillGraphEngine` navigation mode where a skill is only counted as completed if every transitive upstream dependency is also completed. Used when sequential pipeline enforcement is required.
+*Avoid*: Hard mode, sequential mode
+
+**Sentinel File**:
+A zero-byte marker file named `.{skill-name}.done` (e.g., `.s4-setup-env.done`) placed in the workspace root to signal completion for skills that declare no `outputs` in the Skill Graph schema (typically environment-setup or configuration skills).
+*Avoid*: Done file, completion marker
 
 ## Flagged ambiguities
 

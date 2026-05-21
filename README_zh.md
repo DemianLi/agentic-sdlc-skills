@@ -191,7 +191,8 @@ skills/
   s0-eval-skill/        技能審計員 — 單一技能結構品質審核
   s0-eval-alignment/    對齊審查員 — 批次漂移偵測（28 個技能）
     scripts/scan.py     可重用 CLI 掃描器（exit 0 = 全部 ALIGNED）
-    tests/              冒煙測試夾具 + pytest 套件
+    scripts/engine.py   SkillGraphEngine v2.2 — 拓撲引擎 + CLI
+    tests/              冒煙測試夾具 + pytest 套件（test_scan.py + test_engine.py）
   s1-*/SKILL.md         Stage 1 — 基礎建置工程師（4 個技能）
   s2-*/SKILL.md         Stage 2 — 產品經理（4 個技能）
   s3-*/SKILL.md         Stage 3 — 系統架構師（4 個技能）
@@ -199,6 +200,8 @@ skills/
   s5-*/SKILL.md         Stage 5 — 代碼審計員（4 個技能）
   s6-*/SKILL.md         Stage 6 — QA 工程師（4 個技能）
   s7-*/SKILL.md         Stage 7 — 發布經理（4 個技能）
+schemas/
+  skill_graph_schema.yaml   宣告式依賴圖譜 — 28 個技能，含 stage、requires、outputs
 references/
   skill-design-intent.md  s0-eval-alignment 的評估基線（C1–C4 規則 + 每個技能的關鍵詞列表）
 docs/
@@ -292,6 +295,47 @@ GitHub Actions 工作流（`.github/workflows/alignment.yml`）在每次涉及 `
 pip install pytest
 pytest skills/s0-eval-alignment/tests/ -v
 ```
+
+---
+
+## Skill Graph Engine
+
+`schemas/skill_graph_schema.yaml` 是技能依賴關係的宣告式原始資料來源。`SkillGraphEngine`（`skills/s0-eval-alignment/scripts/engine.py`）在執行時讀取此 schema，回答三個問題：
+
+- **已完成什麼？** — 透過 glob 比對每個技能的 `outputs` 進行檔案系統檢測，支援手動覆蓋
+- **下一步是什麼？** — 所有上游依賴均已滿足的技能
+- **什麼被阻塞？** — 至少有一個上游依賴未滿足的技能
+
+```bash
+# 顯示完整狀態（已完成 / 下一步 / 被阻塞）
+python3 skills/s0-eval-alignment/scripts/engine.py --status
+
+# 只列出下一個可執行的技能
+python3 skills/s0-eval-alignment/scripts/engine.py --next
+
+# 列出被阻塞的技能及其缺少的依賴
+python3 skills/s0-eval-alignment/scripts/engine.py --blocked
+
+# 驗證 schema（循環依賴、未定義依賴、欄位名稱拼寫錯誤）
+python3 skills/s0-eval-alignment/scripts/engine.py --validate
+
+# strict 模式 — 只有在所有遞移依賴也完成時才標記為完成
+python3 skills/s0-eval-alignment/scripts/engine.py --status --mode strict
+
+# 壓縮輸出 — 將阻塞清單折疊為每 Stage 的計數
+python3 skills/s0-eval-alignment/scripts/engine.py --status --compact
+```
+
+兩種導航模式：
+
+| 模式 | 行為 |
+|---|---|
+| `fluid`（預設） | 僅依據檔案系統中 `outputs` 的存在判定完成狀態；被跳過的上游依賴以智慧補足建議的形式呈現，不阻斷執行 |
+| `strict` | 只有當所有遞移上游依賴也已完成時，技能才被標記為已完成 |
+
+沒有宣告 `outputs` 的技能（如 `s4-setup-env`）在工作區根目錄存在 **哨兵檔案**（sentinel file）`.{skill-name}.done` 時標記為完成。
+
+單元測試：`skills/s0-eval-alignment/tests/test_engine.py`（426 行 — 覆蓋拓撲排序、循環偵測、fluid/strict 模式、哨兵檔案、繞道依賴報告）。
 
 ---
 

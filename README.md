@@ -190,7 +190,8 @@ skills/
   s0-eval-skill/        Skill Auditor — single-skill structural quality check
   s0-eval-alignment/    Alignment Inspector — batch drift detection (28 skills)
     scripts/scan.py     Reusable CLI scanner (exit 0 = all ALIGNED)
-    tests/              Smoke-test fixtures + pytest suite
+    scripts/engine.py   SkillGraphEngine v2.2 — topology engine + CLI
+    tests/              Smoke-test fixtures + pytest suite (test_scan.py + test_engine.py)
   s1-*/SKILL.md         Stage 1 — Foundation Engineer (4 skills)
   s2-*/SKILL.md         Stage 2 — Product Manager (4 skills)
   s3-*/SKILL.md         Stage 3 — System Architect (4 skills)
@@ -198,6 +199,8 @@ skills/
   s5-*/SKILL.md         Stage 5 — Code Auditor (4 skills)
   s6-*/SKILL.md         Stage 6 — QA Engineer (4 skills)
   s7-*/SKILL.md         Stage 7 — Release Manager (4 skills)
+schemas/
+  skill_graph_schema.yaml   Declarative dependency graph — 28 skills with stage, requires, outputs
 references/
   skill-design-intent.md  Evaluation baseline for s0-eval-alignment (C1–C4 checks + per-skill keywords)
 docs/
@@ -291,6 +294,47 @@ To run the smoke tests locally:
 pip install pytest
 pytest skills/s0-eval-alignment/tests/ -v
 ```
+
+---
+
+## Skill Graph Engine
+
+`schemas/skill_graph_schema.yaml` is the declarative source of truth for skill dependencies. `SkillGraphEngine` (`skills/s0-eval-alignment/scripts/engine.py`) reads this schema at runtime and answers three questions:
+
+- **What is completed?** — filesystem inspection (glob matching against each skill's `outputs`) plus optional overrides
+- **What is next?** — skills whose upstream dependencies are all satisfied
+- **What is blocked?** — skills with at least one unsatisfied dependency
+
+```bash
+# Show full status (completed / next / blocked)
+python3 skills/s0-eval-alignment/scripts/engine.py --status
+
+# Print only next runnable skills
+python3 skills/s0-eval-alignment/scripts/engine.py --next
+
+# Print blocked skills and their missing dependencies
+python3 skills/s0-eval-alignment/scripts/engine.py --blocked
+
+# Validate schema (cycles, undefined deps, key typos)
+python3 skills/s0-eval-alignment/scripts/engine.py --validate
+
+# Strict mode — only mark completed if all transitive deps are also complete
+python3 skills/s0-eval-alignment/scripts/engine.py --status --mode strict
+
+# Compact blocked list — collapse into per-stage counts
+python3 skills/s0-eval-alignment/scripts/engine.py --status --compact
+```
+
+Two navigation modes:
+
+| Mode | Behaviour |
+|---|---|
+| `fluid` *(default)* | Completion detected by filesystem presence only; bypassed upstream dependencies shown as advisory catch-up suggestions |
+| `strict` | A skill is marked completed only if every transitive upstream dependency is also completed |
+
+Skills that declare no `outputs` (e.g., `s4-setup-env`) are marked complete when a **sentinel file** `.{skill-name}.done` exists in the workspace root.
+
+Unit tests: `skills/s0-eval-alignment/tests/test_engine.py` (426 lines — covers topological sort, cycle detection, fluid/strict mode, sentinel files, bypass reporting).
 
 ---
 
