@@ -4,11 +4,13 @@ on:
   pull_request:
     paths:
       - 'skills/**'
+      - 'schemas/**'
   push:
     branches:
       - main
     paths:
       - 'skills/**'
+      - 'schemas/**'
   workflow_dispatch:
 
 jobs:
@@ -42,3 +44,9 @@ jobs:
         with:
           name: alignment-scan-report
           path: docs/skill-evals/
+
+      - name: Token budget check — s0-skill-budget (hard gate)
+        run: python3 skills/s0-skill-budget/scripts/budget_check.py skills/s0-skill-budget/SKILL.md
+
+      - name: Token budget check — all skills (advisory)
+        run: python3 skills/s0-skill-budget/scripts/budget_check.py || true
