@@ -13,7 +13,7 @@ import pytest
 SCRIPT_DIR = Path(__file__).parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPT_DIR))
 
-from engine import SkillGraphEngine, CycleDependencyError, parse_simple_yaml, SemanticValidator, ValidationResult
+from engine import SkillGraphEngine, CycleDependencyError, DriftViolationError, parse_simple_yaml, SemanticValidator, ValidationResult
 
 
 # ---------------------------------------------------------------------------
@@ -706,4 +706,128 @@ skills:
     # Should not raise
     engine = SkillGraphEngine(schema_file, tmp_path)
     assert "s-node" in engine.skills
+
+
+# ---------------------------------------------------------------------------
+# 7. P2: Bidirectional Spec Sync (sync_docs / lint_drift)
+# ---------------------------------------------------------------------------
+
+SIMPLE_SCHEMA = """
+skills:
+  a-task:
+    stage: 1
+    requires: []
+    outputs: []
+  b-task:
+    stage: 2
+    requires:
+      - a-task
+    outputs: []
+  c-task:
+    stage: 2
+    requires:
+      - a-task
+    outputs: []
+"""
+
+
+@pytest.fixture
+def sync_project(tmp_path):
+    schema_file = tmp_path / "schema.yaml"
+    schema_file.write_text(SIMPLE_SCHEMA, encoding="utf-8")
+    readme = tmp_path / "README.md"
+    readme.write_text("# My Project\n\nSome intro text.\n\n## The 35 Skills\n\nSkills table here.\n", encoding="utf-8")
+    engine = SkillGraphEngine(schema_file, tmp_path)
+    return engine, readme
+
+
+def test_sync_docs_inserts_block(sync_project):
+    engine, readme = sync_project
+    changed = engine.sync_docs(readme)
+    assert changed == 1
+    content = readme.read_text()
+    assert "<!-- SKILL-GRAPH-START -->" in content
+    assert "<!-- SKILL-GRAPH-END -->" in content
+    assert "graph LR" in content
+    assert "a-task --> b-task" in content
+    assert "a-task --> c-task" in content
+
+
+def test_sync_docs_idempotent(sync_project):
+    engine, readme = sync_project
+    engine.sync_docs(readme)
+    changed = engine.sync_docs(readme)
+    assert changed == 0
+
+
+def test_sync_docs_updates_existing_block(sync_project):
+    engine, readme = sync_project
+    engine.sync_docs(readme)
+    # Manually corrupt the block
+    readme.write_text(
+        readme.read_text().replace("a-task --> b-task", "fake --> fake"),
+        encoding="utf-8",
+    )
+    changed = engine.sync_docs(readme)
+    assert changed == 1
+    assert "a-task --> b-task" in readme.read_text()
+    assert "fake --> fake" not in readme.read_text()
+
+
+def test_lint_drift_no_violations(sync_project):
+    engine, readme = sync_project
+    engine.sync_docs(readme)
+    violations = engine.lint_drift(readme)
+    assert violations == []
+
+
+def test_lint_drift_missing_edge(sync_project):
+    engine, readme = sync_project
+    engine.sync_docs(readme)
+    # Remove one edge from README
+    readme.write_text(
+        readme.read_text().replace("    a-task --> b-task\n", ""),
+        encoding="utf-8",
+    )
+    violations = engine.lint_drift(readme)
+    assert any("MISSING" in v and "a-task" in v and "b-task" in v for v in violations)
+
+
+def test_lint_drift_extra_edge(sync_project):
+    engine, readme = sync_project
+    engine.sync_docs(readme)
+    # Inject a spurious edge
+    content = readme.read_text()
+    content = content.replace("    a-task --> b-task", "    a-task --> b-task\n    fake --> b-task")
+    readme.write_text(content, encoding="utf-8")
+    violations = engine.lint_drift(readme)
+    assert any("EXTRA" in v and "fake" in v for v in violations)
+
+
+def test_lint_drift_strict_raises(sync_project):
+    engine, readme = sync_project
+    engine.sync_docs(readme)
+    readme.write_text(
+        readme.read_text().replace("    a-task --> b-task\n", ""),
+        encoding="utf-8",
+    )
+    with pytest.raises(DriftViolationError):
+        engine.lint_drift(readme, strict=True)
+
+
+def test_lint_drift_no_markers_warns(sync_project):
+    engine, readme = sync_project
+    # README without markers
+    violations = engine.lint_drift(readme)
+    assert len(violations) == 1
+    assert "WARNING" in violations[0]
+    assert "sync-docs" in violations[0]
+
+
+def test_generate_mermaid_contains_subgraphs(sync_project):
+    engine, _ = sync_project
+    mermaid = engine._generate_mermaid()
+    assert 'subgraph stage1["Stage 1' in mermaid
+    assert 'subgraph stage2["Stage 2' in mermaid
+    assert "a-task --> b-task" in mermaid
 
