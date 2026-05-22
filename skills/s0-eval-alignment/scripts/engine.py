@@ -6,8 +6,10 @@ nodes, and performs topological sorting and cycle detection.
 """
 
 import glob
+import json
 import os
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Set, Union, Optional
 
@@ -229,6 +231,80 @@ def parse_simple_yaml(content: str) -> dict:
     return data
 
 
+class ExecutionStack:
+    """
+    Persistent execution stack for rollback trace. Stored in .engine_stack.json.
+    Tracks FAILED nodes and their designated rollback targets across Agent restarts.
+    """
+
+    DEFAULT_MAX_DEPTH = 3
+
+    def __init__(self, stack_path: Path, max_depth: int = DEFAULT_MAX_DEPTH):
+        self.stack_path = Path(stack_path)
+        self.max_depth = max_depth
+        self._data = self._load()
+
+    def _load(self) -> dict:
+        if self.stack_path.exists():
+            try:
+                return json.loads(self.stack_path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                pass
+        return {"active_stack": [], "stack_depth": 0, "max_depth": self.max_depth, "last_updated": ""}
+
+    def _save(self) -> None:
+        self._data["stack_depth"] = len(self._data["active_stack"])
+        self._data["last_updated"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        self.stack_path.write_text(json.dumps(self._data, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    def push(self, node_id: str, rollback_target: str, failure_reason: str) -> bool:
+        """Push a rollback frame. Returns False (without saving) if max_depth exceeded."""
+        if self.depth() >= self._data["max_depth"]:
+            return False
+        self._data["active_stack"].append({
+            "node_id": node_id,
+            "status": "FAILED",
+            "failed_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "failure_reason": failure_reason,
+            "rollback_target": rollback_target,
+        })
+        self._save()
+        return True
+
+    def pop(self) -> Optional[dict]:
+        """Remove and return the top frame. Returns None if empty."""
+        if not self._data["active_stack"]:
+            return None
+        entry = self._data["active_stack"].pop()
+        self._save()
+        return entry
+
+    def peek(self) -> Optional[dict]:
+        """Return top frame without removing it."""
+        if not self._data["active_stack"]:
+            return None
+        return self._data["active_stack"][-1]
+
+    def depth(self) -> int:
+        return len(self._data["active_stack"])
+
+    def is_empty(self) -> bool:
+        return len(self._data["active_stack"]) == 0
+
+    def display(self) -> str:
+        lines = [
+            f"Execution Stack ({self.stack_path}):",
+            f"  depth: {self.depth()}/{self._data['max_depth']}",
+        ]
+        if self.is_empty():
+            lines.append("  (empty)")
+        else:
+            for i, frame in enumerate(reversed(self._data["active_stack"])):
+                lines.append(f"  [{i}] {frame['node_id']} → rollback: {frame['rollback_target']}")
+                lines.append(f"       reason: {frame['failure_reason']}")
+        return "\n".join(lines)
+
+
 class SkillGraphEngine:
     """
     The runtime topology engine for the Skill Graph concept.
@@ -441,6 +517,125 @@ class SkillGraphEngine:
     def get_validation_failures(self) -> Dict[str, str]:
         """Returns semantic validator failures from the last get_completed_nodes() call."""
         return dict(self._last_validation_failures)
+
+    # ── P3: Execution Stack & Rollback Trace ─────────────────────────────────
+
+    def _find_rollback_target(self, failed_node: str) -> Optional[str]:
+        """
+        Find the best rollback target for a failed node.
+        Primary: mtime heuristic — requires whose outputs are newer than failed node's outputs
+                 (picks the most recently modified upstream, i.e. max mtime).
+        Fallback: BFS — topologically latest direct requires node.
+        """
+        requires = self.skills.get(failed_node, {}).get("requires", [])
+        if not requires:
+            return None
+
+        # Get oldest output mtime for the failed node (most stale output)
+        failed_outputs = self.skills.get(failed_node, {}).get("outputs", [])
+        failed_mtime: Optional[float] = None
+        for out in failed_outputs:
+            p = self.workspace_dir / out
+            if p.exists():
+                t = p.stat().st_mtime
+                if failed_mtime is None or t < failed_mtime:
+                    failed_mtime = t
+
+        # Primary: pick requires with the highest mtime among those newer than failed artifact
+        if failed_mtime is not None:
+            best_target: Optional[str] = None
+            best_mtime: float = failed_mtime
+            for req in requires:
+                req_outputs = self.skills.get(req, {}).get("outputs", [])
+                for out in req_outputs:
+                    p = self.workspace_dir / out
+                    if p.exists() and p.stat().st_mtime > best_mtime:
+                        best_mtime = p.stat().st_mtime
+                        best_target = req
+            if best_target is not None:
+                return best_target
+
+        # Fallback: topologically latest direct requires
+        sorted_skills = self.topological_sort()
+        latest_req: Optional[str] = None
+        latest_idx = -1
+        for req in requires:
+            try:
+                idx = sorted_skills.index(req)
+                if idx > latest_idx:
+                    latest_idx = idx
+                    latest_req = req
+            except ValueError:
+                pass
+        return latest_req
+
+    def rollback_trace(self, stack: "ExecutionStack") -> str:
+        """
+        Refresh state, analyze validation failures, find rollback targets, push to stack.
+        Policy: push one frame per failing node until max_depth; then ROLLBACK_LIMIT_EXCEEDED.
+        Returns a human-readable summary.
+        """
+        self.get_completed_nodes()  # force-refresh _last_validation_failures
+        failures = self.get_validation_failures()
+
+        if not failures:
+            return "No validation failures detected. Rollback trace not needed."
+
+        pushed: List[tuple] = []
+        for node_id, reason in failures.items():
+            if stack.depth() >= stack.max_depth:
+                return (
+                    f"ROLLBACK_LIMIT_EXCEEDED: stack depth {stack.depth()} reached max "
+                    f"{stack.max_depth}. Manual intervention required.\n"
+                    f"  Already pushed: {[p[0] for p in pushed]}"
+                )
+            target = self._find_rollback_target(node_id)
+            if target is None:
+                continue
+            ok = stack.push(node_id, target, reason)
+            if ok:
+                sentinel = self.workspace_dir / f".{target}.rollback"
+                sentinel.write_text(f"rollback: fixing {node_id}\n", encoding="utf-8")
+                pushed.append((node_id, target))
+
+        if not pushed:
+            return "No rollback targets found (failed nodes may have no upstream requires)."
+
+        lines = [f"Pushed {len(pushed)} rollback frame(s):"]
+        for node_id, target in pushed:
+            lines.append(f"  {node_id} → rollback target: {target}")
+        return "\n".join(lines)
+
+    def stack_pop(self, stack: "ExecutionStack") -> str:
+        """
+        Re-validate the top frame's failed node; if validators now pass, pop the frame and
+        clear the .rollback sentinel. If still failing, return the current error without popping.
+        """
+        entry = stack.peek()
+        if entry is None:
+            return "Stack is empty. Nothing to pop."
+
+        node_id = entry["node_id"]
+        target = entry["rollback_target"]
+
+        # Re-run validators for the failed node
+        validators = self.skills.get(node_id, {}).get("validators")
+        if validators:
+            sv = SemanticValidator(validators, self.workspace_dir, node_id=node_id)
+            result = sv.run()
+            if not result.passed:
+                return (
+                    f"Cannot pop: {node_id} validators still failing.\n"
+                    f"  {result.errors[0]}\n"
+                    f"  Fix the artifact, then run --stack-pop again."
+                )
+
+        # Validators pass (or no validators) → clear sentinel and pop
+        sentinel = self.workspace_dir / f".{target}.rollback"
+        if sentinel.exists():
+            sentinel.unlink()
+        stack.pop()
+        return f"Popped frame: {node_id} (rollback target was {target}). Sentinel cleared."
 
     def _get_all_dependencies(self, node: str) -> Set[str]:
         """Helper to find all transitive dependencies of a node (iterative)."""
@@ -698,6 +893,32 @@ def main() -> None:
         default="README.md",
         help="Path to README.md (default: README.md, used by --sync-docs and --lint-drift)"
     )
+    parser.add_argument(
+        "--stack",
+        action="store_true",
+        help="(P3) Display the current execution stack from .engine_stack.json"
+    )
+    parser.add_argument(
+        "--rollback-trace",
+        action="store_true",
+        help="(P3) Analyze validation failures, find rollback targets, push to execution stack"
+    )
+    parser.add_argument(
+        "--stack-pop",
+        action="store_true",
+        help="(P3) Re-validate top frame; if passing, pop and clear .rollback sentinel"
+    )
+    parser.add_argument(
+        "--stack-file",
+        default=".engine_stack.json",
+        help="Path to execution stack JSON file (default: .engine_stack.json)"
+    )
+    parser.add_argument(
+        "--max-rollback-depth",
+        type=int,
+        default=ExecutionStack.DEFAULT_MAX_DEPTH,
+        help=f"Maximum rollback stack depth (default: {ExecutionStack.DEFAULT_MAX_DEPTH})"
+    )
 
     args = parser.parse_args()
 
@@ -754,6 +975,25 @@ def main() -> None:
         else:
             print("✅ No drift detected — README Mermaid DAG matches schema.")
         sys.exit(0)
+
+    # P3: --stack / --rollback-trace / --stack-pop
+    stack_path = workspace_path / args.stack_file
+    if args.stack or args.rollback_trace or args.stack_pop:
+        exec_stack = ExecutionStack(stack_path, max_depth=args.max_rollback_depth)
+
+        if args.stack:
+            print(exec_stack.display())
+            sys.exit(0)
+
+        if args.rollback_trace:
+            msg = engine.rollback_trace(exec_stack)
+            print(msg)
+            sys.exit(0)
+
+        if args.stack_pop:
+            msg = engine.stack_pop(exec_stack)
+            print(msg)
+            sys.exit(0)
 
     # Calculate status
     completed = engine.get_completed_nodes()

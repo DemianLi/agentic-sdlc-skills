@@ -6,3 +6,7 @@ __pycache__/
 .gemini/
 test_projects/
 github_skill_sample/
+
+# P3: Execution stack runtime state (workspace-local, not repo assets)
+.engine_stack.json
+.*.rollback

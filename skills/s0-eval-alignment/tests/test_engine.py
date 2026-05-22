@@ -13,7 +13,7 @@ import pytest
 SCRIPT_DIR = Path(__file__).parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPT_DIR))
 
-from engine import SkillGraphEngine, CycleDependencyError, DriftViolationError, parse_simple_yaml, SemanticValidator, ValidationResult
+from engine import SkillGraphEngine, CycleDependencyError, DriftViolationError, parse_simple_yaml, SemanticValidator, ValidationResult, ExecutionStack
 
 
 # ---------------------------------------------------------------------------
@@ -830,4 +830,219 @@ def test_generate_mermaid_contains_subgraphs(sync_project):
     assert 'subgraph stage1["Stage 1' in mermaid
     assert 'subgraph stage2["Stage 2' in mermaid
     assert "a-task --> b-task" in mermaid
+
+
+# ---------------------------------------------------------------------------
+# 8. ExecutionStack unit tests (P3)
+# ---------------------------------------------------------------------------
+
+def test_execution_stack_push_pop(tmp_path):
+    stack = ExecutionStack(tmp_path / ".engine_stack.json")
+    assert stack.is_empty()
+    ok = stack.push("s4-tdd", "s4-impl-task", "failed=2")
+    assert ok
+    assert stack.depth() == 1
+    assert stack.peek()["node_id"] == "s4-tdd"
+    entry = stack.pop()
+    assert entry["rollback_target"] == "s4-impl-task"
+    assert stack.is_empty()
+
+
+def test_execution_stack_max_depth(tmp_path):
+    stack = ExecutionStack(tmp_path / ".engine_stack.json", max_depth=2)
+    assert stack.push("n1", "n0", "r1")
+    assert stack.push("n2", "n1", "r2")
+    assert not stack.push("n3", "n2", "r3")  # exceeds max_depth
+    assert stack.depth() == 2
+
+
+def test_execution_stack_persistence(tmp_path):
+    path = tmp_path / ".engine_stack.json"
+    s1 = ExecutionStack(path)
+    s1.push("s4-tdd", "s3-design-arch", "test failure")
+    # New instance reads from disk
+    s2 = ExecutionStack(path)
+    assert s2.depth() == 1
+    assert s2.peek()["node_id"] == "s4-tdd"
+
+
+def test_execution_stack_display_empty(tmp_path):
+    stack = ExecutionStack(tmp_path / ".engine_stack.json")
+    disp = stack.display()
+    assert "empty" in disp
+    assert "depth: 0" in disp
+
+
+def test_execution_stack_display_with_frames(tmp_path):
+    stack = ExecutionStack(tmp_path / ".engine_stack.json")
+    stack.push("s4-tdd", "s3-design-arch", "test failure")
+    disp = stack.display()
+    assert "s4-tdd" in disp
+    assert "s3-design-arch" in disp
+    assert "test failure" in disp
+
+
+def test_execution_stack_pop_empty(tmp_path):
+    stack = ExecutionStack(tmp_path / ".engine_stack.json")
+    assert stack.pop() is None
+
+
+# ---------------------------------------------------------------------------
+# 9. Rollback Trace & Stack Pop integration tests (P3)
+# ---------------------------------------------------------------------------
+
+VALIDATOR_SCHEMA = """
+skills:
+  s0-upstream:
+    stage: 0
+    requires: []
+    outputs:
+      - upstream.txt
+
+  s4-tdd:
+    stage: 4
+    requires:
+      - s0-upstream
+    outputs:
+      - test-results.json
+    validators:
+      - type: json_query
+        file: test-results.json
+        query: ".summary.failed == 0"
+        error_msg: "測試必須全部通過（failed == 0）"
+
+  s5-sast-lint:
+    stage: 5
+    requires:
+      - s4-tdd
+    outputs:
+      - sast-report.json
+"""
+
+
+@pytest.fixture
+def rollback_project(tmp_path):
+    """Project where s4-tdd fails its validator."""
+    schema_file = tmp_path / "schema.yaml"
+    schema_file.write_text(VALIDATOR_SCHEMA, encoding="utf-8")
+
+    # Mark s0-upstream as complete
+    (tmp_path / "upstream.txt").write_text("done", encoding="utf-8")
+
+    # s4-tdd output exists but validator will fail (failed=1)
+    (tmp_path / "test-results.json").write_text(
+        '{"summary": {"failed": 1}}', encoding="utf-8"
+    )
+    engine = SkillGraphEngine(schema_file, tmp_path, mode="strict")
+    return engine, tmp_path
+
+
+def test_rollback_trace_no_failures(tmp_path):
+    schema_file = tmp_path / "schema.yaml"
+    schema_file.write_text(VALIDATOR_SCHEMA, encoding="utf-8")
+    (tmp_path / "upstream.txt").write_text("done", encoding="utf-8")
+    # s4-tdd passes validator
+    (tmp_path / "test-results.json").write_text(
+        '{"summary": {"failed": 0}}', encoding="utf-8"
+    )
+    engine = SkillGraphEngine(schema_file, tmp_path, mode="strict")
+    stack = ExecutionStack(tmp_path / ".engine_stack.json")
+    msg = engine.rollback_trace(stack)
+    assert "not needed" in msg
+    assert stack.is_empty()
+
+
+def test_rollback_trace_pushes_frame(rollback_project):
+    engine, tmp_path = rollback_project
+    stack = ExecutionStack(tmp_path / ".engine_stack.json")
+    msg = engine.rollback_trace(stack)
+    assert stack.depth() == 1
+    frame = stack.peek()
+    assert frame["node_id"] == "s4-tdd"
+    assert frame["rollback_target"] == "s0-upstream"
+    assert "Pushed 1" in msg
+
+
+def test_rollback_trace_creates_sentinel(rollback_project):
+    engine, tmp_path = rollback_project
+    stack = ExecutionStack(tmp_path / ".engine_stack.json")
+    engine.rollback_trace(stack)
+    sentinel = tmp_path / ".s0-upstream.rollback"
+    assert sentinel.exists()
+    assert "s4-tdd" in sentinel.read_text()
+
+
+def test_rollback_trace_limit_exceeded(tmp_path):
+    schema_file = tmp_path / "schema.yaml"
+    schema_file.write_text(VALIDATOR_SCHEMA, encoding="utf-8")
+    (tmp_path / "upstream.txt").write_text("done", encoding="utf-8")
+    (tmp_path / "test-results.json").write_text(
+        '{"summary": {"failed": 1}}', encoding="utf-8"
+    )
+    engine = SkillGraphEngine(schema_file, tmp_path, mode="strict")
+    # Pre-fill stack to max_depth=1
+    stack = ExecutionStack(tmp_path / ".engine_stack.json", max_depth=1)
+    stack.push("existing-fail", "existing-target", "prior failure")
+    msg = engine.rollback_trace(stack)
+    assert "ROLLBACK_LIMIT_EXCEEDED" in msg
+    assert stack.depth() == 1  # did not grow past max
+
+
+def test_stack_pop_still_failing(rollback_project):
+    engine, tmp_path = rollback_project
+    stack = ExecutionStack(tmp_path / ".engine_stack.json")
+    engine.rollback_trace(stack)
+    # validator still fails (test-results.json not fixed)
+    msg = engine.stack_pop(stack)
+    assert "Cannot pop" in msg
+    assert stack.depth() == 1  # not popped
+
+
+def test_stack_pop_after_fix(rollback_project):
+    engine, tmp_path = rollback_project
+    stack = ExecutionStack(tmp_path / ".engine_stack.json")
+    engine.rollback_trace(stack)
+    # Fix the artifact
+    (tmp_path / "test-results.json").write_text(
+        '{"summary": {"failed": 0}}', encoding="utf-8"
+    )
+    msg = engine.stack_pop(stack)
+    assert "Popped" in msg
+    assert stack.is_empty()
+    assert not (tmp_path / ".s0-upstream.rollback").exists()
+
+
+def test_stack_pop_empty_stack(rollback_project):
+    engine, tmp_path = rollback_project
+    stack = ExecutionStack(tmp_path / ".engine_stack.json")
+    msg = engine.stack_pop(stack)
+    assert "empty" in msg.lower()
+
+
+def test_rollback_trace_mtime_heuristic(tmp_path):
+    """Primary mtime path: upstream output newer than failed artifact → chosen as target."""
+    import time
+
+    schema_file = tmp_path / "schema.yaml"
+    schema_file.write_text(VALIDATOR_SCHEMA, encoding="utf-8")
+
+    # Write upstream output first (older)
+    upstream = tmp_path / "upstream.txt"
+    upstream.write_text("done", encoding="utf-8")
+
+    # Briefly pause so mtime differs, then write failed artifact
+    time.sleep(0.05)
+    artifact = tmp_path / "test-results.json"
+    artifact.write_text('{"summary": {"failed": 1}}', encoding="utf-8")
+
+    # Now set upstream to a newer mtime than the artifact (simulates upstream re-ran after artifact)
+    import os
+    new_mtime = artifact.stat().st_mtime + 10
+    os.utime(upstream, (new_mtime, new_mtime))
+
+    engine = SkillGraphEngine(schema_file, tmp_path, mode="strict")
+    stack = ExecutionStack(tmp_path / ".engine_stack.json")
+    engine.rollback_trace(stack)
+    frame = stack.peek()
+    assert frame["rollback_target"] == "s0-upstream"
 
