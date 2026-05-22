@@ -1,6 +1,6 @@
 # Agentic SDLC Skills（敏捷開發流程技能系統）
 
-33 個原子化 Skill 檔案，驅動 AI Agent 走過一套結構化、有門控的軟體開發生命週期。核心管線分 7 個 Stage（基礎建置 → 發布）；4 個獨立的 Stage 0 技能可在任何時間點使用；1 個快速通道路由技能讓你在處理小型任務時跳過 s1–s3 的需求儀式。
+34 個原子化 Skill 檔案，驅動 AI Agent 走過一套結構化、有門控的軟體開發生命週期。核心管線分 7 個 Stage（基礎建置 → 發布）；5 個獨立的 Stage 0 技能可在任何時間點使用；1 個快速通道路由技能讓你在處理小型任務時跳過 s1–s3 的需求儀式。
 
 每個 Skill 是一個 Markdown 檔案，定義了**角色（Role）**、**工作流（Workflow）**和 **`<HARD-GATE>`** — 一個強制停止點，在指定 artifact 存在於磁碟之前，阻止 Agent 繼續執行。
 
@@ -19,7 +19,7 @@ AI Agent 速度快，但缺乏紀律。沒有門控時，它們會：
 
 ## Stage 0 — 獨立技能（隨時可用）
 
-這四個技能在 s1–s7 管線之外運作，產出的 artifact 可選擇性地注入管線，但不會阻斷或門控管線。
+這五個技能在 s1–s7 管線之外運作，產出的 artifact 可選擇性地注入管線，但不會阻斷或門控管線。
 
 | 指令 | 用途 | 輸出可注入 |
 |---|---|---|
@@ -27,6 +27,7 @@ AI Agent 速度快，但缺乏紀律。沒有門控時，它們會：
 | `/s0-trace-feature` | 追蹤既有功能的呼叫鏈，產出 Mermaid 序列圖 | `/s3-eval-system` 或 `/s2-capture-vision` |
 | `/s0-eval-skill` | 依 6 項結構品質標準審核單一技能 | 技能作者修復漂移 |
 | `/s0-eval-alignment` | 批次掃描所有 28 個 s1–s7 技能的設計意圖對齊度 | 維護者執行修復 |
+| `/s0-skill-budget` | 合併任何 SKILL.md 前，依三軸（D 描述精確度、I 索引覆蓋率、S 檔案大小）審核 token 效率 | 技能作者修復後合入 |
 
 ---
 
@@ -73,7 +74,7 @@ PR 審查報告            E2E 通過              遙測報告
 
 ---
 
-## 全部 33 個技能
+## 全部 34 個技能
 
 | Stage | 角色 | 指令 | 用途 |
 |---|---|---|---|
@@ -82,6 +83,7 @@ PR 審查報告            E2E 通過              遙測報告
 | 0 *(獨立)* | 代碼考古學家 | `/s0-trace-feature` | 追蹤既有功能呼叫鏈，產出 Mermaid 序列圖 |
 | 0 *(獨立)* | 技能審計員 | `/s0-eval-skill` | 依 6 項結構品質標準審核單一技能 |
 | 0 *(獨立)* | 對齊審查員 | `/s0-eval-alignment` | 批次掃描所有 s1–s7 技能的設計意圖漂移 |
+| 0 *(獨立)* | Token 預算審計員 | `/s0-skill-budget` | 合併前依 D/I/S 三軸審核任何新增或修改的技能 |
 | 1 | 基礎建置工程師 | `/s1-define-rules` | 撰寫 `RULES.md`（Lint 規則、目錄結構、禁止模式） |
 | 1 | 基礎建置工程師 | `/s1-config-context` | 撰寫領域詞彙表 `CONTEXT.md`，定義 AI 邊界 |
 | 1 | 基礎建置工程師 | `/s1-lock-tech-stack` | 鎖定執行環境與框架版本，產生 lock 檔 |
@@ -193,6 +195,7 @@ skills/
     scripts/scan.py     可重用 CLI 掃描器（exit 0 = 全部 ALIGNED）
     scripts/engine.py   SkillGraphEngine v2.2 — 拓撲引擎 + CLI
     tests/              冒煙測試夾具 + pytest 套件（test_scan.py + test_engine.py）
+  s0-skill-budget/      Token 預算審計員 — 技能撰寫的 D/I/S token 效率門控
   s1-*/SKILL.md         Stage 1 — 基礎建置工程師（4 個技能）
   s2-*/SKILL.md         Stage 2 — 產品經理（4 個技能）
   s3-*/SKILL.md         Stage 3 — 系統架構師（4 個技能）
@@ -202,8 +205,10 @@ skills/
   s7-*/SKILL.md         Stage 7 — 發布經理（4 個技能）
 schemas/
   skill_graph_schema.yaml   宣告式依賴圖譜 — 28 個技能，含 stage、requires、outputs
+  SKILL_INDEX.yaml          關鍵字 → 技能對映，提供 O(1) 路由（供 s-fast-track 和 s0-skill-budget 使用）
 references/
-  skill-design-intent.md  s0-eval-alignment 的評估基線（C1–C4 規則 + 每個技能的關鍵詞列表）
+  skill-design-intent.md        s0-eval-alignment 的評估基線（C1–C4 規則 + 每個技能的關鍵詞列表）
+  SKILL_INDEX_TEMPLATE.yaml     SKILL_INDEX.yaml 的標準模板，內含三步維護清單
 docs/
   skill-evals/          對齊掃描報告（YYYY-MM-DD-alignment-scan.md）
   TRIALS_INDEX.md       所有研究試驗索引（07–16），含假設與結果
