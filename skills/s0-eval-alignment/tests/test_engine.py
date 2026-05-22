@@ -13,6 +13,7 @@ import pytest
 SCRIPT_DIR = Path(__file__).parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPT_DIR))
 
+import json
 from engine import SkillGraphEngine, CycleDependencyError, DriftViolationError, parse_simple_yaml, SemanticValidator, ValidationResult, ExecutionStack
 
 
@@ -1045,4 +1046,177 @@ def test_rollback_trace_mtime_heuristic(tmp_path):
     engine.rollback_trace(stack)
     frame = stack.peek()
     assert frame["rollback_target"] == "s0-upstream"
+
+
+# ---------------------------------------------------------------------------
+# 10. JIT Context Injection (P4)
+# ---------------------------------------------------------------------------
+
+JIT_SCHEMA = """
+skills:
+  s0-root:
+    stage: 0
+    requires: []
+    outputs:
+      - root.txt
+
+  s0-upstream:
+    stage: 0
+    requires:
+      - s0-root
+    outputs:
+      - upstream.txt
+    writes:
+      - upstream.txt
+
+  s4-impl:
+    stage: 4
+    requires:
+      - s0-upstream
+    outputs:
+      - impl.py
+    reads:
+      - spec.md
+    writes:
+      - impl.py
+    validators:
+      - type: json_query
+        file: impl.py
+        query: ".status == 'done'"
+        error_msg: "impl must be done"
+
+  s5-quality:
+    stage: 5
+    requires:
+      - s4-impl
+    outputs:
+      - report.json
+"""
+
+
+@pytest.fixture
+def jit_project(tmp_path):
+    schema_file = tmp_path / "schema.yaml"
+    schema_file.write_text(JIT_SCHEMA, encoding="utf-8")
+    engine = SkillGraphEngine(schema_file, tmp_path, mode="fluid")
+    return engine, tmp_path
+
+
+def test_detect_active_node_explicit_hint(jit_project):
+    engine, tmp_path = jit_project
+    state = tmp_path / "mock_ide.json"
+    state.write_text(json.dumps({"active_node_hint": "s4-impl"}), encoding="utf-8")
+    assert engine._detect_active_node(state) == "s4-impl"
+
+
+def test_detect_active_node_invalid_hint_falls_through(jit_project):
+    engine, tmp_path = jit_project
+    state = tmp_path / "mock_ide.json"
+    state.write_text(json.dumps({"active_node_hint": "nonexistent"}), encoding="utf-8")
+    # No other signals → None
+    assert engine._detect_active_node(state) is None
+
+
+def test_detect_active_node_rollback_sentinel(jit_project):
+    engine, tmp_path = jit_project
+    (tmp_path / ".s4-impl.rollback").write_text("rollback: fixing s5-quality\n", encoding="utf-8")
+    assert engine._detect_active_node(None) == "s4-impl"
+
+
+def test_detect_active_node_done_sentinel(jit_project):
+    engine, tmp_path = jit_project
+    (tmp_path / ".s4-impl.done").write_text("", encoding="utf-8")
+    assert engine._detect_active_node(None) == "s4-impl"
+
+
+def test_detect_active_node_no_signal(jit_project):
+    engine, tmp_path = jit_project
+    assert engine._detect_active_node(None) is None
+
+
+def test_detect_active_node_file_match(jit_project):
+    engine, tmp_path = jit_project
+    state = tmp_path / "mock_ide.json"
+    # active_file matches s4-impl's writes field
+    state.write_text(json.dumps({"active_file": "impl.py"}), encoding="utf-8")
+    assert engine._detect_active_node(state) == "s4-impl"
+
+
+def test_generate_jit_includes_current_and_upstream(jit_project):
+    engine, tmp_path = jit_project
+    state = tmp_path / "mock_ide.json"
+    state.write_text(json.dumps({"active_node_hint": "s4-impl"}), encoding="utf-8")
+    prompt = engine.generate_jit_prompt(state_path=state, depth=1)
+    assert "s4-impl" in prompt
+    assert "s0-upstream" in prompt  # direct upstream included
+
+
+def test_generate_jit_excludes_downstream(jit_project):
+    engine, tmp_path = jit_project
+    state = tmp_path / "mock_ide.json"
+    state.write_text(json.dumps({"active_node_hint": "s4-impl"}), encoding="utf-8")
+    prompt = engine.generate_jit_prompt(state_path=state, depth=1)
+    assert "s5-quality" not in prompt
+
+
+def test_generate_jit_depth2_reaches_grandparent(jit_project):
+    engine, tmp_path = jit_project
+    state = tmp_path / "mock_ide.json"
+    state.write_text(json.dumps({"active_node_hint": "s4-impl"}), encoding="utf-8")
+    prompt = engine.generate_jit_prompt(state_path=state, depth=2)
+    assert "s0-root" in prompt  # grandparent reached at depth=2
+
+
+def test_generate_jit_depth1_excludes_grandparent(jit_project):
+    engine, tmp_path = jit_project
+    state = tmp_path / "mock_ide.json"
+    state.write_text(json.dumps({"active_node_hint": "s4-impl"}), encoding="utf-8")
+    prompt = engine.generate_jit_prompt(state_path=state, depth=1)
+    assert "s0-root" not in prompt  # grandparent not in depth=1
+
+
+def test_generate_jit_no_active_node(jit_project):
+    engine, tmp_path = jit_project
+    prompt = engine.generate_jit_prompt(state_path=None)
+    assert "No active node" in prompt
+
+
+def test_generate_jit_includes_hard_gate(jit_project):
+    engine, tmp_path = jit_project
+    # Create a mock SKILL.md with HARD-GATE block
+    skill_dir = tmp_path / "skills" / "s4-impl"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text(
+        "---\nname: s4-impl\n---\n<HARD-GATE>\nDo NOT skip tests.\n</HARD-GATE>\n",
+        encoding="utf-8",
+    )
+    state = tmp_path / "mock_ide.json"
+    state.write_text(json.dumps({"active_node_hint": "s4-impl"}), encoding="utf-8")
+    prompt = engine.generate_jit_prompt(
+        state_path=state, skills_dir=tmp_path / "skills"
+    )
+    assert "HARD-GATE" in prompt
+    assert "Do NOT skip tests" in prompt
+
+
+def test_jit_token_check_passes_small_prompt(jit_project, tmp_path):
+    engine, _ = jit_project
+    skills_dir = tmp_path / "jit_skills"
+    for i in range(5):
+        d = skills_dir / f"s{i}-skill"
+        d.mkdir(parents=True)
+        (d / "SKILL.md").write_text("word " * 300, encoding="utf-8")
+    result = engine.jit_token_check("hello world tiny prompt", skills_dir)
+    assert result["passed"]
+    assert result["total_tokens"] > result["jit_tokens"]
+
+
+def test_jit_token_check_fails_large_prompt(jit_project, tmp_path):
+    engine, _ = jit_project
+    skills_dir = tmp_path / "jit_skills"
+    (skills_dir / "s0-skill").mkdir(parents=True)
+    (skills_dir / "s0-skill" / "SKILL.md").write_text("word " * 10, encoding="utf-8")
+    huge_prompt = "word " * 1000
+    result = engine.jit_token_check(huge_prompt, skills_dir)
+    assert not result["passed"]
 

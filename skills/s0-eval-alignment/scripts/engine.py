@@ -637,6 +637,174 @@ class SkillGraphEngine:
         stack.pop()
         return f"Popped frame: {node_id} (rollback target was {target}). Sentinel cleared."
 
+    # ── P4: JIT Context Injection ─────────────────────────────────────────────
+
+    def _load_ide_state(self, state_path: Optional[Path]) -> Optional[dict]:
+        if state_path is None:
+            return None
+        p = Path(state_path)
+        if not p.exists():
+            return None
+        try:
+            return json.loads(p.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return None
+
+    def _detect_active_node(self, state_path: Optional[Path] = None) -> Optional[str]:
+        """
+        Detect current active node. Priority:
+        1. active_node_hint in mock_ide.json (explicit)
+        2. .*.rollback sentinel (from P3 rollback trace)
+        3. active_file path match against node reads/writes/outputs
+        4. Most recently modified .*.done sentinel
+        """
+        ide_state = self._load_ide_state(state_path)
+
+        # Priority 1: explicit hint
+        if ide_state and "active_node_hint" in ide_state:
+            hint = ide_state["active_node_hint"]
+            if hint in self.skills:
+                return hint
+
+        # Priority 2: .*.rollback sentinel
+        rollback_sentinels = list(self.workspace_dir.glob(".*.rollback"))
+        if rollback_sentinels:
+            latest = max(rollback_sentinels, key=lambda p: p.stat().st_mtime)
+            node_id = latest.name[1:-len(".rollback")]
+            if node_id in self.skills:
+                return node_id
+
+        # Priority 3: active_file match
+        if ide_state and "active_file" in ide_state:
+            active_file = ide_state["active_file"]
+            for node_id, node_info in self.skills.items():
+                for field in ("reads", "writes", "outputs"):
+                    for path in node_info.get(field, []):
+                        if active_file.endswith(path) or path in active_file:
+                            return node_id
+
+        # Priority 4: most recent .*.done sentinel
+        done_sentinels = list(self.workspace_dir.glob(".*.done"))
+        if done_sentinels:
+            latest = max(done_sentinels, key=lambda p: p.stat().st_mtime)
+            node_id = latest.name[1:-len(".done")]
+            if node_id in self.skills:
+                return node_id
+
+        return None
+
+    def generate_jit_prompt(
+        self,
+        state_path: Optional[Path] = None,
+        depth: int = 1,
+        skills_dir: Optional[Path] = None,
+    ) -> str:
+        """
+        Generate a minimal JIT context prompt for the active node.
+        Includes current node schema fields + direct upstream (up to `depth` levels).
+        Optionally extracts <HARD-GATE> from SKILL.md when skills_dir is provided.
+        """
+        import re as _re
+
+        active_node = self._detect_active_node(state_path)
+        if active_node is None:
+            return (
+                "# JIT Context\n\n"
+                "No active node detected. Provide --state with active_node_hint, "
+                "or create a .*.done sentinel.\n"
+            )
+
+        ide_state = self._load_ide_state(state_path)
+        lines: List[str] = [f"# JIT Context: {active_node}\n"]
+
+        # IDE state block
+        if ide_state:
+            ide_lines = []
+            if "active_file" in ide_state:
+                ide_lines.append(f"- Active file: `{ide_state['active_file']}`")
+            if "last_terminal_output" in ide_state:
+                ide_lines.append(f"- Terminal: `{ide_state['last_terminal_output']}`")
+            if ide_lines:
+                lines.append("## IDE State\n")
+                lines.extend(ide_lines)
+                lines.append("")
+
+        # Current node
+        node_info = self.skills.get(active_node, {})
+        lines.append(f"## Current Node: {active_node} (Stage {node_info.get('stage', '?')})\n")
+        for field in ("requires", "outputs", "reads", "writes"):
+            val = node_info.get(field)
+            if val:
+                lines.append(f"- {field.capitalize()}: {val}")
+        validators = node_info.get("validators")
+        if validators:
+            lines.append(f"- Validators: {len(validators)} defined")
+        lines.append("")
+
+        # Upstream nodes up to `depth` levels
+        visited: Set[str] = {active_node}
+        current_level = list(node_info.get("requires", []))
+        for d in range(depth):
+            if not current_level:
+                break
+            label = "Direct Upstream" if d == 0 else f"Upstream (depth {d + 1})"
+            lines.append(f"## {label}\n")
+            next_level: List[str] = []
+            for req in current_level:
+                if req in visited:
+                    continue
+                visited.add(req)
+                req_info = self.skills.get(req, {})
+                lines.append(f"### {req} (Stage {req_info.get('stage', '?')})")
+                for field in ("outputs", "reads", "writes"):
+                    val = req_info.get(field)
+                    if val:
+                        lines.append(f"- {field.capitalize()}: {val}")
+                lines.append("")
+                next_level.extend(req_info.get("requires", []))
+            current_level = next_level
+
+        # Optional: HARD-GATE from SKILL.md
+        if skills_dir is not None:
+            skill_md = Path(skills_dir) / active_node / "SKILL.md"
+            if skill_md.exists():
+                try:
+                    content = skill_md.read_text(encoding="utf-8")
+                    m = _re.search(r"<HARD-GATE>(.*?)</HARD-GATE>", content, _re.DOTALL)
+                    if m:
+                        lines.append("## HARD-GATE\n")
+                        lines.append(m.group(1).strip())
+                        lines.append("")
+                except OSError:
+                    pass
+
+        return "\n".join(lines)
+
+    @staticmethod
+    def estimate_tokens(text: str) -> int:
+        """Rough token estimate: word count × 1.3."""
+        return int(len(text.split()) * 1.3)
+
+    def jit_token_check(self, prompt: str, skills_dir: Path) -> dict:
+        """
+        Check whether prompt satisfies the 10% token budget relative to total SKILL.md corpus.
+        Returns dict with jit_tokens, total_tokens, threshold, passed.
+        """
+        jit_tokens = self.estimate_tokens(prompt)
+        total_tokens = 0
+        for skill_md in Path(skills_dir).glob("*/SKILL.md"):
+            try:
+                total_tokens += self.estimate_tokens(skill_md.read_text(encoding="utf-8"))
+            except OSError:
+                pass
+        threshold = max(1, int(total_tokens * 0.1))
+        return {
+            "jit_tokens": jit_tokens,
+            "total_tokens": total_tokens,
+            "threshold": threshold,
+            "passed": jit_tokens <= threshold,
+        }
+
     def _get_all_dependencies(self, node: str) -> Set[str]:
         """Helper to find all transitive dependencies of a node (iterative)."""
         deps = set()
@@ -919,6 +1087,32 @@ def main() -> None:
         default=ExecutionStack.DEFAULT_MAX_DEPTH,
         help=f"Maximum rollback stack depth (default: {ExecutionStack.DEFAULT_MAX_DEPTH})"
     )
+    parser.add_argument(
+        "--jit",
+        action="store_true",
+        help="(P4) Generate minimal JIT context prompt for the current active node"
+    )
+    parser.add_argument(
+        "--state",
+        default=None,
+        help="(P4) Path to IDE state file (mock_ide.json) used by --jit"
+    )
+    parser.add_argument(
+        "--depth",
+        type=int,
+        default=1,
+        help="(P4) Upstream expansion depth for --jit (default: 1)"
+    )
+    parser.add_argument(
+        "--skills-dir",
+        default="skills",
+        help="(P4) Path to skills directory for SKILL.md extraction and token budget check (default: skills)"
+    )
+    parser.add_argument(
+        "--token-check",
+        action="store_true",
+        help="(P4) Used with --jit: assert JIT prompt is < 10%% of total skill token corpus"
+    )
 
     args = parser.parse_args()
 
@@ -994,6 +1188,29 @@ def main() -> None:
             msg = engine.stack_pop(exec_stack)
             print(msg)
             sys.exit(0)
+
+    # P4: --jit
+    if args.jit:
+        state_path = Path(args.state) if args.state else None
+        skills_dir = Path(args.skills_dir)
+        prompt = engine.generate_jit_prompt(
+            state_path=state_path,
+            depth=args.depth,
+            skills_dir=skills_dir if skills_dir.exists() else None,
+        )
+        print(prompt)
+        if args.token_check:
+            result = engine.jit_token_check(prompt, skills_dir)
+            status = "✅ PASS" if result["passed"] else "❌ FAIL"
+            print(
+                f"\n## Token Budget Check\n"
+                f"{status}: {result['jit_tokens']} JIT tokens ≤ {result['threshold']} "
+                f"(10% of {result['total_tokens']} total)",
+                file=sys.stderr,
+            )
+            if not result["passed"]:
+                sys.exit(1)
+        sys.exit(0)
 
     # Calculate status
     completed = engine.get_completed_nodes()
