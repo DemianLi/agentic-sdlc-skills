@@ -17,6 +17,122 @@ class CycleDependencyError(ValueError):
     pass
 
 
+class ValidationResult:
+    """Holds results from a SemanticValidator run."""
+
+    def __init__(self, errors: List[str], warnings: List[str]):
+        self.errors = errors
+        self.warnings = warnings
+        self.passed = len(errors) == 0
+
+
+class SemanticValidator:
+    """
+    Runs validator DSL checks (json_query / regex_match) defined in skill schema nodes.
+    file_hash is deferred to P1.5.
+    """
+
+    VALID_TYPES = {"json_query", "regex_match", "file_hash"}
+
+    def __init__(self, validators: list, workspace: Path):
+        self.validators = validators
+        self.workspace = workspace
+
+    def run(self) -> ValidationResult:
+        errors: List[str] = []
+        warnings: List[str] = []
+        for v in self.validators:
+            vtype = v.get("type")
+            if vtype == "json_query":
+                err = self._check_json_query(v)
+                if err:
+                    errors.append(err)
+            elif vtype == "regex_match":
+                err = self._check_regex_match(v)
+                if err:
+                    errors.append(err)
+            elif vtype == "file_hash":
+                warnings.append("file_hash validator deferred to P1.5 — skipped")
+            else:
+                errors.append(f"Unknown validator type: {vtype!r}")
+        return ValidationResult(errors=errors, warnings=warnings)
+
+    def _check_json_query(self, v: dict) -> Optional[str]:
+        """Returns error_msg if check fails, None if passes."""
+        import json
+        import re as _re
+
+        file_path = self.workspace / v["file"]
+        if not file_path.exists():
+            return f"json_query: file not found: {v['file']}"
+        try:
+            data = json.loads(file_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError) as exc:
+            return f"json_query: cannot read {v['file']}: {exc}"
+
+        query = v.get("query", "")
+        error_msg = v.get("error_msg", f"json_query failed: {query}")
+
+        # Minimal jq subset: <dotpath> <op> <literal>
+        m = _re.match(r'^([\w.]+)\s*(==|!=|>=|<=|>|<)\s*(.+)$', query.strip())
+        if not m:
+            return f"json_query: unsupported query syntax: {query!r}"
+        path_str, op, literal_str = m.group(1), m.group(2), m.group(3).strip()
+
+        value = data
+        for part in [p for p in path_str.lstrip(".").split(".") if p]:
+            if not isinstance(value, dict) or part not in value:
+                return f"json_query: path {path_str!r} not found in {v['file']}"
+            value = value[part]
+
+        # Parse literal value
+        ls = literal_str
+        if ls.lower() == "true":
+            literal: object = True
+        elif ls.lower() == "false":
+            literal = False
+        elif (ls.startswith('"') and ls.endswith('"')) or (ls.startswith("'") and ls.endswith("'")):
+            literal = ls[1:-1]
+        else:
+            try:
+                literal = float(ls) if "." in ls else int(ls)
+            except ValueError:
+                literal = ls
+
+        ops = {
+            "==": lambda a, b: a == b, "!=": lambda a, b: a != b,
+            ">": lambda a, b: a > b,  "<": lambda a, b: a < b,
+            ">=": lambda a, b: a >= b, "<=": lambda a, b: a <= b,
+        }
+        try:
+            passed = ops[op](value, literal)
+        except TypeError:
+            return f"json_query: cannot compare {type(value).__name__} {op} {type(literal).__name__}"
+        return None if passed else error_msg
+
+    def _check_regex_match(self, v: dict) -> Optional[str]:
+        """Returns error_msg if check fails, None if passes."""
+        import re as _re
+
+        file_pattern = v.get("file", "")
+        regex = v.get("pattern", "")
+        min_matches = v.get("min_matches", 1)
+        error_msg = v.get("error_msg", f"regex_match failed: {regex!r}")
+
+        matched_files = glob.glob(str(self.workspace / file_pattern), recursive=True)
+        if not matched_files:
+            return error_msg
+
+        compiled = _re.compile(regex)
+        count = 0
+        for fpath in matched_files:
+            try:
+                count += len(compiled.findall(Path(fpath).read_text(encoding="utf-8", errors="replace")))
+            except OSError:
+                pass
+        return None if count >= min_matches else error_msg
+
+
 def parse_simple_yaml(content: str) -> dict:
     """
     Extremely robust regex/line-based YAML parser for our specific skill schema.
@@ -75,8 +191,8 @@ class SkillGraphEngine:
         self.schema_path = Path(schema_path)
         self.workspace_dir = Path(workspace_dir)
         self.mode = mode  # "fluid" or "strict"
+        self._last_validation_failures: Dict[str, str] = {}
         self.skills = self._load_schema()
-        # Validate schema upon initialization
         self._validate_schema()
 
     def _load_schema(self) -> dict:
@@ -91,12 +207,17 @@ class SkillGraphEngine:
         try:
             import yaml
             data = yaml.safe_load(content)
-            # If yaml parsing yields empty or invalid format, raise
             if not isinstance(data, dict) or "skills" not in data:
                 raise ValueError("Invalid schema file format.")
             return data["skills"]
-        except (ImportError, Exception):
-            # Fall back to custom robust parser
+        except ImportError:
+            if "validators:" in content:
+                print("[WARNING] validators detected but PyYAML missing — skipped", file=sys.stderr)
+            data = parse_simple_yaml(content)
+            if "skills" not in data or not data["skills"]:
+                raise ValueError("Failed to parse schema with fallback parser.")
+            return data["skills"]
+        except Exception:
             data = parse_simple_yaml(content)
             if "skills" not in data or not data["skills"]:
                 raise ValueError("Failed to parse schema with fallback parser.")
@@ -107,13 +228,13 @@ class SkillGraphEngine:
         Ensures all requires are defined skills in the graph, detects cycles early,
         and validates that each skill contains only valid fields to prevent typos.
         """
-        valid_keys = {"stage", "requires", "outputs"}
-        # Ensure all referenced dependencies exist in the graph and have valid structures
+        valid_keys = {"stage", "requires", "outputs", "reads", "writes", "sentinels", "validators"}
+        valid_validator_types = {"json_query", "regex_match", "file_hash"}
+
         for skill_name, skill_info in self.skills.items():
             if not isinstance(skill_info, dict):
                 raise ValueError(f"Skill '{skill_name}' configuration must be a dictionary.")
-            
-            # Check for invalid keys (typo detection)
+
             invalid_keys = set(skill_info.keys()) - valid_keys
             if invalid_keys:
                 raise ValueError(
@@ -121,7 +242,6 @@ class SkillGraphEngine:
                     f"Supported keys are: {', '.join(sorted(valid_keys))} (check for typos like 'requiers' or 'outpus')"
                 )
 
-            # Validate value types
             if not isinstance(skill_info.get("stage", 1), int):
                 raise ValueError(f"Skill '{skill_name}': 'stage' must be an integer")
             for key in ("requires", "outputs"):
@@ -131,10 +251,22 @@ class SkillGraphEngine:
 
             for req in skill_info.get("requires", []):
                 if req not in self.skills:
-                    raise ValueError(
-                        f"Skill '{skill_name}' requires undefined skill '{req}'"
-                    )
-        # Perform cycle detection
+                    raise ValueError(f"Skill '{skill_name}' requires undefined skill '{req}'")
+
+            if "validators" in skill_info:
+                validators = skill_info["validators"]
+                if not isinstance(validators, list):
+                    raise ValueError(f"Skill '{skill_name}': 'validators' must be a list")
+                for i, v in enumerate(validators):
+                    if not isinstance(v, dict):
+                        raise ValueError(f"Skill '{skill_name}': validators[{i}] must be a dict")
+                    vtype = v.get("type")
+                    if vtype not in valid_validator_types:
+                        raise ValueError(
+                            f"Skill '{skill_name}': validators[{i}] has invalid type {vtype!r}. "
+                            f"Valid types: {', '.join(sorted(valid_validator_types))}"
+                        )
+
         self.topological_sort()
 
     def topological_sort(self) -> List[str]:
@@ -200,6 +332,7 @@ class SkillGraphEngine:
         """
         current_mode = mode or self.mode
         overrides = completed_overrides or set()
+        self._last_validation_failures = {}
         self_completed = set()
 
         for skill_name, skill_info in self.skills.items():
@@ -209,27 +342,39 @@ class SkillGraphEngine:
 
             outputs = skill_info.get("outputs", [])
 
-            # Sentinel file check for empty outputs
             if not outputs:
                 sentinel_file = self.workspace_dir / f".{skill_name}.done"
                 if sentinel_file.exists():
                     self_completed.add(skill_name)
-                    continue
-                # If no outputs, no override, and no sentinel file, it is incomplete
                 continue
 
-            # Check files on disk
             all_outputs_exist = True
             for pattern in outputs:
-                # Resolve relative path using glob matching inside workspace
                 full_pattern = str(self.workspace_dir / pattern)
                 matched_files = glob.glob(full_pattern, recursive=True)
                 if not matched_files:
                     all_outputs_exist = False
                     break
 
-            if all_outputs_exist:
-                self_completed.add(skill_name)
+            if not all_outputs_exist:
+                continue
+
+            validators = skill_info.get("validators")
+            if validators:
+                sv = SemanticValidator(validators, self.workspace_dir)
+                result = sv.run()
+                for w in result.warnings:
+                    print(f"[WARNING] [{skill_name}] {w}", file=sys.stderr)
+                if not result.passed:
+                    first_error = result.errors[0]
+                    if current_mode == "strict":
+                        self._last_validation_failures[skill_name] = first_error
+                        continue
+                    else:
+                        self._last_validation_failures[skill_name] = f"[SemanticValidationWarning] {first_error}"
+                        print(f"[SemanticValidationWarning] [{skill_name}] {first_error}", file=sys.stderr)
+
+            self_completed.add(skill_name)
 
         # Apply mode constraints in topological dependency order
         completed = set()
@@ -245,6 +390,10 @@ class SkillGraphEngine:
                     completed.add(skill_name)
 
         return completed
+
+    def get_validation_failures(self) -> Dict[str, str]:
+        """Returns semantic validator failures from the last get_completed_nodes() call."""
+        return dict(self._last_validation_failures)
 
     def _get_all_dependencies(self, node: str) -> Set[str]:
         """Helper to find all transitive dependencies of a node (iterative)."""
@@ -390,6 +539,7 @@ def main() -> None:
 
     # Calculate status
     completed = engine.get_completed_nodes()
+    validation_failures = engine.get_validation_failures()
     next_nodes = engine.get_next_nodes()
     blocked = engine.get_blocked_nodes()
     bypassed_info = engine.get_bypassed_dependencies() if args.mode == "fluid" else {}
@@ -422,10 +572,13 @@ def main() -> None:
         for node in sorted_completed:
             stage = engine.skills[node].get("stage", 1)
             bypassed_deps = bypassed_info.get(node, [])
+            validator_warn = validation_failures.get(node, "")
+            suffix = ""
             if bypassed_deps:
-                print(f"  [x] Stage {stage}: {node} (Bypassed upstream: {', '.join(bypassed_deps)})")
-            else:
-                print(f"  [x] Stage {stage}: {node}")
+                suffix += f" (Bypassed upstream: {', '.join(bypassed_deps)})"
+            if validator_warn:
+                suffix += f" ⚠️  {validator_warn}"
+            print(f"  [x] Stage {stage}: {node}{suffix}")
     else:
         print("  (None)")
 

@@ -13,7 +13,7 @@ import pytest
 SCRIPT_DIR = Path(__file__).parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPT_DIR))
 
-from engine import SkillGraphEngine, CycleDependencyError, parse_simple_yaml
+from engine import SkillGraphEngine, CycleDependencyError, parse_simple_yaml, SemanticValidator, ValidationResult
 
 
 # ---------------------------------------------------------------------------
@@ -403,7 +403,6 @@ def test_fluid_grouped_suggestions_logic(mock_project):
     schema_file, workspace_dir = mock_project
     engine = SkillGraphEngine(schema_file, workspace_dir, mode="fluid")
 
-    # Complete the s2-capture-vision file, bypassing stage 1 upstream files
     vision_dir = workspace_dir / "docs" / "specs"
     vision_dir.mkdir(parents=True, exist_ok=True)
     (vision_dir / "0001-vision.md").write_text("vision", encoding="utf-8")
@@ -411,16 +410,222 @@ def test_fluid_grouped_suggestions_logic(mock_project):
     completed = engine.get_completed_nodes()
     assert "s2-capture-vision" in completed
 
-    # Verify that bypassed dependencies are correctly calculated
     bypassed_info = engine.get_bypassed_dependencies()
     assert "s2-capture-vision" in bypassed_info
-    
-    # Group unique bypassed skills to verify grouping logic correctness
+
     all_bypassed = set()
     for missing in bypassed_info.values():
         all_bypassed.update(missing)
-        
+
     assert "s1-define-rules" in all_bypassed
     assert "s1-config-context" in all_bypassed
     assert "s1-lock-tech-stack" in all_bypassed
+
+
+# ---------------------------------------------------------------------------
+# 5. SemanticValidator unit tests
+# ---------------------------------------------------------------------------
+
+FIXTURE_DIR = Path(__file__).parent / "fixtures"
+
+
+def test_semantic_validator_json_query_pass(tmp_path):
+    (tmp_path / "test-results.json").write_text('{"summary": {"failed": 0}}', encoding="utf-8")
+    v = [{"type": "json_query", "file": "test-results.json",
+          "query": ".summary.failed == 0", "error_msg": "failed != 0"}]
+    result = SemanticValidator(v, tmp_path).run()
+    assert result.passed
+    assert result.errors == []
+
+
+def test_semantic_validator_json_query_fail(tmp_path):
+    (tmp_path / "test-results.json").write_text('{"summary": {"failed": 1}}', encoding="utf-8")
+    v = [{"type": "json_query", "file": "test-results.json",
+          "query": ".summary.failed == 0", "error_msg": "測試必須全部通過"}]
+    result = SemanticValidator(v, tmp_path).run()
+    assert not result.passed
+    assert "測試必須全部通過" in result.errors[0]
+
+
+def test_semantic_validator_json_query_missing_file(tmp_path):
+    v = [{"type": "json_query", "file": "missing.json", "query": ".x == 1", "error_msg": "e"}]
+    result = SemanticValidator(v, tmp_path).run()
+    assert not result.passed
+    assert "file not found" in result.errors[0]
+
+
+def test_semantic_validator_json_query_invalid_json(tmp_path):
+    (tmp_path / "bad.json").write_text("not json", encoding="utf-8")
+    v = [{"type": "json_query", "file": "bad.json", "query": ".x == 1", "error_msg": "e"}]
+    result = SemanticValidator(v, tmp_path).run()
+    assert not result.passed
+    assert "cannot read" in result.errors[0]
+
+
+def test_semantic_validator_regex_match_pass(tmp_path):
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "test_foo.py").write_text("def test_foo():\n    pass\n", encoding="utf-8")
+    v = [{"type": "regex_match", "file": "src/*.py", "pattern": "def test_",
+          "min_matches": 1, "error_msg": "no tests found"}]
+    result = SemanticValidator(v, tmp_path).run()
+    assert result.passed
+
+
+def test_semantic_validator_regex_match_fail(tmp_path):
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "app.py").write_text("def main():\n    pass\n", encoding="utf-8")
+    v = [{"type": "regex_match", "file": "src/*.py", "pattern": "def test_",
+          "min_matches": 1, "error_msg": "必須存在至少一個 test_ 函式"}]
+    result = SemanticValidator(v, tmp_path).run()
+    assert not result.passed
+    assert "test_ 函式" in result.errors[0]
+
+
+def test_semantic_validator_regex_match_no_files(tmp_path):
+    v = [{"type": "regex_match", "file": "src/*.py", "pattern": "def test_",
+          "min_matches": 1, "error_msg": "no files"}]
+    result = SemanticValidator(v, tmp_path).run()
+    assert not result.passed
+
+
+def test_semantic_validator_file_hash_deferred(tmp_path):
+    v = [{"type": "file_hash", "file": "any.txt",
+          "not_older_than_sentinel": True, "error_msg": "stale"}]
+    result = SemanticValidator(v, tmp_path).run()
+    assert result.passed  # deferred → no error, only warning
+    assert any("P1.5" in w for w in result.warnings)
+
+
+def test_semantic_validator_invalid_type(tmp_path):
+    v = [{"type": "unknown_type", "file": "x", "error_msg": "e"}]
+    result = SemanticValidator(v, tmp_path).run()
+    assert not result.passed
+    assert "Unknown validator type" in result.errors[0]
+
+
+# ---------------------------------------------------------------------------
+# 6. Engine integration: validators in get_completed_nodes
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def validator_project(tmp_path):
+    schema_file = FIXTURE_DIR / "schema_with_validators.yaml"
+    return schema_file, tmp_path
+
+
+def test_strict_mode_semantic_block(validator_project):
+    """In strict mode, failing validator prevents node from being COMPLETED."""
+    schema_file, workspace = validator_project
+    # Create upstream dependency
+    (workspace / "upstream.txt").write_text("ok", encoding="utf-8")
+    # Create test-results.json with failures (semantic fail)
+    (workspace / "test-results.json").write_text('{"summary": {"failed": 1}}', encoding="utf-8")
+    # Create the regex source file so regex_match can at least find files
+    src = workspace / "src"
+    src.mkdir()
+    (src / "test_foo.py").write_text("def test_foo(): pass", encoding="utf-8")
+
+    engine = SkillGraphEngine(schema_file, workspace, mode="strict")
+    completed = engine.get_completed_nodes()
+
+    assert "s4-tdd" not in completed
+    failures = engine.get_validation_failures()
+    assert "s4-tdd" in failures
+    assert "failed == 0" in failures["s4-tdd"] or "通過" in failures["s4-tdd"]
+
+
+def test_strict_mode_semantic_pass(validator_project):
+    """In strict mode, passing validator → node is COMPLETED."""
+    schema_file, workspace = validator_project
+    (workspace / "upstream.txt").write_text("ok", encoding="utf-8")
+    (workspace / "test-results.json").write_text('{"summary": {"failed": 0}}', encoding="utf-8")
+    src = workspace / "src"
+    src.mkdir()
+    (src / "test_foo.py").write_text("def test_foo(): pass", encoding="utf-8")
+
+    engine = SkillGraphEngine(schema_file, workspace, mode="strict")
+    completed = engine.get_completed_nodes()
+
+    assert "s4-tdd" in completed
+    assert engine.get_validation_failures() == {}
+
+
+def test_fluid_mode_semantic_warn(validator_project):
+    """In fluid mode, failing validator → node still COMPLETED but failure recorded."""
+    schema_file, workspace = validator_project
+    (workspace / "upstream.txt").write_text("ok", encoding="utf-8")
+    (workspace / "test-results.json").write_text('{"summary": {"failed": 2}}', encoding="utf-8")
+    src = workspace / "src"
+    src.mkdir()
+    (src / "test_foo.py").write_text("def test_foo(): pass", encoding="utf-8")
+
+    engine = SkillGraphEngine(schema_file, workspace, mode="fluid")
+    completed = engine.get_completed_nodes()
+
+    assert "s4-tdd" in completed  # fluid: still completed
+    failures = engine.get_validation_failures()
+    assert "s4-tdd" in failures
+    assert "SemanticValidationWarning" in failures["s4-tdd"]
+
+
+def test_downstream_blocked_when_validator_fails_strict(validator_project):
+    """In strict mode, semantic block on s4-tdd cascades to s5-sast-lint."""
+    schema_file, workspace = validator_project
+    (workspace / "upstream.txt").write_text("ok", encoding="utf-8")
+    (workspace / "test-results.json").write_text('{"summary": {"failed": 1}}', encoding="utf-8")
+    # s5-sast-lint output present on disk — but s4-tdd is semantically blocked
+    (workspace / "sast-report.json").write_text('{}', encoding="utf-8")
+    src = workspace / "src"
+    src.mkdir()
+    (src / "test_foo.py").write_text("def test_foo(): pass", encoding="utf-8")
+
+    engine = SkillGraphEngine(schema_file, workspace, mode="strict")
+    completed = engine.get_completed_nodes()
+    blocked = engine.get_blocked_nodes()
+
+    assert "s4-tdd" not in completed
+    assert "s5-sast-lint" in blocked
+
+
+def test_validate_schema_rejects_invalid_validator_type(tmp_path):
+    schema_file = tmp_path / "bad_validator.yaml"
+    schema_file.write_text("""
+skills:
+  s-node:
+    stage: 1
+    requires: []
+    outputs:
+      - out.txt
+    validators:
+      - type: bad_type
+        file: out.txt
+        error_msg: "x"
+""", encoding="utf-8")
+    with pytest.raises(ValueError) as exc_info:
+        SkillGraphEngine(schema_file, tmp_path)
+    assert "invalid type" in str(exc_info.value)
+    assert "bad_type" in str(exc_info.value)
+
+
+def test_validate_schema_accepts_new_valid_keys(tmp_path):
+    schema_file = tmp_path / "schema_new_keys.yaml"
+    schema_file.write_text("""
+skills:
+  s-node:
+    stage: 1
+    requires: []
+    outputs:
+      - out.txt
+    reads:
+      - some-context.md
+    writes:
+      - out.txt
+    sentinels:
+      - .s-node.done
+""", encoding="utf-8")
+    # Should not raise
+    engine = SkillGraphEngine(schema_file, tmp_path)
+    assert "s-node" in engine.skills
 
