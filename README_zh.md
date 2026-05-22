@@ -74,7 +74,7 @@ PR 審查報告            E2E 通過              遙測報告
 
 ---
 
-## 全部 34 個技能
+## 全部 35 個技能
 
 | Stage | 角色 | 指令 | 用途 |
 |---|---|---|---|
@@ -84,6 +84,7 @@ PR 審查報告            E2E 通過              遙測報告
 | 0 *(獨立)* | 技能審計員 | `/s0-eval-skill` | 依 6 項結構品質標準審核單一技能 |
 | 0 *(獨立)* | 對齊審查員 | `/s0-eval-alignment` | 批次掃描所有 s1–s7 技能的設計意圖漂移 |
 | 0 *(獨立)* | Token 預算審計員 | `/s0-skill-budget` | 合併前依 D/I/S 三軸審核任何新增或修改的技能 |
+| 0 *(獨立)* | 語意驗證員 | `/s0-semantic-validate` | 驗證工件內容語意（json_query / regex_match / file_hash）；阻斷 AI 偽造工件 — *V3.0 P1 設計骨架* |
 | 1 | 基礎建置工程師 | `/s1-define-rules` | 撰寫 `RULES.md`（Lint 規則、目錄結構、禁止模式） |
 | 1 | 基礎建置工程師 | `/s1-config-context` | 撰寫領域詞彙表 `CONTEXT.md`，定義 AI 邊界 |
 | 1 | 基礎建置工程師 | `/s1-lock-tech-stack` | 鎖定執行環境與框架版本，產生 lock 檔 |
@@ -258,6 +259,19 @@ description: >
 - **Description 是觸發器，不是摘要**（Matt Pocock 原則）— 每個技能的 `description` 欄位只說明*何時*使用；不在此處摘要工作流步驟，確保 Agent 永遠讀取完整的 `<what-to-do>` 主體
 - **Brownfield 感知** — `s4-tdd` 偵測 `RULES.md` 中的 `mode: brownfield`，將覆蓋率門控範圍縮小到新增/修改的行，避免在老舊代碼上累積覆蓋率債務
 - **Token 預算與規模解耦** — `SKILL_INDEX.yaml` 提供 O(1) 關鍵字路由；`s0-skill-budget` 在合併前強制執行 D/I/S 三軸審核。無論系統新增多少技能，每次任務的定位成本恆為 ~200 tokens（索引）+ 單一技能全文，不隨技能總數線性增長
+
+---
+
+## V3.0 Roadmap（4 個維度）
+
+四個架構維度正分階段引入系統。設計規格存放於 [`docs/v3-architecture/`](docs/v3-architecture/README.md)。
+
+| 優先級 | 維度 | 設計 | 狀態 |
+|:---:|:---|:---|:---:|
+| **P1** | **語意與真偽驗證** — validators DSL（`json_query` / `regex_match` / `file_hash`）內建於 `engine.py`；阻斷 AI 偽造工件 | [ADR-001](docs/v3-architecture/ADR-001-semantic-validation.md) | 設計骨架（`s0-semantic-validate`）已合入；實作待後續 PR |
+| **P2** | **工件合約雙向編譯** — `--sync-docs` / `--lint-drift` CLI；YAML ⇄ Mermaid 自動同步；腳手架生成 | [ADR-002](docs/v3-architecture/ADR-002-bidirectional-compile.md) | 待 P1 完成後開工 |
+| **P3** | **動態執行棧 + Rollback** — `.engine_stack.json` 持久化；`--rollback-trace`；局部修復閉環 | [ADR-003](docs/v3-architecture/ADR-003-execution-stack-rollback.md) | 待 P2 完成後開工 |
+| **P3** | **JIT 上下文注入** — IDE 狀態驅動的 prompt 過濾；10% Token 預算目標 | [ADR-004](docs/v3-architecture/ADR-004-jit-context-injection.md) | 待 P2 完成後開工 |
 
 ---
 

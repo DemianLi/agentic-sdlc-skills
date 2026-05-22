@@ -187,3 +187,48 @@ skills:
       - s7-deploy
     outputs:
       - docs/releases/*-telemetry.json
+
+  # ── Stage 0: Standalone Skills (V3.0 補錄) ──────────────────
+  # 這 6 個節點存在於磁碟但未在 schema 中註冊。
+  # stage: 0 表示它們無 pipeline 依賴，in_degree=0，可隨時觸發。
+  s-fast-track:
+    stage: 0
+    requires: []
+    outputs:
+      - skills/s-fast-track/SKILL.md
+
+  s0-brainstorm:
+    stage: 0
+    requires: []
+    outputs:
+      - skills/s0-brainstorm/SKILL.md
+
+  s0-eval-alignment:
+    stage: 0
+    requires: []
+    outputs:
+      - skills/s0-eval-alignment/SKILL.md
+
+  s0-eval-skill:
+    stage: 0
+    requires: []
+    outputs:
+      - skills/s0-eval-skill/SKILL.md
+
+  s0-skill-budget:
+    stage: 0
+    requires: []
+    outputs:
+      - skills/s0-skill-budget/SKILL.md
+
+  s0-trace-feature:
+    stage: 0
+    requires: []
+    outputs:
+      - skills/s0-trace-feature/SKILL.md
+
+  s0-semantic-validate:
+    stage: 0
+    requires: []
+    outputs:
+      - skills/s0-semantic-validate/SKILL.md

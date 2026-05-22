@@ -159,3 +159,11 @@ index:
   fast-track:           s-fast-track
   skip-ceremony:        s-fast-track
   quick-start:          s-fast-track
+
+  # ── Stage 0: V3.0 Semantic Validation (P1) ───────────
+  # 設計骨架；validators 機制待 P1 PR 實作。
+  semantic-validation:  s0-semantic-validate
+  validate-artifact:    s0-semantic-validate
+  json-query-gate:      s0-semantic-validate
+  anti-tampering:       s0-semantic-validate
+
