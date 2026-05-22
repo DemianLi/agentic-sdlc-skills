@@ -1,6 +1,22 @@
 # QA — Agentic SDLC 開發階段清單
 
-> 此清單為本 repo 所有 s1–s7 skill 的設計意圖基準。評估 skill 的對齊度時，以此文件各子步驟描述為 ground truth。
+> 此清單為本 repo 所有 skill 的設計意圖基準。評估 skill 的對齊度時，以此文件各子步驟描述為 ground truth。
+
+---
+
+## 零、獨立工具階段 (Standalone Skills)
+
+> s0 系列為流水線外的獨立工具，可在任意階段使用，不佔流水線卡點。
+
+**0.1 發散探索 (Brainstorm)**：收集初始想法、問題陳述或技術路線假設，輸出結構化的思路發散報告。對應 skill：`s0-brainstorm`。
+
+**0.2 功能溯源 (Trace Feature)**：從任意入口（UI 元件、API endpoint、資料表欄位）反向追溯功能的完整實作鏈，輸出跨層追蹤圖。對應 skill：`s0-trace-feature`。
+
+**0.3 Skill 結構審計 (Eval Skill)**：對單一 SKILL.md 執行 6 項生產就緒標準評分（衝突防禦、雙向阻斷、輸入清洗、漸進披露、優雅降級、漂移監控），輸出診斷報告。對應 skill：`s0-eval-skill`。
+
+**0.4 對齊度批次掃描 (Eval Alignment)**：批次掃描所有 s1–s7 skill，比對設計意圖與現行內容的語意落差，輸出 ALIGNED / PARTIAL / DRIFTED 狀態表。對應 skill：`s0-eval-alignment`。
+
+**0.5 Token 預算審計 (Skill Budget)**：對新增或修改的 SKILL.md 執行三軸（D 描述精確度、I 索引覆蓋率、S 檔案大小）token 效率審計，確保 deferred loading 命中率與加載成本維持在預算內。對應 skill：`s0-skill-budget`。
 
 ---
 
