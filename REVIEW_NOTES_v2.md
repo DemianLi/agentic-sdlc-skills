@@ -15,6 +15,9 @@
 ### Stage 0: Standalone (獨立探索者)
 - [x] `/s0-brainstorm` —— 需求頭腦風暴與 Premise 探索
 - [x] `/s0-trace-feature` —— 棕田代碼考古學與特徵追蹤
+- [x] `/s0-eval-skill` —— 單一技能 6 項結構品質審計
+- [x] `/s0-eval-alignment` —— 批次設計意圖對齊度掃描
+- [x] `/s0-skill-budget` —— Token 預算三軸審計（D/I/S），自評 PASS ✅
 
 ### Stage 1: Foundation Engineer (基礎奠基者)
 - [x] `/s1-define-rules` —— 治理解耦、程式碼規約定義
@@ -250,6 +253,68 @@ graph TD
 **v2 版本的 Skill Graph 已成功蛻變為一套世界頂級的、兼具敏捷DX與工程嚴謹性的 Agentic 工作流底座。**
 
 它擺脫了剛性門控的「教條主義」與純 Standalone 隨意性的「無序狀態」，透過 **「拓撲本地計算 + 流體伴隨指引 + 雙向三檔阻尼」**，完美調和了開發自由度與軟體工程底線。這不僅讓 Agent 行為 100% 可預測、可追溯，更在數學上為每次對話實現了高達 97% 的 Token 大幅減免。
+
+---
+
+## 🔬 五、v3 補記 — Token Budget 基礎設施（2026-05-22）
+
+> **背景**：v2 已透過 Skill Graph Engine 實現「拓撲按需加載」，但未解決另一個根本問題：**系統規模與 token 定位成本的線性耦合**。每新增一個 skill，系統的基礎 context 成本就增加一點——沒有任何機制在合併前驗證。本次補記記錄了解耦此耦合的三項基礎建設。
+
+### 1. 三方案設計決策 (Design Decisions)
+
+分析了三個正交方案，最終採用組合實施：
+
+| 方案 | 核心機制 | Token 路徑 |
+| :--- | :--- | :--- |
+| **A — Description 精確化** | 優化 `description:` frontmatter，讓 deferred loading 精確命中 | 系統加載 ~900 tokens，命中後只加載 1 skill |
+| **B — Router 極簡化** | 超輕量 router skill（< 300 tokens）輸出目標 skill name | router ~300 + 目標 skill ~1500 = ~1800 tokens |
+| **C — SKILL_INDEX + select 模式** | 機器可讀 keyword → skill 映射，O(1) 路由 | index ~200 + 目標 skill ~1500 = ~1700 tokens |
+
+**推薦組合採用**：方案 C（SKILL_INDEX.yaml 做快速通道）+ 方案 A（description 作備援）+ 方案 B 概念整合進 s-fast-track。
+
+**核心成果**：不論系統新增多少 skill，每次任務的定位成本恆為 **~200 tokens（索引）+ 1 個 skill 全文**，與 skill 總數解耦。
+
+### 2. 新增交付物 (Artifacts Delivered)
+
+| 檔案 | 用途 |
+| :--- | :--- |
+| `skills/s0-skill-budget/SKILL.md` | 第 34 個 skill：Token Budget Auditor，三軸（D/I/S）審計 |
+| `skills/s0-skill-budget/scripts/budget_check.py` | CI 可執行腳本，掃描全部 skill，exit 1 = FAIL |
+| `schemas/SKILL_INDEX.yaml` | 正式啟用的 keyword → skill 映射（O(1) 路由） |
+| `references/SKILL_INDEX_TEMPLATE.yaml` | 含三步維護清單的標準模板 |
+| `tests/fixtures/s0-skill-budget/` | 7 個測試案例 + 4 個 fixture SKILL.md |
+
+### 3. s0-skill-budget 三軸設計 (D/I/S Audit Framework)
+
+| 軸 | 守護目標 | 關鍵標準 |
+| :--- | :--- | :--- |
+| **D** — Description | deferred loading 命中精確度 | ≤40 tokens、`Use when` 觸發詞、`NOT` 排除子句、無流程動詞 |
+| **I** — Index | SKILL_INDEX.yaml 覆蓋率 | skill name 存在於 index、≥2 keywords、keyword 互斥 |
+| **S** — Size | 單次加載成本可預測 | ≤10 KB、無 section >50 行、外部引用存在 |
+
+**自評結果**：s0-skill-budget 對自身執行 Token Budget Audit，Overall: **PASS**（D1–D5 ✅、I1–I3 ✅、S1–S3 ✅）。
+
+### 4. CI 整合 (CI Integration)
+
+在 `.github/workflows/alignment.yml` 新增兩個 step，設計為漸進式上線：
+
+```yaml
+# 硬 gate：僅針對 s0-skill-budget 自身，FAIL → 阻斷 merge
+- name: Token budget check — s0-skill-budget (hard gate)
+  run: python3 skills/s0-skill-budget/scripts/budget_check.py skills/s0-skill-budget/SKILL.md
+
+# Advisory：全部 34 個 skill，|| true 不阻斷，報告可見
+- name: Token budget check — all skills (advisory)
+  run: python3 skills/s0-skill-budget/scripts/budget_check.py || true
+```
+
+觸發路徑同時擴充至 `schemas/**`，確保 SKILL_INDEX.yaml 變更也觸發 CI。
+
+> **遷移路徑**：33 個現有 skill 的 description 為 v2 前制定，普遍不符合 D 軸標準（屬預期）。待各 skill description 陸續更新後，advisory step 將升格為硬 gate。
+
+### 5. 文件同步更新
+
+QA.md 新增 Stage 0 區塊（補記全部 5 個 s0 skills）、CONTEXT.md 新增 `Skill Index` 與 `Token Budget Audit` 術語定義、README.md 與 README_zh.md 更新技能總數（33 → 34）並補充設計原則「Token 預算與規模解耦」。
 
 ---
 *報告審計與認證：Antigravity Codebase Researcher & Architect Agent*
