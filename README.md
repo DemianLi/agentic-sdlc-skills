@@ -1,6 +1,6 @@
 # Agentic SDLC Skills
 
-33 atomic Skill files that drive an AI Agent through a structured, gated Software Development Lifecycle. The core pipeline is 7 stages (Foundation → Release); four standalone Stage 0 skills operate outside the pipeline and can be used at any time; one fast-track routing skill lets you skip s1–s3 ceremony for small, well-understood tasks.
+34 atomic Skill files that drive an AI Agent through a structured, gated Software Development Lifecycle. The core pipeline is 7 stages (Foundation → Release); five standalone Stage 0 skills operate outside the pipeline and can be used at any time; one fast-track routing skill lets you skip s1–s3 ceremony for small, well-understood tasks.
 
 Each Skill is a Markdown file that defines a Role, a Workflow, and a `<HARD-GATE>` — a mandatory stop that blocks the Agent from proceeding until a pre-defined artifact exists on disk.
 
@@ -19,7 +19,7 @@ This Skill system forces the Agent to work the same way a senior engineering tea
 
 ## Stage 0 — Standalone Skills (use any time)
 
-Four skills operate outside the s1–s7 pipeline. They produce artifacts that can optionally feed into the pipeline but do not block or gate it.
+Five skills operate outside the s1–s7 pipeline. They produce artifacts that can optionally feed into the pipeline but do not block or gate it.
 
 | Slash Command | Purpose | Optional output feeds into |
 |---|---|---|
@@ -27,6 +27,7 @@ Four skills operate outside the s1–s7 pipeline. They produce artifacts that ca
 | `/s0-trace-feature` | Trace an existing feature's call chain; produce a Mermaid sequence diagram | `/s3-eval-system` or `/s2-capture-vision` |
 | `/s0-eval-skill` | Audit a single skill against 6 structural quality criteria; output a scored report | Skill author fixes drift |
 | `/s0-eval-alignment` | Batch-scan all 28 s1–s7 skills against QA.md design intent; detect drift before it compounds | Maintainer applies fixes |
+| `/s0-skill-budget` | Audit any SKILL.md on three token-efficiency axes (D description precision, I index coverage, S size budget); output a compact pass/fail checklist | Skill author fixes before merge |
 
 ---
 
@@ -72,7 +73,7 @@ Each arrow is a **Handoff** — a set of committed artifacts that must exist bef
 
 ---
 
-## The 33 Skills
+## The 34 Skills
 
 | Stage | Role | Slash Command | Purpose |
 |---|---|---|---|
@@ -81,6 +82,7 @@ Each arrow is a **Handoff** — a set of committed artifacts that must exist bef
 | 0 *(standalone)* | Code Archaeologist | `/s0-trace-feature` | Trace existing feature call chain; produce Mermaid sequence diagram |
 | 0 *(standalone)* | Skill Auditor | `/s0-eval-skill` | Audit single skill against 6 structural quality criteria |
 | 0 *(standalone)* | Alignment Inspector | `/s0-eval-alignment` | Batch-scan all s1–s7 skills for design-intent drift |
+| 0 *(standalone)* | Token Budget Auditor | `/s0-skill-budget` | Audit D/I/S axes before merging any new or modified skill |
 | 1 | Foundation Engineer | `/s1-define-rules` | Author `RULES.md` (linter, directory structure, forbidden patterns) |
 | 1 | Foundation Engineer | `/s1-config-context` | Author domain glossary `CONTEXT.md`; define AI boundaries |
 | 1 | Foundation Engineer | `/s1-lock-tech-stack` | Pin runtime + framework versions; generate lock files |
@@ -192,6 +194,7 @@ skills/
     scripts/scan.py     Reusable CLI scanner (exit 0 = all ALIGNED)
     scripts/engine.py   SkillGraphEngine v2.2 — topology engine + CLI
     tests/              Smoke-test fixtures + pytest suite (test_scan.py + test_engine.py)
+  s0-skill-budget/      Token Budget Auditor — D/I/S token-efficiency gate for skill authoring
   s1-*/SKILL.md         Stage 1 — Foundation Engineer (4 skills)
   s2-*/SKILL.md         Stage 2 — Product Manager (4 skills)
   s3-*/SKILL.md         Stage 3 — System Architect (4 skills)
@@ -201,8 +204,10 @@ skills/
   s7-*/SKILL.md         Stage 7 — Release Manager (4 skills)
 schemas/
   skill_graph_schema.yaml   Declarative dependency graph — 28 skills with stage, requires, outputs
+  SKILL_INDEX.yaml          Keyword → skill mapping for O(1) routing (used by s-fast-track and s0-skill-budget)
 references/
-  skill-design-intent.md  Evaluation baseline for s0-eval-alignment (C1–C4 checks + per-skill keywords)
+  skill-design-intent.md        Evaluation baseline for s0-eval-alignment (C1–C4 checks + per-skill keywords)
+  SKILL_INDEX_TEMPLATE.yaml     Canonical template for SKILL_INDEX.yaml with inline 3-step maintenance checklist
 docs/
   skill-evals/          Alignment scan reports (YYYY-MM-DD-alignment-scan.md)
   TRIALS_INDEX.md       Index of all research trials (07–16) with hypotheses and results
