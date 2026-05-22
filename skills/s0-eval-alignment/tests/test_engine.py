@@ -490,12 +490,90 @@ def test_semantic_validator_regex_match_no_files(tmp_path):
     assert not result.passed
 
 
-def test_semantic_validator_file_hash_deferred(tmp_path):
-    v = [{"type": "file_hash", "file": "any.txt",
+def test_file_hash_mtime_pass(tmp_path):
+    """Artifact newer than sentinel → PASS."""
+    sentinel = tmp_path / ".s4-tdd.done"
+    sentinel.write_text("", encoding="utf-8")
+    import time; time.sleep(0.02)
+    artifact = tmp_path / "report.json"
+    artifact.write_text('{"ok": true}', encoding="utf-8")
+    v = [{"type": "file_hash", "file": "report.json",
           "not_older_than_sentinel": True, "error_msg": "stale"}]
-    result = SemanticValidator(v, tmp_path).run()
-    assert result.passed  # deferred → no error, only warning
-    assert any("P1.5" in w for w in result.warnings)
+    result = SemanticValidator(v, tmp_path, node_id="s4-tdd").run()
+    assert result.passed
+
+
+def test_file_hash_mtime_fail(tmp_path):
+    """Artifact older than sentinel → FAIL."""
+    artifact = tmp_path / "report.json"
+    artifact.write_text('{"ok": true}', encoding="utf-8")
+    import time; time.sleep(0.02)
+    sentinel = tmp_path / ".s4-tdd.done"
+    sentinel.write_text("", encoding="utf-8")
+    v = [{"type": "file_hash", "file": "report.json",
+          "not_older_than_sentinel": True, "error_msg": "stale report"}]
+    result = SemanticValidator(v, tmp_path, node_id="s4-tdd").run()
+    assert not result.passed
+    assert "stale report" in result.errors[0]
+
+
+def test_file_hash_sha256_pass(tmp_path):
+    """Sentinel stores sha256 of artifact → matching hash → PASS."""
+    import hashlib
+    artifact = tmp_path / "report.json"
+    artifact.write_text('{"summary": {"failed": 0}}', encoding="utf-8")
+    stored = hashlib.sha256(artifact.read_bytes()).hexdigest()
+    sentinel = tmp_path / ".s4-tdd.done"
+    sentinel.write_text(f"sha256:{stored}", encoding="utf-8")
+    v = [{"type": "file_hash", "file": "report.json",
+          "not_older_than_sentinel": True, "error_msg": "tampered"}]
+    result = SemanticValidator(v, tmp_path, node_id="s4-tdd").run()
+    assert result.passed
+
+
+def test_file_hash_sha256_fail(tmp_path):
+    """Sentinel stores sha256 but artifact was swapped → FAIL."""
+    import hashlib
+    original = b'{"summary": {"failed": 0}}'
+    stored = hashlib.sha256(original).hexdigest()
+    sentinel = tmp_path / ".s4-tdd.done"
+    sentinel.write_text(f"sha256:{stored}", encoding="utf-8")
+    # Write DIFFERENT content to artifact
+    artifact = tmp_path / "report.json"
+    artifact.write_text('{"summary": {"failed": 1}}', encoding="utf-8")
+    v = [{"type": "file_hash", "file": "report.json",
+          "not_older_than_sentinel": True, "error_msg": "tampered"}]
+    result = SemanticValidator(v, tmp_path, node_id="s4-tdd").run()
+    assert not result.passed
+    assert "tampered" in result.errors[0]
+
+
+def test_file_hash_missing_sentinel(tmp_path):
+    """No sentinel file → FAIL with sentinel-not-found message."""
+    (tmp_path / "report.json").write_text("{}", encoding="utf-8")
+    v = [{"type": "file_hash", "file": "report.json",
+          "not_older_than_sentinel": True, "error_msg": "stale"}]
+    result = SemanticValidator(v, tmp_path, node_id="s4-tdd").run()
+    assert not result.passed
+    assert "sentinel" in result.errors[0]
+
+
+def test_file_hash_missing_artifact(tmp_path):
+    """Artifact doesn't exist → FAIL with not-found message."""
+    (tmp_path / ".s4-tdd.done").write_text("", encoding="utf-8")
+    v = [{"type": "file_hash", "file": "missing.json",
+          "not_older_than_sentinel": True, "error_msg": "stale"}]
+    result = SemanticValidator(v, tmp_path, node_id="s4-tdd").run()
+    assert not result.passed
+    assert "not found" in result.errors[0]
+
+
+def test_file_hash_no_node_id_skips(tmp_path):
+    """Without node_id, file_hash is a no-op (no sentinel to compare against)."""
+    v = [{"type": "file_hash", "file": "report.json",
+          "not_older_than_sentinel": True, "error_msg": "stale"}]
+    result = SemanticValidator(v, tmp_path).run()  # no node_id
+    assert result.passed
 
 
 def test_semantic_validator_invalid_type(tmp_path):

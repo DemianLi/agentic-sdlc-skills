@@ -28,15 +28,16 @@ class ValidationResult:
 
 class SemanticValidator:
     """
-    Runs validator DSL checks (json_query / regex_match) defined in skill schema nodes.
-    file_hash is deferred to P1.5.
+    Runs validator DSL checks (json_query / regex_match / file_hash) defined in skill schema nodes.
+    file_hash uses SHA256-in-sentinel when available, falls back to mtime comparison.
     """
 
     VALID_TYPES = {"json_query", "regex_match", "file_hash"}
 
-    def __init__(self, validators: list, workspace: Path):
+    def __init__(self, validators: list, workspace: Path, node_id: str = ""):
         self.validators = validators
         self.workspace = workspace
+        self.node_id = node_id  # needed for file_hash sentinel lookup
 
     def run(self) -> ValidationResult:
         errors: List[str] = []
@@ -52,7 +53,9 @@ class SemanticValidator:
                 if err:
                     errors.append(err)
             elif vtype == "file_hash":
-                warnings.append("file_hash validator deferred to P1.5 — skipped")
+                err = self._check_file_hash(v)
+                if err:
+                    errors.append(err)
             else:
                 errors.append(f"Unknown validator type: {vtype!r}")
         return ValidationResult(errors=errors, warnings=warnings)
@@ -131,6 +134,45 @@ class SemanticValidator:
             except OSError:
                 pass
         return None if count >= min_matches else error_msg
+
+    def _check_file_hash(self, v: dict) -> Optional[str]:
+        """
+        Returns error_msg if artifact is stale, None if fresh.
+
+        Strategy (in priority order):
+          1. If sentinel contains "sha256:<hex>" → compare artifact SHA256 against stored hash.
+             Equality means artifact matches what was recorded at completion time (fresh).
+             Mismatch means artifact was swapped after sentinel was written (tampered).
+          2. Otherwise → compare artifact mtime > sentinel mtime (fresh if newer).
+
+        SHA256 mode is preferred because git-clone resets mtime to current time,
+        making mtime comparison unreliable in CI environments.
+        """
+        import hashlib
+
+        if not v.get("not_older_than_sentinel") or not self.node_id:
+            return None
+
+        file_path = self.workspace / v["file"]
+        error_msg = v.get("error_msg", "file_hash: artifact may be stale or copied")
+
+        if not file_path.exists():
+            return f"file_hash: artifact not found: {v['file']}"
+
+        sentinel = self.workspace / f".{self.node_id}.done"
+        if not sentinel.exists():
+            return f"file_hash: sentinel .{self.node_id}.done not found — run the skill first"
+
+        sentinel_content = sentinel.read_text(encoding="utf-8", errors="replace").strip()
+        if sentinel_content.startswith("sha256:"):
+            stored_hash = sentinel_content[7:].strip()
+            artifact_hash = hashlib.sha256(file_path.read_bytes()).hexdigest()
+            return None if artifact_hash == stored_hash else error_msg
+
+        # mtime fallback: artifact must be strictly newer than sentinel
+        if file_path.stat().st_mtime <= sentinel.stat().st_mtime:
+            return error_msg
+        return None
 
 
 def parse_simple_yaml(content: str) -> dict:
@@ -361,7 +403,7 @@ class SkillGraphEngine:
 
             validators = skill_info.get("validators")
             if validators:
-                sv = SemanticValidator(validators, self.workspace_dir)
+                sv = SemanticValidator(validators, self.workspace_dir, node_id=skill_name)
                 result = sv.run()
                 for w in result.warnings:
                     print(f"[WARNING] [{skill_name}] {w}", file=sys.stderr)
