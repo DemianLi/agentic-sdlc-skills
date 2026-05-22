@@ -256,6 +256,7 @@ description: >
 - **Blocked handoffs escalate backward** — if an artifact is missing, the Agent reports `NEEDS_CONTEXT` and halts; it never infers forward
 - **Description as trigger, not summary** *(Matt Pocock principle)* — every skill's `description` field states only *when* to use it; no workflow steps are summarised there, so the Agent always reads the full `<what-to-do>` body
 - **Brownfield-aware** — `s4-tdd` detects `mode: brownfield` in `RULES.md` and scopes coverage gates to new/modified lines only, avoiding coverage debt on legacy code
+- **Token cost decoupled from system scale** — `SKILL_INDEX.yaml` provides O(1) keyword routing; `s0-skill-budget` enforces D/I/S axis checks before any skill is merged. No matter how many skills are added, the cost to locate a target stays constant: ~200 tokens (index) + one skill's full text — not linear in the total skill count
 
 ---
 

@@ -257,6 +257,7 @@ description: >
 - **阻塞的交接向後升級** — 若 artifact 缺失，Agent 回報 `NEEDS_CONTEXT` 並停止；絕不向前推測
 - **Description 是觸發器，不是摘要**（Matt Pocock 原則）— 每個技能的 `description` 欄位只說明*何時*使用；不在此處摘要工作流步驟，確保 Agent 永遠讀取完整的 `<what-to-do>` 主體
 - **Brownfield 感知** — `s4-tdd` 偵測 `RULES.md` 中的 `mode: brownfield`，將覆蓋率門控範圍縮小到新增/修改的行，避免在老舊代碼上累積覆蓋率債務
+- **Token 預算與規模解耦** — `SKILL_INDEX.yaml` 提供 O(1) 關鍵字路由；`s0-skill-budget` 在合併前強制執行 D/I/S 三軸審核。無論系統新增多少技能，每次任務的定位成本恆為 ~200 tokens（索引）+ 單一技能全文，不隨技能總數線性增長
 
 ---
 
