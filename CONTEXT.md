@@ -1,6 +1,6 @@
 # Agentic Skill System
 
-This context defines the ubiquitous language for the Agentic Software Development Lifecycle (SDLC) framework. The core pipeline has 7 sequential stages (Foundation Engineer → Release Manager); four standalone skills (Stage 0) operate outside the pipeline and may be used at any time. It establishes how AI Agents are directed through different phases of software development using specialized, atomic instructions.
+This context defines the ubiquitous language for the Agentic Software Development Lifecycle (SDLC) framework. The core pipeline has 7 sequential stages (Foundation Engineer → Release Manager); five standalone skills (Stage 0) operate outside the pipeline and may be used at any time. It establishes how AI Agents are directed through different phases of software development using specialized, atomic instructions.
 
 ## Language
 
@@ -21,7 +21,7 @@ The user-facing trigger for a Skill, following the naming convention `/s{StageNu
 *Avoid*: Trigger, Command Line, Input
 
 **Standalone Skill**:
-A Skill with the `/s0-` prefix that operates outside the s1–s7 pipeline. It produces an artifact that may optionally feed into the pipeline but is never a required gate. Current standalone skills: `/s0-brainstorm`, `/s0-trace-feature`, `/s0-eval-skill`, `/s0-eval-alignment`.
+A Skill with the `/s0-` prefix that operates outside the s1–s7 pipeline. It produces an artifact that may optionally feed into the pipeline but is never a required gate. Current standalone skills: `/s0-brainstorm`, `/s0-trace-feature`, `/s0-eval-skill`, `/s0-eval-alignment`, `/s0-skill-budget`.
 *Avoid*: Pre-stage skill, utility skill
 
 **OpenSpec**:
@@ -56,6 +56,14 @@ A Development Mode for exploratory, throwaway prototypes. Bypasses TDD ceremony 
 **Hotfix Mode**:
 A Development Mode for fixes on legacy or low-test-coverage codebases. TDD Iron Law is preserved; s5 review runs in a simplified form (CRITICAL issues remain blocking; WARNING items are informational only). Faster than Standard but not discipline-free.
 *Avoid*: Quick-fix mode, brownfield mode
+
+**Skill Index**:
+The declarative YAML file (`schemas/SKILL_INDEX.yaml`) that maps trigger keywords to skill names, enabling O(1) routing without semantic inference. Each keyword maps to exactly one skill (strict mutual exclusion). Used by `/s-fast-track` for direct lookup and by `/s0-skill-budget` for I-axis coverage checks. Maintained alongside the Skill Graph — every new or renamed skill requires an update to both files.
+*Avoid*: Keyword map, routing table, skill lookup
+
+**Token Budget Audit**:
+The three-axis evaluation performed by `/s0-skill-budget` on any SKILL.md before it is merged. Axis D checks description precision (≤40 tokens, `Use when` trigger, `NOT` exclusion clause, no process verbs). Axis I checks Skill Index coverage (skill name present, ≥2 keywords, mutual exclusion). Axis S checks size budget (≤10 KB, no section >50 lines, referenced files exist). A skill must reach Overall PASS or PARTIAL before being considered production-ready from a token-efficiency standpoint.
+*Avoid*: Token check, budget review, efficiency audit
 
 **Skill Graph**:
 The declarative YAML file (`schemas/skill_graph_schema.yaml`) that encodes all skill dependencies. Each node declares its `stage`, `requires` (upstream skills that must complete first), and `outputs` (glob-matchable artifact paths used to detect completion). The graph is acyclic; `SkillGraphEngine` validates this on initialization.
