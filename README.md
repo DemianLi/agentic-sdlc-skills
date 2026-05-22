@@ -73,7 +73,7 @@ Each arrow is a **Handoff** — a set of committed artifacts that must exist bef
 
 ---
 
-## The 34 Skills
+## The 35 Skills
 
 | Stage | Role | Slash Command | Purpose |
 |---|---|---|---|
@@ -83,6 +83,7 @@ Each arrow is a **Handoff** — a set of committed artifacts that must exist bef
 | 0 *(standalone)* | Skill Auditor | `/s0-eval-skill` | Audit single skill against 6 structural quality criteria |
 | 0 *(standalone)* | Alignment Inspector | `/s0-eval-alignment` | Batch-scan all s1–s7 skills for design-intent drift |
 | 0 *(standalone)* | Token Budget Auditor | `/s0-skill-budget` | Audit D/I/S axes before merging any new or modified skill |
+| 0 *(standalone)* | Semantic Verifier | `/s0-semantic-validate` | Verify artifact content semantics (json_query / regex_match / file_hash); block AI tampering — *V3.0 P1 design stub* |
 | 1 | Foundation Engineer | `/s1-define-rules` | Author `RULES.md` (linter, directory structure, forbidden patterns) |
 | 1 | Foundation Engineer | `/s1-config-context` | Author domain glossary `CONTEXT.md`; define AI boundaries |
 | 1 | Foundation Engineer | `/s1-lock-tech-stack` | Pin runtime + framework versions; generate lock files |
@@ -257,6 +258,19 @@ description: >
 - **Description as trigger, not summary** *(Matt Pocock principle)* — every skill's `description` field states only *when* to use it; no workflow steps are summarised there, so the Agent always reads the full `<what-to-do>` body
 - **Brownfield-aware** — `s4-tdd` detects `mode: brownfield` in `RULES.md` and scopes coverage gates to new/modified lines only, avoiding coverage debt on legacy code
 - **Token cost decoupled from system scale** — `SKILL_INDEX.yaml` provides O(1) keyword routing; `s0-skill-budget` enforces D/I/S axis checks before any skill is merged. No matter how many skills are added, the cost to locate a target stays constant: ~200 tokens (index) + one skill's full text — not linear in the total skill count
+
+---
+
+## V3.0 Roadmap (4 Dimensions)
+
+Four architectural dimensions are being phased into the system. Design specs live in [`docs/v3-architecture/`](docs/v3-architecture/README.md).
+
+| Priority | Dimension | Design | Status |
+|:---:|:---|:---|:---:|
+| **P1** | **Semantic Evidence Verification** — validators DSL (`json_query` / `regex_match` / `file_hash`) in `engine.py`; blocks AI artifact tampering | [ADR-001](docs/v3-architecture/ADR-001-semantic-validation.md) | Design stub (`s0-semantic-validate`) merged; implementation pending |
+| **P2** | **Bidirectional Spec Sync** — `--sync-docs` / `--lint-drift` CLI; YAML ⇄ Mermaid auto-sync; scaffolder | [ADR-002](docs/v3-architecture/ADR-002-bidirectional-compile.md) | Pending P1 |
+| **P3** | **Execution Stack & Rollback** — `.engine_stack.json` persistence; `--rollback-trace`; local repair loop | [ADR-003](docs/v3-architecture/ADR-003-execution-stack-rollback.md) | Pending P2 |
+| **P3** | **JIT Context Injection** — IDE-state-driven prompt filtering; 10% token budget target | [ADR-004](docs/v3-architecture/ADR-004-jit-context-injection.md) | Pending P2 |
 
 ---
 
