@@ -1,0 +1,161 @@
+# SKILL_INDEX.yaml — Token Budget Router Index
+#
+# 用途：s0-skill-budget 的 I 軸（Index Coverage）依賴此文件。
+#       s-fast-track 可讀此文件做 keyword → skill 的 O(1) 路由。
+#
+# ── 格式規則 ────────────────────────────────────────────────
+#   - 每個 keyword 只能對應一個 skill（嚴格互斥）
+#   - keyword 應為動詞短語或名詞，不超過 3 個英文單字
+#   - 每個 skill 至少 2 個 keyword
+#
+# ── 維護流程（新增或修改 skill 時依序執行）─────────────────
+#
+#   步驟 1 — 更新此文件
+#     新增 skill：在對應 Stage 區塊加入 ≥2 個 keyword，值為 skill name
+#     修改 skill name：全文替換舊 name → 新 name
+#     移除 skill：刪除所有指向該 skill 的 keyword 行
+#
+#   步驟 2 — 執行 Token Budget Audit（/s0-skill-budget）
+#     對象：剛新增或修改的 SKILL.md
+#     通過標準：
+#       D1 description ≤ 40 tokens
+#       D2 含 "Use when" + 任務類型觸發詞
+#       D4 含 "NOT" 排除子句
+#       I1 skill name 已出現為 index value（即本文件）
+#       I2 ≥ 2 個 keyword 指向此 skill
+#       I3 無 keyword 與相鄰 stage skill 重疊
+#       S1 skill 檔案 ≤ 10 KB
+#       S2 無任何 ### section 超過 50 行
+#     若任一項 ❌ FAIL → 修正後重跑，不合入
+#
+#   步驟 3 — 選用：執行完整結構審計（/s0-eval-skill）
+#     僅在下列情況需要：新 skill 首次上線、或 <what-to-do> 有大幅改寫
+#     通過標準：6/6 PASS（見 references/scoring-rubric.md）
+
+index:
+  # ── Stage 0: Standalone ──────────────────────────────
+  brainstorm:           s0-brainstorm
+  explore-ideas:        s0-brainstorm
+  ideation:             s0-brainstorm
+
+  trace-feature:        s0-trace-feature
+  where-is-feature:     s0-trace-feature
+  feature-origin:       s0-trace-feature
+
+  eval-skill:           s0-eval-skill
+  audit-skill:          s0-eval-skill
+  score-skill:          s0-eval-skill
+
+  eval-alignment:       s0-eval-alignment
+  drift-check:          s0-eval-alignment
+  batch-scan:           s0-eval-alignment
+
+  token-budget:         s0-skill-budget
+  budget-check:         s0-skill-budget
+  add-skill:            s0-skill-budget
+  modify-skill:         s0-skill-budget
+
+  # ── Stage 1: Foundation ──────────────────────────────
+  define-rules:         s1-define-rules
+  project-rules:        s1-define-rules
+
+  config-context:       s1-config-context
+  setup-context:        s1-config-context
+  new-project:          s1-config-context
+
+  lock-tech-stack:      s1-lock-tech-stack
+  choose-stack:         s1-lock-tech-stack
+
+  git-guardrails:       s1-git-guardrails
+  git-hooks:            s1-git-guardrails
+
+  # ── Stage 2: Requirements ────────────────────────────
+  capture-vision:       s2-capture-vision
+  product-vision:       s2-capture-vision
+
+  align-req:            s2-align-req
+  requirements-review:  s2-align-req
+
+  struct-req:           s2-struct-req
+  write-requirements:   s2-struct-req
+
+  snapshot-context:     s2-snapshot-ctx
+  context-snapshot:     s2-snapshot-ctx
+
+  # ── Stage 3: Design ──────────────────────────────────
+  breakdown-wbs:        s3-breakdown-wbs
+  work-breakdown:       s3-breakdown-wbs
+
+  build-dag:            s3-build-dag
+  task-dependencies:    s3-build-dag
+
+  design-arch:          s3-design-arch
+  architecture:         s3-design-arch
+
+  eval-system:          s3-eval-system
+  system-review:        s3-eval-system
+
+  # ── Stage 4: Implementation ──────────────────────────
+  tdd:                  s4-tdd
+  bug-fix:              s4-tdd
+  new-behavior:         s4-tdd
+  failing-test:         s4-tdd
+
+  impl-task:            s4-impl-task
+  implement:            s4-impl-task
+  prototype:            s4-impl-task
+
+  local-debug:          s4-local-debug
+  debug:                s4-local-debug
+  stack-trace:          s4-local-debug
+
+  setup-env:            s4-setup-env
+  environment-setup:    s4-setup-env
+  tooling-setup:        s4-setup-env
+
+  # ── Stage 5: Quality ─────────────────────────────────
+  audit-rules:          s5-audit-rules
+  compliance-check:     s5-audit-rules
+
+  fix-optimize:         s5-fix-optimize
+  refactor:             s5-fix-optimize
+
+  pr-review:            s5-pr-review
+  code-review:          s5-pr-review
+  review-pr:            s5-pr-review
+
+  sast-lint:            s5-sast-lint
+  security-scan:        s5-sast-lint
+  linting:              s5-sast-lint
+
+  # ── Stage 6: Testing ─────────────────────────────────
+  e2e-test:             s6-test-e2e
+  end-to-end:           s6-test-e2e
+
+  integration-test:     s6-test-integration
+  integration:          s6-test-integration
+
+  perf-test:            s6-test-perf
+  performance:          s6-test-perf
+
+  verify-release:       s6-verify-release
+  release-check:        s6-verify-release
+
+  # ── Stage 7: Release ─────────────────────────────────
+  build-artifact:       s7-build-artifact
+  build:                s7-build-artifact
+
+  deploy:               s7-deploy
+  staging-deploy:       s7-deploy
+  production-deploy:    s7-deploy
+
+  release-notes:        s7-release-notes
+  changelog:            s7-release-notes
+
+  telemetry:            s7-telemetry
+  monitoring-setup:     s7-telemetry
+
+  # ── Fast-Track Entry Point ───────────────────────────
+  fast-track:           s-fast-track
+  skip-ceremony:        s-fast-track
+  quick-start:          s-fast-track
