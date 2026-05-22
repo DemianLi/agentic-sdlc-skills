@@ -73,6 +73,94 @@ Each arrow is a **Handoff** — a set of committed artifacts that must exist bef
 
 ---
 
+<!-- SKILL-GRAPH-START -->
+```mermaid
+graph LR
+    subgraph stage0["Stage 0 — Standalone"]
+        s-fast-track
+        s0-brainstorm
+        s0-eval-alignment
+        s0-eval-skill
+        s0-semantic-validate
+        s0-skill-budget
+        s0-trace-feature
+    end
+    subgraph stage1["Stage 1 — Foundation"]
+        s1-config-context
+        s1-define-rules
+        s1-git-guardrails
+        s1-lock-tech-stack
+    end
+    subgraph stage2["Stage 2 — Requirements"]
+        s2-align-req
+        s2-capture-vision
+        s2-snapshot-ctx
+        s2-struct-req
+    end
+    subgraph stage3["Stage 3 — Design"]
+        s3-breakdown-wbs
+        s3-build-dag
+        s3-design-arch
+        s3-eval-system
+    end
+    subgraph stage4["Stage 4 — Implementation"]
+        s4-impl-task
+        s4-local-debug
+        s4-setup-env
+        s4-tdd
+    end
+    subgraph stage5["Stage 5 — Quality"]
+        s5-audit-rules
+        s5-fix-optimize
+        s5-pr-review
+        s5-sast-lint
+    end
+    subgraph stage6["Stage 6 — Testing"]
+        s6-test-e2e
+        s6-test-integration
+        s6-test-perf
+        s6-verify-release
+    end
+    subgraph stage7["Stage 7 — Release"]
+        s7-build-artifact
+        s7-deploy
+        s7-release-notes
+        s7-telemetry
+    end
+
+    s1-define-rules --> s1-git-guardrails
+    s1-config-context --> s1-lock-tech-stack
+    s1-define-rules --> s1-lock-tech-stack
+    s2-capture-vision --> s2-align-req
+    s1-lock-tech-stack --> s2-capture-vision
+    s2-struct-req --> s2-snapshot-ctx
+    s2-align-req --> s2-struct-req
+    s3-design-arch --> s3-breakdown-wbs
+    s3-breakdown-wbs --> s3-build-dag
+    s3-eval-system --> s3-design-arch
+    s2-snapshot-ctx --> s3-eval-system
+    s4-setup-env --> s4-impl-task
+    s4-impl-task --> s4-local-debug
+    s4-tdd --> s4-local-debug
+    s3-build-dag --> s4-setup-env
+    s4-setup-env --> s4-tdd
+    s5-sast-lint --> s5-audit-rules
+    s5-pr-review --> s5-fix-optimize
+    s5-audit-rules --> s5-pr-review
+    s4-local-debug --> s5-sast-lint
+    s6-test-integration --> s6-test-e2e
+    s5-fix-optimize --> s6-test-integration
+    s6-test-e2e --> s6-test-perf
+    s6-test-perf --> s6-verify-release
+    s6-verify-release --> s7-build-artifact
+    s7-release-notes --> s7-deploy
+    s7-build-artifact --> s7-release-notes
+    s7-deploy --> s7-telemetry
+```
+<!-- SKILL-GRAPH-END -->
+
+---
+
 ## The 35 Skills
 
 | Stage | Role | Slash Command | Purpose |

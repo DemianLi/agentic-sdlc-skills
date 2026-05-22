@@ -17,6 +17,11 @@ class CycleDependencyError(ValueError):
     pass
 
 
+class DriftViolationError(ValueError):
+    """Raised when YAML schema and README Mermaid DAG are out of sync."""
+    pass
+
+
 class ValidationResult:
     """Holds results from a SemanticValidator run."""
 
@@ -507,6 +512,123 @@ class SkillGraphEngine:
 
         return blocked
 
+    # ------------------------------------------------------------------
+    # P2: Bidirectional Spec Sync (ADR-002)
+    # ------------------------------------------------------------------
+
+    _STAGE_LABELS = {
+        0: "Stage 0 — Standalone",
+        1: "Stage 1 — Foundation",
+        2: "Stage 2 — Requirements",
+        3: "Stage 3 — Design",
+        4: "Stage 4 — Implementation",
+        5: "Stage 5 — Quality",
+        6: "Stage 6 — Testing",
+        7: "Stage 7 — Release",
+    }
+    _GRAPH_START = "<!-- SKILL-GRAPH-START -->"
+    _GRAPH_END = "<!-- SKILL-GRAPH-END -->"
+
+    def _generate_mermaid(self) -> str:
+        """Build Mermaid graph LR block from current schema."""
+        stage_nodes: Dict[int, List[str]] = {}
+        for node_id, node_data in self.skills.items():
+            stage = node_data.get("stage", 1)
+            stage_nodes.setdefault(stage, []).append(node_id)
+
+        lines = ["```mermaid", "graph LR"]
+        for stage in sorted(stage_nodes.keys()):
+            label = self._STAGE_LABELS.get(stage, f"Stage {stage}")
+            lines.append(f'    subgraph stage{stage}["{label}"]')
+            for node_id in sorted(stage_nodes[stage]):
+                lines.append(f"        {node_id}")
+            lines.append("    end")
+
+        lines.append("")
+        for node_id in sorted(self.skills.keys()):
+            for req in sorted(self.skills[node_id].get("requires", [])):
+                lines.append(f"    {req} --> {node_id}")
+        lines.append("```")
+        return "\n".join(lines)
+
+    def sync_docs(self, readme_path: Path) -> int:
+        """
+        Update README.md Mermaid DAG between SKILL-GRAPH markers.
+        If markers are absent, inserts block before "## The 35 Skills".
+        Returns 1 if file was modified, 0 if already up-to-date.
+        """
+        if not readme_path.exists():
+            raise FileNotFoundError(f"README not found: {readme_path}")
+
+        content = readme_path.read_text(encoding="utf-8")
+        mermaid = self._generate_mermaid()
+        block = f"{self._GRAPH_START}\n{mermaid}\n{self._GRAPH_END}"
+
+        if self._GRAPH_START in content and self._GRAPH_END in content:
+            s = content.index(self._GRAPH_START)
+            e = content.index(self._GRAPH_END) + len(self._GRAPH_END)
+            new_content = content[:s] + block + content[e:]
+        else:
+            # Insert before the skills table or append
+            INSERT_BEFORE = "## The 35 Skills"
+            if INSERT_BEFORE in content:
+                idx = content.index(INSERT_BEFORE)
+                new_content = content[:idx] + block + "\n\n---\n\n" + content[idx:]
+            else:
+                new_content = content.rstrip() + "\n\n" + block + "\n"
+
+        if new_content == content:
+            return 0
+        readme_path.write_text(new_content, encoding="utf-8")
+        return 1
+
+    def lint_drift(self, readme_path: Path, strict: bool = False) -> List[str]:
+        """
+        Compare README.md Mermaid DAG edges against schema requires.
+        Returns list of drift strings. Empty = no drift.
+        Raises DriftViolationError when strict=True and violations exist.
+        """
+        import re as _re
+
+        if not readme_path.exists():
+            raise FileNotFoundError(f"README not found: {readme_path}")
+
+        content = readme_path.read_text(encoding="utf-8")
+        if self._GRAPH_START not in content or self._GRAPH_END not in content:
+            msg = "Mermaid block markers not found — run --sync-docs first"
+            if strict:
+                raise DriftViolationError(msg)
+            return [f"[WARNING] {msg}"]
+
+        s = content.index(self._GRAPH_START) + len(self._GRAPH_START)
+        e = content.index(self._GRAPH_END)
+        block = content[s:e]
+
+        doc_edges: Set[tuple] = set()
+        for line in block.splitlines():
+            line = line.strip()
+            if not line or line.startswith(("%%", "style", "subgraph", "end", "graph", "```", "classDef")):
+                continue
+            # Matches: A --> B  and  A --label--> B
+            m = _re.match(r'^(\S+)\s+--[^>]*>\s+(\S+)', line)
+            if m:
+                doc_edges.add((m.group(1), m.group(2)))
+
+        schema_edges: Set[tuple] = set()
+        for node_id, node_data in self.skills.items():
+            for req in node_data.get("requires", []):
+                schema_edges.add((req, node_id))
+
+        violations: List[str] = []
+        for a, b in sorted(schema_edges - doc_edges):
+            violations.append(f"MISSING in docs: {a} --> {b}")
+        for a, b in sorted(doc_edges - schema_edges):
+            violations.append(f"EXTRA in docs: {a} --> {b}")
+
+        if violations and strict:
+            raise DriftViolationError("\n".join(violations))
+        return violations
+
 
 def main() -> None:
     """CLI Entrypoint for the Skill Graph Engine."""
@@ -556,6 +678,26 @@ def main() -> None:
         action="store_true",
         help="Collapse BLOCKED list into stage-grouped counts (reduces noise when many skills are blocked)"
     )
+    parser.add_argument(
+        "--sync-docs",
+        action="store_true",
+        help="(P2) Regenerate Mermaid DAG in README.md between SKILL-GRAPH markers"
+    )
+    parser.add_argument(
+        "--lint-drift",
+        action="store_true",
+        help="(P2) Compare README.md Mermaid DAG against schema; exit 1 if out of sync"
+    )
+    parser.add_argument(
+        "--strict-lint",
+        action="store_true",
+        help="(P2) Used with --lint-drift: treat any drift as a hard error (exit 1)"
+    )
+    parser.add_argument(
+        "--readme",
+        default="README.md",
+        help="Path to README.md (default: README.md, used by --sync-docs and --lint-drift)"
+    )
 
     args = parser.parse_args()
 
@@ -577,6 +719,40 @@ def main() -> None:
 
     if args.validate:
         print("✅ Schema is valid. No cycles or undefined dependencies detected!")
+        sys.exit(0)
+
+    # P2: --sync-docs
+    if args.sync_docs:
+        readme_path = Path(args.readme)
+        try:
+            changed = engine.sync_docs(readme_path)
+            if changed:
+                print(f"✅ {readme_path} updated with latest Mermaid DAG.")
+            else:
+                print(f"✅ {readme_path} already up-to-date.")
+        except Exception as e:
+            print(f"❌ sync-docs failed: {e}", file=sys.stderr)
+            sys.exit(1)
+        sys.exit(0)
+
+    # P2: --lint-drift
+    if args.lint_drift:
+        readme_path = Path(args.readme)
+        try:
+            violations = engine.lint_drift(readme_path, strict=args.strict_lint)
+        except DriftViolationError as e:
+            print(f"❌ DriftViolationError:\n{e}", file=sys.stderr)
+            sys.exit(1)
+        except Exception as e:
+            print(f"❌ lint-drift failed: {e}", file=sys.stderr)
+            sys.exit(1)
+        if violations:
+            for v in violations:
+                print(v)
+            if args.strict_lint:
+                sys.exit(1)
+        else:
+            print("✅ No drift detected — README Mermaid DAG matches schema.")
         sys.exit(0)
 
     # Calculate status
