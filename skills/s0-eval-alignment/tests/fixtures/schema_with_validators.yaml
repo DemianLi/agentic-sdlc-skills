@@ -1,0 +1,30 @@
+skills:
+  s0-upstream:
+    stage: 0
+    requires: []
+    outputs:
+      - upstream.txt
+
+  s4-tdd:
+    stage: 4
+    requires:
+      - s0-upstream
+    outputs:
+      - test-results.json
+    validators:
+      - type: json_query
+        file: test-results.json
+        query: ".summary.failed == 0"
+        error_msg: "測試必須全部通過（failed == 0）"
+      - type: regex_match
+        file: "src/**/*.py"
+        pattern: "def test_"
+        min_matches: 1
+        error_msg: "必須存在至少一個 test_ 函式"
+
+  s5-sast-lint:
+    stage: 5
+    requires:
+      - s4-tdd
+    outputs:
+      - sast-report.json
