@@ -1,8 +1,8 @@
 ---
 name: s0-skill-budget
 description: >
-  Use when adding or modifying any SKILL.md — audits token efficiency (D/I/S axes).
-  NOT for structural quality (s0-eval-skill) or drift detection (s0-eval-alignment).
+  Use when adding or modifying any SKILL.md — D/I/S token audit; outputs checklist.
+  NOT for quality audit (s0-eval-skill) or drift scan (s0-eval-alignment).
 ---
 
 <HARD-GATE>
