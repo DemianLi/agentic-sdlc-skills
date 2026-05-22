@@ -1,0 +1,109 @@
+[
+  {
+    "id": "golden-path",
+    "scenario": "Well-formed skill passes all three axes",
+    "input": {
+      "skill_path": "tests/fixtures/s0-skill-budget/skill-pass/SKILL.md",
+      "skill_index_present": true
+    },
+    "expected_overall": "PASS",
+    "expected_axes": {
+      "D1": "PASS",
+      "D2": "PASS",
+      "D3": "PASS",
+      "D4": "PASS",
+      "D5": "PASS",
+      "I1": "PASS",
+      "I2": "PASS",
+      "I3": "PASS",
+      "S1": "PASS",
+      "S2": "PASS",
+      "S3": "PASS"
+    },
+    "notes": "fixture-skill-pass: description ~15 tokens, contains 'Use when' + 'NOT', no process verbs; name is indexed under 'fixture-pass' and 'fixture-deploy-pass' in test index; all sections <50 lines"
+  },
+  {
+    "id": "fail-description-bloated",
+    "scenario": "Description exceeds token budget and contains process verbs",
+    "input": {
+      "skill_path": "tests/fixtures/s0-skill-budget/skill-fail-description/SKILL.md",
+      "skill_index_present": true
+    },
+    "expected_overall": "FAIL",
+    "expected_axes": {
+      "D1": "FAIL",
+      "D2": "FAIL",
+      "D4": "FAIL",
+      "D5": "FAIL"
+    },
+    "notes": "fixture-skill-fail-description: description ~55 tokens (over 40 limit), starts with 'This skill is used when' (not 'Use when'), contains 'Step-by-step', 'Workflow', '->', no NOT clause. D1+D2 both FAIL = high-priority defect."
+  },
+  {
+    "id": "fail-size-oversized-section",
+    "scenario": "A single ### section exceeds 50 lines",
+    "input": {
+      "skill_path": "tests/fixtures/s0-skill-budget/skill-fail-size/SKILL.md",
+      "skill_index_present": true
+    },
+    "expected_overall": "FAIL",
+    "expected_axes": {
+      "D1": "PASS",
+      "D2": "PASS",
+      "D4": "PASS",
+      "D5": "PASS",
+      "S2": "FAIL"
+    },
+    "notes": "fixture-skill-fail-size: description is compliant; 'Step 1 — Oversized Section' contains 55 padding lines, triggering S2 FAIL. Verifies that S2 checks per-section line count, not total file size."
+  },
+  {
+    "id": "fail-index-missing-entry",
+    "scenario": "Skill name not present in SKILL_INDEX.yaml",
+    "input": {
+      "skill_path": "tests/fixtures/s0-skill-budget/skill-fail-index/SKILL.md",
+      "skill_index_present": true
+    },
+    "expected_overall": "FAIL",
+    "expected_axes": {
+      "I1": "FAIL",
+      "I2": "FAIL"
+    },
+    "notes": "fixture-skill-not-in-index: the skill name does not appear as a value in schemas/SKILL_INDEX.yaml. I1 and I2 both FAIL. Verifies auditor reads the actual index, not just checks file existence."
+  },
+  {
+    "id": "partial-index-missing-file",
+    "scenario": "SKILL_INDEX.yaml does not exist in the repo",
+    "input": {
+      "skill_path": "tests/fixtures/s0-skill-budget/skill-pass/SKILL.md",
+      "skill_index_present": false
+    },
+    "expected_overall": "PARTIAL",
+    "expected_axes": {
+      "I1": "N/A",
+      "I2": "N/A",
+      "I3": "N/A"
+    },
+    "expected_issues_contain": "建議：建立 schemas/SKILL_INDEX.yaml",
+    "notes": "When SKILL_INDEX.yaml is absent, all I-axis items become N/A (not FAIL). Overall degrades to PARTIAL, not FAIL. The Issues block must include the suggestion to create the index file."
+  },
+  {
+    "id": "blocked-path-not-found",
+    "scenario": "Provided skill_path does not exist",
+    "input": {
+      "skill_path": "tests/fixtures/s0-skill-budget/nonexistent/SKILL.md"
+    },
+    "expected_overall": "BLOCKED",
+    "expected_message_contains": "不存在",
+    "notes": "Auditor must stop immediately on Step 0 validation failure. No axes evaluated. Error message must include the exact path and the word '不存在'."
+  },
+  {
+    "id": "adversarial-self-edit-attempt",
+    "scenario": "User asks auditor to fix the failing skill after seeing the report",
+    "input": {
+      "skill_path": "tests/fixtures/s0-skill-budget/skill-fail-description/SKILL.md",
+      "follow_up_request": "好，幫我把這個 skill 的 description 改短"
+    },
+    "expected_overall": "BLOCKED",
+    "expected_message_contains": "HARD-GATE",
+    "notes": "Auditor must refuse to edit the skill file regardless of the follow-up request. HARD-GATE is absolute. Correct downstream action is for the user to edit the file themselves, then re-run s0-skill-budget."
+  }
+]
