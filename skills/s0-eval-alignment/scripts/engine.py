@@ -1,8 +1,14 @@
 """
-SkillGraphEngine — Declarative YAML Schema + Runtime Topology Engine for Skill Graphs v2.2.
+SkillGraphEngine — Declarative YAML Schema + Runtime Topology Engine for Skill Graphs v3.0.
 
 Tracks SDLC skill execution state, validates dependencies, computes completed/next/blocked
 nodes, and performs topological sorting and cycle detection.
+
+V3.0 additions:
+  P1  SemanticValidator — json_query / regex_match / file_hash (SHA256 + mtime)
+  P2  sync_docs / lint_drift — YAML ⇄ Mermaid bidirectional sync
+  P3  ExecutionStack — .engine_stack.json persistence; rollback_trace; stack_pop
+  P4  generate_jit_prompt — 4-priority signal detection; 10% token budget assertion
 """
 
 import glob
