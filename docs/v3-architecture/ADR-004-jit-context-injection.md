@@ -79,8 +79,23 @@ JIT Prompt 必須滿足：
 
 **負面/風險**：
 - 節點對應邏輯（`active_file` → node_id）依賴 schema 的 `reads/writes` 欄位 → 必須先完成 ADR-001 的欄位擴展
-- `mock_ide.json` 手工維護成本高 → 長期目標是 Claude Code hook 自動注入（超出本 ADR 範圍）
+- `mock_ide.json` 手工維護成本高 → 已提供 Claude Code hook 腳本作為過渡方案（見下方）
 - 過度過濾可能讓 AI 看不到某個關鍵的上游約束 → 保留「展開上游」flag：`--jit --depth 2`（包含兩層上游節點）
+
+### Claude Code Hook（過渡方案）
+
+腳本：`skills/s0-eval-alignment/scripts/jit-hook.sh`
+
+安裝後掛載為 `PreToolUse` hook，自動偵測 `.*.rollback` / `.*.done` 哨兵 → 無需手動維護 `mock_ide.json`。無哨兵時靜默退出（<5ms 零開銷）。
+
+```bash
+# 一次性安裝
+cp skills/s0-eval-alignment/scripts/jit-hook.sh .claude/hooks/jit-inject.sh
+chmod +x .claude/hooks/jit-inject.sh
+# 再於 .claude/settings.json 加入 PreToolUse hooks 配置（見腳本頂部注釋）
+```
+
+真正的「IDE 自動感知」（讀取 `.git/index` mtime、IDE 插件事件）仍為未來工作。
 
 ---
 

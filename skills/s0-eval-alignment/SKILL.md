@@ -150,4 +150,59 @@ Fixtures 位於 `tests/fixtures/`；預期輸出位於 `tests/expected/`。
 - **Reads**: `skills/s*/SKILL.md`（全部）、`references/skill-design-intent.md`
 - **Writes**: `docs/skill-evals/YYYY-MM-DD-alignment-scan.md`
 
+## JIT Hook 安裝（P4 自動注入）
+
+hook 腳本位於 `skills/s0-eval-alignment/scripts/jit-hook.sh`。
+安裝後，每次 Edit / Write / Bash 工具呼叫前會自動偵測活躍節點並注入最小上下文；無哨兵時靜默退出（<5ms）。
+
+```bash
+# 步驟 1：複製腳本
+cp skills/s0-eval-alignment/scripts/jit-hook.sh .claude/hooks/jit-inject.sh
+chmod +x .claude/hooks/jit-inject.sh
+
+# 步驟 2：在 .claude/settings.json 加入 hooks 區塊
+# （完整 JSON 範例見腳本頂部注釋）
+#
+# "hooks": {
+#   "PreToolUse": [
+#     { "matcher": "Edit|Write|Bash",
+#       "hooks": [{ "type": "command",
+#                   "command": "bash .claude/hooks/jit-inject.sh" }] }
+#   ]
+# }
+
+# 步驟 3：驗證
+touch .s4-tdd.done
+bash .claude/hooks/jit-inject.sh   # 應輸出 JIT context block
+rm .s4-tdd.done
+```
+
+觸發條件：`.*.rollback`（P3 回滾哨兵，最高優先）> `.*.done`（節點完成哨兵）。
+
+---
+
+## V3.0 Engine CLI（直接操作引擎時使用）
+
+```bash
+# 基礎
+python3 skills/s0-eval-alignment/scripts/engine.py --validate           # P1: schema 語法 + 循環檢查
+python3 skills/s0-eval-alignment/scripts/engine.py --status             # 完整拓撲狀態
+
+# P2 — 雙向編譯
+python3 skills/s0-eval-alignment/scripts/engine.py --sync-docs          # 更新 README Mermaid DAG
+python3 skills/s0-eval-alignment/scripts/engine.py --lint-drift         # 比對 README vs schema（--strict-lint 變 hard gate）
+
+# P3 — 執行棧回滾
+python3 skills/s0-eval-alignment/scripts/engine.py --stack              # 顯示當前執行棧
+python3 skills/s0-eval-alignment/scripts/engine.py --rollback-trace     # 分析失敗節點，壓棧修復目標
+python3 skills/s0-eval-alignment/scripts/engine.py --stack-pop          # 重驗後彈棧（失敗仍會阻擋）
+
+# P4 — JIT 上下文注入
+python3 skills/s0-eval-alignment/scripts/engine.py \
+  --jit --state mock_ide.json --depth 2 \
+  --token-check --skills-dir skills       # 生成最小上下文 + 10% token 預算斷言
+```
+
+模式：`--mode fluid`（預設，validator 失敗為 warning）｜`--mode strict`（validator 失敗阻斷節點）
+
 </supporting-info>
