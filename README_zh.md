@@ -268,10 +268,10 @@ description: >
 
 | 優先級 | 維度 | 設計 | 狀態 |
 |:---:|:---|:---|:---:|
-| **P1** | **語意與真偽驗證** — validators DSL（`json_query` / `regex_match` / `file_hash`）內建於 `engine.py`；阻斷 AI 偽造工件 | [ADR-001](docs/v3-architecture/ADR-001-semantic-validation.md) | 設計骨架（`s0-semantic-validate`）已合入；實作待後續 PR |
-| **P2** | **工件合約雙向編譯** — `--sync-docs` / `--lint-drift` CLI；YAML ⇄ Mermaid 自動同步；腳手架生成 | [ADR-002](docs/v3-architecture/ADR-002-bidirectional-compile.md) | 待 P1 完成後開工 |
-| **P3** | **動態執行棧 + Rollback** — `.engine_stack.json` 持久化；`--rollback-trace`；局部修復閉環 | [ADR-003](docs/v3-architecture/ADR-003-execution-stack-rollback.md) | 待 P2 完成後開工 |
-| **P3** | **JIT 上下文注入** — IDE 狀態驅動的 prompt 過濾；10% Token 預算目標 | [ADR-004](docs/v3-architecture/ADR-004-jit-context-injection.md) | 待 P2 完成後開工 |
+| **P1** | **語意與真偽驗證** — `SemanticValidator` DSL（`json_query` / `regex_match` / `file_hash` + SHA256 sentinel）；strict 模式阻斷下游 | [ADR-001](docs/v3-architecture/ADR-001-semantic-validation.md) | ✅ 已合入（PR #8） |
+| **P2** | **工件合約雙向編譯** — `--sync-docs` / `--lint-drift` CLI；YAML ⇄ Mermaid 雙向同步；`DriftViolationError` | [ADR-002](docs/v3-architecture/ADR-002-bidirectional-compile.md) | ✅ 已合入（PR #9） |
+| **P3** | **動態執行棧 + Rollback** — `ExecutionStack`；`--rollback-trace`；mtime + BFS 回溯；`.rollback` 哨兵 | [ADR-003](docs/v3-architecture/ADR-003-execution-stack-rollback.md) | ✅ 已合入（PR #10） |
+| **P4** | **JIT 上下文注入** — 4 優先級訊號感知；`--jit --state --depth`；`--token-check`（10% 預算斷言） | [ADR-004](docs/v3-architecture/ADR-004-jit-context-injection.md) | ✅ 已合入（main） |
 
 ---
 

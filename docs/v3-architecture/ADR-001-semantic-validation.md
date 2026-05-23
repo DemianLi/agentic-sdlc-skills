@@ -2,7 +2,7 @@
 
 **優先級**: P1 — 最高性價比，最小改動範圍
 **設計來源**: Superpowers 倉庫哲學 + `skill_graph_3_0_design_dimensions.md` 維度 4
-**狀態**: 設計確立，待實作
+**狀態**: ✅ 已實作 — PR #8 (`feat/p1-semantic-validator` + `feat/p1.5-file-hash`，已合入 main)
 
 ---
 

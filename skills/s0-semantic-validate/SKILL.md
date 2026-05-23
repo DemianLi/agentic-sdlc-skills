@@ -20,10 +20,6 @@ After presenting the report, your message MUST end with exactly:
 
 You are the **Semantic Evidence Verifier**. Three checks. No edits. One output block.
 
-> **設計狀態**: 本 Skill 為 P1 設計骨架。validators 執行機制（SemanticValidator 類別）待
-> `engine.py` P1 PR 實作後生效。目前 `--mode strict` 下會輸出 `[SemanticValidationWarning]`
-> 警告但不阻斷執行，直到 P1 PR 合入。
-
 ---
 
 ### 絕對不要觸發的情境
@@ -56,7 +52,7 @@ You are the **Semantic Evidence Verifier**. Three checks. No edits. One output b
 從 `skill_graph_schema.yaml` 讀取目標節點的 `validators` 欄位：
 
 ```yaml
-# 範例節點配置（待 P1 PR 後生效）
+# 範例節點配置
 s4-tdd:
   validators:
     - type: json_query
@@ -92,7 +88,7 @@ s4-tdd:
 |------|------|
 | ✅ PASS | 驗證條件完全滿足 |
 | ❌ FAIL | 驗證條件不滿足（輸出 `error_msg`） |
-| ⚠️ SKIP | P1 PR 未合入，validators 執行機制不可用 |
+| ⚠️ N/A | 節點無 validators 宣告（等同跳過） |
 | ⚠️ N/A | 節點無 validators 宣告 |
 
 ---
@@ -109,7 +105,7 @@ Issues:
 - [Vn]: <error_msg>  （無問題寫「— none —」）
 ```
 
-Overall：全 ✅ → VALIDATED；有 ❌ → BLOCKED（不允許下游繼續）；全 ⚠️ SKIP → 輸出警告並通知 P1 PR 待合入。
+Overall：全 ✅ → VALIDATED；有 ❌ → BLOCKED（不允許下游繼續）；⚠️ N/A → 跳過（節點無 validators 宣告）。
 
 ---
 
@@ -117,7 +113,7 @@ Overall：全 ✅ → VALIDATED；有 ❌ → BLOCKED（不允許下游繼續）
 
 - **VALIDATED** — 所有 validators 通過；節點可繼續推進。
 - **BLOCKED** — 至少一個 validator 失敗；說明具體 error_msg；下游節點不得推進。
-- **SKIP (P1 pending)** — validators 執行機制未就緒；輸出警告，不阻斷（暫行）。
+- **N/A** — 節點無 validators 宣告；跳過驗證，不阻斷。
 - **BLOCKED (NEEDS_CONTEXT)** — 工件不存在；說明缺少哪個工件。
 
 </what-to-do>
@@ -148,7 +144,7 @@ Overall：全 ✅ → VALIDATED；有 ❌ → BLOCKED（不允許下游繼續）
 
 ## Eval Fixtures
 
-P1 PR 合入後，冒煙測試：
+冒煙測試（在 workspace 目錄執行）：
 ```bash
 # 以語意失敗工件測試（期望：BLOCKED）
 echo '{"summary": {"failed": 1}}' > /tmp/test-results.json

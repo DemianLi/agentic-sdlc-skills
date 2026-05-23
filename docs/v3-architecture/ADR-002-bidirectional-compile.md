@@ -2,7 +2,7 @@
 
 **優先級**: P2
 **設計來源**: OpenSpec 倉庫哲學 + `skill_graph_3_0_design_dimensions.md` 維度 2
-**狀態**: 設計確立，待實作
+**狀態**: ✅ 已實作 — PR #9 (`feat/p2-bidirectional-compile`，已合入 main)
 
 ---
 
