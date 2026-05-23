@@ -1,24 +1,18 @@
 ---
 name: s-fast-track
 description: >
-  Use when the task is a bug fix, single-file change, brownfield feature add,
-  or rapid prototype — and the user wants to skip s1–s3 ceremony and go
-  straight to implementation. Do NOT use for new greenfield projects or
-  tasks that require cross-team alignment on requirements.
+  Use when task is a bug fix or brownfield feature add — outputs minimal RULES.md
+  and routes to s4 implementation. NOT for greenfield projects needing full s1–s3.
 ---
 
 <HARD-GATE>
-⛔ SKIP CONFIRMATION — required before proceeding:
-Before routing to s4, you MUST print exactly:
+⛔ MODE CONFIRMATION — do not proceed to s4 until the required interaction for the active mode is complete:
 
-  "Fast-track mode: skipping s1–s3 (context, requirements, architecture).
-   Going directly to s4 implementation.
-   If you need the full structured flow, run /s1-config-context instead."
+**Express Mode**（RULES.md 不存在）: print `"Express Mode: generating minimal artifacts (3 questions). Add --vibe to skip."` → 3-Question Interview → write artifacts → route.
 
-Then ask the ONE clarifying question below. Do not ask more than one.
-Do not proceed to s4 until the user answers.
+**Standard Mode**（RULES.md 存在）: print `"Fast-track mode: RULES.md found — going directly to s4."` → ask ONE question → route.
 
-If the user's answer triggers **Vibe Mode** (see Mode Signal Detection below), you MUST print the Vibe Mode confirmation and wait for explicit Y before routing. That confirmation counts as a second required gate — do not skip it.
+**Vibe Mode**（`--vibe` flag）: print Vibe confirmation → wait for explicit Y → route. This is a second required gate.
 </HARD-GATE>
 
 <what-to-do>
@@ -38,9 +32,40 @@ You are the **Fast-Track Router**. Your only job is to skip the ceremony and get
 
 ---
 
-## The One Question
+## Step 1 — Mode Selection
 
-After printing the skip confirmation, ask exactly one question:
+掃描順序：
+
+1. 先掃描 **mode signal**（見 Mode Signal Detection）。偵測到 `--vibe` 或 `--hotfix` → 進入對應模式，跳過 Greenfield Check。
+2. **Greenfield Check**：`RULES.md` 存在 → Standard Mode；不存在 → Express Mode。
+
+---
+
+## Express Mode — 3-Question Interview
+
+*適用：RULES.md 不存在的 greenfield 專案*
+
+印出 HARD-GATE Express 確認文字後，逐一問以下三個問題，等待回答後再問下一題：
+
+- **Q1**: *「語言和框架？（例：Python + FastAPI）」*
+- **Q2**: *「有沒有絕對不能動的約束？（沒有則輸入「無」）」*
+- **Q3**: *「任務完成後什麼會存在或停止壞掉？一句話。」*
+
+三題全答後，**立刻寫入以下 artifacts**（不等用戶確認）：
+
+- **RULES.md**（根目錄）：tech stack（Q1）+ constraints（Q2；若「無」寫 "none declared"）+ coverage 預設 80%
+- **CONTEXT.md**（根目錄）：domain glossary（從 Q3 萃取 1–3 個核心名詞 + 說明）+ active task（Q3）
+- **TASK_DAG.md**（根目錄，若已存在則跳過）：單節點 checklist，title = Q3 答案
+
+寫入完成後，以 Q3 作為任務描述直接進入 Routing Table。
+
+---
+
+## Standard Mode — The One Question
+
+*適用：RULES.md 已存在的 brownfield 專案*
+
+印出 HARD-GATE Standard 確認文字後，問一個問題：
 
 > *"What's the task? Describe it in one sentence — what breaks or what should exist after you're done."*
 
@@ -115,13 +140,14 @@ Fast-track skips ceremony, not discipline. The following apply regardless:
 
 ## What Is Skipped
 
-| Skipped artifact | Why it's safe to skip here |
-|-----------------|---------------------------|
-| `CONTEXT.md` glossary (s1) | Single-task scope; no cross-agent terminology coordination needed |
-| `RULES.md` full definition (s1) | Existing project rules assumed already in place; new projects use defaults |
-| PRD / Vision doc (s2) | One-sentence task description is sufficient for atomic scope |
-| WBS / DAG (s3) | Single atomic task; dependency graph is trivially one node |
-| Architecture Design Doc (s3) | No new subsystems introduced; changes are local |
+| Skipped artifact | Express Mode | Vibe Mode | Why |
+|-----------------|:---:|:---:|-----|
+| `CONTEXT.md` glossary (s1) | ✅ 自動產生 | ⛔ 跳過 | Express: 從任務描述萃取；Vibe: 原型不需要 |
+| `RULES.md` (s1) | ✅ 自動產生 | ⛔ 跳過 | Express: 3 問題最小化版本；Vibe: 接受 s5-7 不可用 |
+| `TASK_DAG.md` (s3) | ✅ 自動產生 | ⛔ 跳過 | Express: 單節點；Vibe: 原型不需要 |
+| PRD / Vision doc (s2) | ⛔ 跳過 | ⛔ 跳過 | 單任務範圍；一句話描述足夠 |
+| WBS（s3） | ⛔ 跳過 | ⛔ 跳過 | 單 atomic task，不需要分解 |
+| Architecture Design Doc (s3) | ⛔ 跳過 | ⛔ 跳過 | 無新子系統；變更是局部的 |
 
 If during execution you discover the task is NOT atomic (it requires new subsystems, cross-module changes, or alignment with other teams), **stop and say so**:
 
@@ -135,8 +161,9 @@ Do not silently expand scope. Surface it and let the user decide.
 ## Completion Report
 
 Report status using exactly one of:
-- **ROUTED** — task description matched a route; printed skip confirmation; user is now in s4.
-- **ROUTED_VIBE** — `--vibe` signal detected; user confirmed; routed to `/s4-impl-task` without TDD.
+- **ROUTED_EXPRESS** — RULES.md not found; ran 3-Question Interview; generated RULES.md + CONTEXT.md + TASK_DAG.md; routed to s4. Full s5-7 pipeline is now available.
+- **ROUTED** — RULES.md found (brownfield); printed skip confirmation; user is now in s4.
+- **ROUTED_VIBE** — `--vibe` signal detected; user confirmed; routed to `/s4-impl-task` without TDD. s5-7 unavailable for this session.
 - **ROUTED_HOTFIX** — `--hotfix` signal detected; routed to `/s4-tdd` with CRITICAL-only s5 criteria.
 - **BLOCKED** — task scope turned out non-atomic (cross-module or new subsystem); stopped and warned user; suggested `/s2-capture-vision`.
 - **NEEDS_CLARIFICATION** — task description was empty, too vague, or matched zero routing table entries; re-prompted user for a one-sentence description.
@@ -161,29 +188,14 @@ Do not use this skill if any of the following are true:
 
 ## Process Flow
 
-```dot
-digraph fast_track {
-    rankdir=LR;
-    start   [label="User invokes\n/s-fast-track", shape=box];
-    print   [label="Print skip\nconfirmation", shape=box, style=filled, fillcolor="#fffacc"];
-    ask     [label="Ask ONE question:\nwhat's the task?", shape=box];
-    detect  [label="Mode Signal\nDetection", shape=diamond];
-    vibe    [label="Print ⚡ Vibe\nconfirmation\nWait Y/n", shape=box, style=filled, fillcolor="#fff0cc"];
-    hotfix  [label="Print 🔧 Hotfix\nannouncement", shape=box, style=filled, fillcolor="#e8f4ff"];
-    route   [label="Route to\ncorrect s4 skill", shape=box, style=filled, fillcolor="#ccffcc"];
-    scope   [label="Scope too large?\nStop + warn user", shape=box, style=filled, fillcolor="#ffcccc"];
-
-    start  -> print;
-    print  -> ask;
-    ask    -> scope   [label="non-atomic"];
-    ask    -> detect  [label="atomic"];
-    detect -> vibe    [label="--vibe / prototype"];
-    detect -> hotfix  [label="--hotfix"];
-    detect -> route   [label="standard"];
-    vibe   -> route   [label="Y"];
-    vibe   -> detect  [label="N (fallback)"];
-    hotfix -> route;
-}
+```
+/s-fast-track
+  → Mode Signal Detection
+      --vibe   → Vibe confirmation (wait Y) → s4-impl-task
+      --hotfix → Hotfix announcement       → s4-tdd
+      standard → Greenfield Check
+                   RULES.md missing → Express Mode (3Q interview → write artifacts) → Routing Table
+                   RULES.md exists  → Standard Mode (1 question)                   → Routing Table
 ```
 
 ## Eval Fixtures
@@ -195,7 +207,7 @@ Fixtures 位於 `tests/fixtures/fast-track-cases.json`。
 冒煙測試：逐一對照 fixture 的 `expected_route` 與 skill 實際路由結果是否一致。
 
 ## Artifact Dependencies
-- **Reads**: `RULES.md` (optional — checks for `mode: brownfield`)
-- **Writes**: nothing
+- **Reads**: RULES.md（existence check — determines Express vs Standard mode）
+- **Writes**: RULES.md, CONTEXT.md, TASK_DAG.md（Express Mode only; skipped if RULES.md already exists）
 
 </supporting-info>
