@@ -5,12 +5,16 @@ on:
     paths:
       - 'skills/**'
       - 'schemas/**'
+      - 'docs/**'
+      - 'README.md'
   push:
     branches:
       - main
     paths:
       - 'skills/**'
       - 'schemas/**'
+      - 'docs/**'
+      - 'README.md'
   workflow_dispatch:
 
 jobs:
@@ -28,12 +32,45 @@ jobs:
       - name: Install pytest
         run: pip install pytest pyyaml --quiet
 
+      # ── V3.0 P1/P2: Schema integrity (hard gates) ──────────────────────
+      - name: Validate schema (P1 hard gate)
+        run: |
+          python3 skills/s0-eval-alignment/scripts/engine.py \
+            --schema schemas/skill_graph_schema.yaml \
+            --validate
+
+      - name: Lint schema drift (P2 hard gate)
+        run: |
+          python3 skills/s0-eval-alignment/scripts/engine.py \
+            --schema schemas/skill_graph_schema.yaml \
+            --lint-drift --strict-lint \
+            --readme README.md
+
+      # ── Existing: unit + alignment tests ───────────────────────────────
       - name: Run smoke tests
         run: pytest skills/s0-eval-alignment/tests/ -v
 
       - name: Run alignment scanner
         run: python3 skills/s0-eval-alignment/scripts/scan.py
 
+      # ── V3.0 P4: JIT token budget check (advisory) ─────────────────────
+      - name: JIT token budget check (P4 advisory)
+        run: |
+          echo '{"active_node_hint": "s4-tdd"}' > /tmp/mock_ide.json
+          python3 skills/s0-eval-alignment/scripts/engine.py \
+            --schema schemas/skill_graph_schema.yaml \
+            --jit --state /tmp/mock_ide.json \
+            --token-check --skills-dir skills 2>&1 || true
+
+      # ── V3.0 P3: Rollback trace status (advisory) ──────────────────────
+      - name: Rollback trace status (P3 advisory)
+        run: |
+          python3 skills/s0-eval-alignment/scripts/engine.py \
+            --schema schemas/skill_graph_schema.yaml \
+            --rollback-trace \
+            --stack-file /tmp/.engine_stack.json || true
+
+      # ── Existing: report artifacts ──────────────────────────────────────
       - name: Write dated report (on push to main)
         if: github.event_name == 'push'
         run: python3 skills/s0-eval-alignment/scripts/scan.py --write
@@ -45,6 +82,7 @@ jobs:
           name: alignment-scan-report
           path: docs/skill-evals/
 
+      # ── Existing: token budget ──────────────────────────────────────────
       - name: Token budget check — s0-skill-budget (hard gate)
         run: python3 skills/s0-skill-budget/scripts/budget_check.py skills/s0-skill-budget/SKILL.md
 
