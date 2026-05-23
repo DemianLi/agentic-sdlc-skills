@@ -2,7 +2,7 @@
 
 **優先級**: P3
 **設計來源**: gstack 倉庫哲學 + `skill_graph_3_0_design_dimensions.md` 維度 1
-**狀態**: 設計確立，待實作（需外部 Agent 編排框架支持）
+**狀態**: ✅ 已實作 — PR #10 (`feat/p3-rollback-stack`，已合入 main)
 
 ---
 

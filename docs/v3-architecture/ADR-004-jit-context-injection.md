@@ -2,7 +2,7 @@
 
 **優先級**: P3
 **設計來源**: Matt Pocock Skills 倉庫哲學 + `skill_graph_3_0_design_dimensions.md` 維度 3
-**狀態**: 設計確立，待實作（需外部事件感知機制）
+**狀態**: ✅ 已實作 — commit `6b8218f` (`feat/p4-jit-context`，已合入 main)
 
 ---
 

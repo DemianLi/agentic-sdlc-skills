@@ -355,10 +355,10 @@ Four architectural dimensions are being phased into the system. Design specs liv
 
 | Priority | Dimension | Design | Status |
 |:---:|:---|:---|:---:|
-| **P1** | **Semantic Evidence Verification** — validators DSL (`json_query` / `regex_match` / `file_hash`) in `engine.py`; blocks AI artifact tampering | [ADR-001](docs/v3-architecture/ADR-001-semantic-validation.md) | Design stub (`s0-semantic-validate`) merged; implementation pending |
-| **P2** | **Bidirectional Spec Sync** — `--sync-docs` / `--lint-drift` CLI; YAML ⇄ Mermaid auto-sync; scaffolder | [ADR-002](docs/v3-architecture/ADR-002-bidirectional-compile.md) | Pending P1 |
-| **P3** | **Execution Stack & Rollback** — `.engine_stack.json` persistence; `--rollback-trace`; local repair loop | [ADR-003](docs/v3-architecture/ADR-003-execution-stack-rollback.md) | Pending P2 |
-| **P3** | **JIT Context Injection** — IDE-state-driven prompt filtering; 10% token budget target | [ADR-004](docs/v3-architecture/ADR-004-jit-context-injection.md) | Pending P2 |
+| **P1** | **Semantic Evidence Verification** — `SemanticValidator` DSL (`json_query` / `regex_match` / `file_hash` + SHA256 sentinel); strict mode blocks downstream | [ADR-001](docs/v3-architecture/ADR-001-semantic-validation.md) | ✅ Merged (PR #8) |
+| **P2** | **Bidirectional Spec Sync** — `--sync-docs` / `--lint-drift` CLI; YAML ⇄ Mermaid auto-sync; `DriftViolationError` | [ADR-002](docs/v3-architecture/ADR-002-bidirectional-compile.md) | ✅ Merged (PR #9) |
+| **P3** | **Execution Stack & Rollback** — `ExecutionStack`; `--rollback-trace`; mtime + BFS target detection; `.rollback` sentinels | [ADR-003](docs/v3-architecture/ADR-003-execution-stack-rollback.md) | ✅ Merged (PR #10) |
+| **P4** | **JIT Context Injection** — 4-priority signal detection; `--jit --state --depth`; `--token-check` (10% budget assertion) | [ADR-004](docs/v3-architecture/ADR-004-jit-context-injection.md) | ✅ Merged (main) |
 
 ---
 
