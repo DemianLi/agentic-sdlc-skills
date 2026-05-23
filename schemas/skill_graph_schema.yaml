@@ -52,6 +52,12 @@ skills:
       - s2-struct-req
     outputs:
       - CONTEXT_SNAPSHOT.md
+    validators:
+      - type: regex_match
+        file: CONTEXT_SNAPSHOT.md
+        pattern: "## "
+        min_matches: 2
+        error_msg: "CONTEXT_SNAPSHOT.md 必須包含至少 2 個章節標題（內容不能為空殼）"
 
   s3-eval-system:
     stage: 3
@@ -66,6 +72,12 @@ skills:
       - s3-eval-system
     outputs:
       - docs/arch/*-design.md
+    validators:
+      - type: regex_match
+        file: "docs/arch/*-design.md"
+        pattern: "mermaid"
+        min_matches: 1
+        error_msg: "設計文件必須包含 Mermaid 圖（序列圖或架構圖）"
 
   s3-breakdown-wbs:
     stage: 3
@@ -80,6 +92,17 @@ skills:
       - s3-breakdown-wbs
     outputs:
       - TASK_DAG.md
+    validators:
+      - type: regex_match
+        file: TASK_DAG.md
+        pattern: "mermaid"
+        min_matches: 1
+        error_msg: "TASK_DAG.md 必須包含 Mermaid DAG 圖"
+      - type: regex_match
+        file: TASK_DAG.md
+        pattern: "- \\["
+        min_matches: 3
+        error_msg: "TASK_DAG.md 必須包含至少 3 個任務項目"
 
   s4-setup-env:
     stage: 4
@@ -112,6 +135,12 @@ skills:
       - s4-local-debug
     outputs:
       - docs/audit/*-sast.md
+    validators:
+      - type: regex_match
+        file: "docs/audit/*-sast.md"
+        pattern: "CRITICAL|WARNING|PASS"
+        min_matches: 1
+        error_msg: "SAST 報告必須包含嚴重性評級（CRITICAL / WARNING / PASS）"
 
   s5-audit-rules:
     stage: 5
@@ -153,6 +182,12 @@ skills:
       - s6-test-e2e
     outputs:
       - docs/tests/*-perf-baseline.json
+    validators:
+      - type: regex_match
+        file: "docs/tests/*-perf-baseline.json"
+        pattern: "p99|P99"
+        min_matches: 1
+        error_msg: "效能基準必須包含 P99 指標"
 
   s6-verify-release:
     stage: 6
@@ -160,6 +195,19 @@ skills:
       - s6-test-perf
     outputs:
       - test-results.json
+    validators:
+      - type: json_query
+        file: test-results.json
+        query: ".summary.failed == 0"
+        error_msg: "所有測試必須通過（failed == 0）"
+      - type: json_query
+        file: test-results.json
+        query: ".summary.total > 0"
+        error_msg: "測試套件不能為空（total > 0）"
+      - type: file_hash
+        file: test-results.json
+        not_older_than_sentinel: true
+        error_msg: "測試報告必須比 sentinel 更新（防止複製舊報告）"
 
   s7-build-artifact:
     stage: 7
@@ -173,6 +221,12 @@ skills:
       - s7-build-artifact
     outputs:
       - CHANGELOG.md
+    validators:
+      - type: regex_match
+        file: CHANGELOG.md
+        pattern: "## \\["
+        min_matches: 1
+        error_msg: "CHANGELOG.md 必須符合 Keep a Changelog 格式（## [版本號]）"
 
   s7-deploy:
     stage: 7
