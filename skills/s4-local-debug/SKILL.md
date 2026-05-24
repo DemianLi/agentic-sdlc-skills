@@ -6,6 +6,12 @@ description: >
 ---
 
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s4-local-debug`
+If it reports any missing prerequisite, follow its suggestion and **STOP**.
+
+---
+
 Do NOT apply any fix until root cause is confirmed via INSTRUMENT phase and fix is committed with regression test.
 
 After presenting the required artifact, your message MUST end with exactly:
