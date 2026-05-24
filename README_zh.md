@@ -267,6 +267,7 @@ description: >
 - **垂直切片** — Stage 4 每次只實作一個行為（紅→綠→重構）
 - **Stage 邊界人工確認** — 七個 Stage 轉換點需要明確批准；Stage 內部步驟自動推進，減少儀式感而不犧牲安全性
 - **證據優於斷言** — Agent 必須貼出實際終端輸出，不能只聲稱成功
+- **前置契約優先於樂觀推測** — Skill 在缺少必要上下文時立即停止並回報 `NEEDS_CONTEXT`，不樂觀推進。根本原因：無錨點的 AI 執行只會空轉並累積需要打掉重練的低品質 artifact；提前強制補齊前置資訊，總成本遠低於事後修復。
 - **阻塞的交接向後升級** — 若 artifact 缺失，Agent 回報 `NEEDS_CONTEXT` 並停止；絕不向前推測
 - **Description 是觸發器，不是摘要**（Matt Pocock 原則）— 每個技能的 `description` 欄位只說明*何時*使用；不在此處摘要工作流步驟，確保 Agent 永遠讀取完整的 `<what-to-do>` 主體
 - **Brownfield 感知** — `s4-tdd` 偵測 `RULES.md` 中的 `mode: brownfield`，將覆蓋率門控範圍縮小到新增/修改的行，避免在老舊代碼上累積覆蓋率債務

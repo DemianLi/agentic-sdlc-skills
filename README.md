@@ -354,6 +354,7 @@ This system is designed from three prototype sources:
 - **Vertical slice** — Stage 4 implements one behavior at a time (RED → GREEN → REFACTOR)
 - **Stage-boundary human-in-the-loop** — the seven stage transitions require explicit approval; intra-stage steps auto-proceed to reduce ceremony without sacrificing safety
 - **Evidence over assertion** — the Agent must paste actual terminal output, not claim success
+- **Prerequisite contract over optimistic inference** — a Skill stops immediately and reports `NEEDS_CONTEXT` when required context is absent; it never infers forward. Root cause: an AI with no anchor just spins and accumulates low-quality artifacts that must be discarded; forcing the prerequisite gap closed up front costs far less than post-hoc repair.
 - **Blocked handoffs escalate backward** — if an artifact is missing, the Agent reports `NEEDS_CONTEXT` and halts; it never infers forward
 - **Description as trigger, not summary** *(Matt Pocock principle)* — every skill's `description` field states only *when* to use it; no workflow steps are summarised there, so the Agent always reads the full `<what-to-do>` body
 - **Brownfield-aware** — `s4-tdd` detects `mode: brownfield` in `RULES.md` and scopes coverage gates to new/modified lines only, avoiding coverage debt on legacy code
