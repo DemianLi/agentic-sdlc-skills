@@ -251,6 +251,18 @@ description: >
 
 ## 設計原則
 
+### 三大設計依據
+
+本系統的設計依照三個原型來源：
+
+| 設計面向 | 原型來源 | 參考文件 |
+|---------|---------|---------|
+| **技能分類** | [`QA.md`](QA.md) — 7 Stage × 4 子步驟的 SDLC 骨架；每個技能的觸發時機與職責邊界皆對齊此清單中的具體子步驟 | `QA.md` |
+| **技能撰寫方式** | 4 大參考倉庫（gstack、OpenSpec、Matt Pocock Skills、Superpowers）各自設計優勢的提取與融合 | [`docs/BENCHMARK_REFERENCE.md`](docs/BENCHMARK_REFERENCE.md) |
+| **技能評估方法** | OpenAI 與 Perplexity 的 Agent Skill 生產實務標準（6 項生產就緒指標框架） | [OpenAI Eval Skills](https://developers.openai.com/blog/eval-skills) · [Perplexity Skill Design](https://research.perplexity.ai/articles/designing-refining-and-maintaining-agent-skills-at-perplexity) |
+
+---
+
 - **Artifact 優先** — 每個 Stage 產出已提交的檔案，而不只是對話
 - **垂直切片** — Stage 4 每次只實作一個行為（紅→綠→重構）
 - **Stage 邊界人工確認** — 七個 Stage 轉換點需要明確批准；Stage 內部步驟自動推進，減少儀式感而不犧牲安全性

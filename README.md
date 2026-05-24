@@ -338,6 +338,18 @@ description: >
 
 ## Design principles
 
+### Three foundational sources
+
+This system is designed from three prototype sources:
+
+| Design dimension | Prototype source | Reference |
+|-----------------|-----------------|-----------|
+| **Skill classification** | [`QA.md`](QA.md) — the 7-stage × 4-substep SDLC skeleton; every skill's trigger scope and responsibility boundary maps to a specific substep in this checklist | `QA.md` |
+| **Skill authoring style** | Design strengths extracted and synthesised from four reference repositories: gstack, OpenSpec, Matt Pocock Skills, and Superpowers | [`docs/BENCHMARK_REFERENCE.md`](docs/BENCHMARK_REFERENCE.md) |
+| **Skill evaluation method** | OpenAI and Perplexity production standards for agent skills — a 6-criterion readiness framework (semantic boundary, negative triggers, input linting, progressive disclosure, graceful degradation, drift monitoring) | [OpenAI Eval Skills](https://developers.openai.com/blog/eval-skills) · [Perplexity Skill Design](https://research.perplexity.ai/articles/designing-refining-and-maintaining-agent-skills-at-perplexity) |
+
+---
+
 - **Artifact-first** — every Stage produces a committed file, not just a conversation
 - **Vertical slice** — Stage 4 implements one behavior at a time (RED → GREEN → REFACTOR)
 - **Stage-boundary human-in-the-loop** — the seven stage transitions require explicit approval; intra-stage steps auto-proceed to reduce ceremony without sacrificing safety
