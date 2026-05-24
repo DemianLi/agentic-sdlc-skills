@@ -5,6 +5,12 @@ description: >
   Outputs perf report JSON. NOT for functional testing.
 ---
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s6-test-perf`
+If it reports any missing prerequisite, follow its suggestion and **STOP**.
+
+---
+
 Do NOT proceed to `/s6-verify-release` if performance metrics exceed the thresholds
 defined in the REQ acceptance criteria from Stage 2. Performance regressions are BLOCKING.
 3. The performance baseline report must be machine-generated from actual load test execution — a manually created baseline does NOT satisfy this gate.
