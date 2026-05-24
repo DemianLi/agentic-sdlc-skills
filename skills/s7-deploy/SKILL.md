@@ -6,6 +6,12 @@ description: >
 ---
 
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s7-deploy`
+If it reports any missing prerequisite, follow its suggestion and **STOP**.
+
+---
+
 Do NOT proceed if:
 1. Artifact from `/s7-build-artifact` is not available (no `dist/` or Docker image).
 2. No deploy target defined AND `dry-run` mode not explicitly selected.

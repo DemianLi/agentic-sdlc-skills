@@ -6,6 +6,12 @@ description: >
 ---
 
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s7-release-notes`
+If it reports any missing prerequisite, follow its suggestion and **STOP**.
+
+---
+
 Do NOT write to CHANGELOG.md until deploy log from `/s7-deploy` exists at
 `docs/releases/YYYY-MM-DD-<version>-deploy.md` and confirms `Status: DEPLOYED` or `Status: DRY-RUN`.
 Release notes describe what was shipped — writing them before deployment is a version history lie.
