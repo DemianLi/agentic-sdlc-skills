@@ -18,6 +18,8 @@
 
 **0.5 Token 預算審計 (Skill Budget)**：對新增或修改的 SKILL.md 執行三軸（D 描述精確度、I 索引覆蓋率、S 檔案大小）token 效率審計，確保 deferred loading 命中率與加載成本維持在預算內。對應 skill：`s0-skill-budget`。
 
+**0.6 語意內容驗證 (Semantic Validate)**：以 `json_query` / `regex_match` DSL 驗證工件的實際內容（而非僅確認檔案存在），作為 HARD-GATE 的補充驗證層，確保工件語意符合前置條件要求。對應 skill：`s0-semantic-validate`。
+
 ---
 
 ## 一、初始化與根本規則定義階段 (Initialization & Base Rules)

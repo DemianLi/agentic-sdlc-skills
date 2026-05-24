@@ -1,6 +1,6 @@
 # Agentic SDLC Skills
 
-34 atomic Skill files that drive an AI Agent through a structured, gated Software Development Lifecycle. The core pipeline is 7 stages (Foundation → Release); five standalone Stage 0 skills operate outside the pipeline and can be used at any time; one fast-track routing skill lets you skip s1–s3 ceremony for small, well-understood tasks.
+35 atomic Skill files that drive an AI Agent through a structured, gated Software Development Lifecycle. The core pipeline is 7 stages (Foundation → Release); six standalone Stage 0 skills operate outside the pipeline and can be used at any time; one fast-track routing skill lets you skip s1–s3 ceremony for small, well-understood tasks.
 
 Each Skill is a Markdown file that defines a Role, a Workflow, and a `<HARD-GATE>` — a mandatory stop that blocks the Agent from proceeding until a pre-defined artifact exists on disk.
 
@@ -284,6 +284,7 @@ skills/
     scripts/engine.py   SkillGraphEngine v2.2 — topology engine + CLI
     tests/              Smoke-test fixtures + pytest suite (test_scan.py + test_engine.py)
   s0-skill-budget/      Token Budget Auditor — D/I/S token-efficiency gate for skill authoring
+  s0-semantic-validate/ Semantic Verifier — verify artifact content with json_query/regex_match DSL
   s1-*/SKILL.md         Stage 1 — Foundation Engineer (4 skills)
   s2-*/SKILL.md         Stage 2 — Product Manager (4 skills)
   s3-*/SKILL.md         Stage 3 — System Architect (4 skills)
@@ -292,7 +293,7 @@ skills/
   s6-*/SKILL.md         Stage 6 — QA Engineer (4 skills)
   s7-*/SKILL.md         Stage 7 — Release Manager (4 skills)
 schemas/
-  skill_graph_schema.yaml   Declarative dependency graph — 28 skills with stage, requires, outputs
+  skill_graph_schema.yaml   Declarative dependency graph — 35 skills with stage, requires, outputs
   SKILL_INDEX.yaml          Keyword → skill mapping for O(1) routing (used by s-fast-track and s0-skill-budget)
 references/
   skill-design-intent.md        Evaluation baseline for s0-eval-alignment (C1–C4 checks + per-skill keywords)
@@ -304,6 +305,8 @@ docs/
   BENCHMARK_REFERENCE.md  Design analysis of 4 reference repos
 .github/workflows/
   alignment.yml         CI gate — runs smoke tests + alignment scan on skills/** changes
+tests/
+  test_prereq_coverage.py   Prerequisite coverage regression — every coverable skill must have --check-prereqs
 CONTEXT.md              Domain glossary and ubiquitous language
 HANDOFF.md              Artifact pipeline and acceptance criteria between stages
 QA.md                   28-step SDLC quality checklist (design intent source of truth)
