@@ -6,6 +6,12 @@ description: >
 ---
 
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s1-git-guardrails`
+If it reports any missing prerequisite, follow its suggestion and **STOP**.
+
+---
+
 Do NOT declare this skill complete until the block script has been installed, the PreToolUse hook entry has been added to `.claude/settings.json`, and you have run the verification test showing the actual blocked output.
 
 ---

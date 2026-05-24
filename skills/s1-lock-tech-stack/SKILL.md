@@ -6,6 +6,12 @@ description: >
 ---
 
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s1-lock-tech-stack`
+If it reports any missing prerequisite, follow its suggestion and **STOP**.
+
+---
+
 Do NOT generate any lock files (package.json, go.mod, etc.) until you have run the runtime version command, recorded the ACTUAL terminal output, presented the full tech stack to the user, and received explicit user approval.
 
 ---
