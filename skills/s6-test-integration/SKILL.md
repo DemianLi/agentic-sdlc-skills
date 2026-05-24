@@ -5,6 +5,15 @@ description: >
   test results and traceability matrix. NOT before all Atomic Tasks are merged.
 ---
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+
+1. Does `TASK_DAG.md` exist?
+   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest TASK_DAG.md`, report its output, and **STOP**.
+
+Only proceed when TASK_DAG.md is present.
+
+---
+
 Do NOT proceed to `/s6-test-e2e` if any integration test is failing.
 Every integration test failure must be reported as a BLOCKER.
 3. The integration test results must be machine-generated from actual test execution — a manually created test report does NOT satisfy this gate.

@@ -5,6 +5,15 @@ description: >
   NOT for raw code before lint passes.
 ---
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+
+1. Does `RULES.md` exist?
+   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest RULES.md`, report its output, and **STOP**.
+
+Only proceed when RULES.md is present.
+
+---
+
 Do NOT hand off to `/s5-pr-review` if the code violates any architectural paradigm
 defined in `RULES.md`. Architectural violations are CRITICAL — they block the pipeline.
 

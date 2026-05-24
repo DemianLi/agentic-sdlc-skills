@@ -5,6 +5,18 @@ description: >
   traceability matrix, coverage, blockers. NOT for individual test runs.
 ---
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+
+Check in order — stop at the first missing file:
+1. Does any file matching `docs/tests/*-e2e-results.md` exist?
+   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest docs/tests/e2e-results.md`, report its output, and **STOP**.
+2. Does `RULES.md` exist?
+   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest RULES.md`, report its output, and **STOP**.
+
+Only proceed when both are present.
+
+---
+
 Do NOT issue "Ready for Delivery" until:
 1. Unit test coverage ≥ threshold in RULES.md (default: 80%).
 2. ALL integration tests pass.

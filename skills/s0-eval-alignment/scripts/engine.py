@@ -875,11 +875,28 @@ class SkillGraphEngine:
 
             requires = self.skills[skill_name].get("requires", [])
             missing_deps = [req for req in requires if req not in completed]
-            
+
             if missing_deps:
                 blocked[skill_name] = missing_deps
 
         return blocked
+
+    def suggest_for_missing(self, artifact_path: str) -> Optional[str]:
+        """
+        Reverse-lookup: given a missing artifact path, return the skill name that produces it.
+
+        Matches against output globs in the schema using fnmatch. Returns the
+        topologically earliest producer, or None if no producer is registered.
+        Only covers file-existence gaps; content-level failures are out of scope.
+        """
+        import fnmatch
+
+        candidate = artifact_path.lstrip("./")
+        for skill_name in self.topological_sort():
+            for output_glob in self.skills[skill_name].get("outputs", []):
+                if fnmatch.fnmatch(candidate, output_glob) or fnmatch.fnmatch(artifact_path, output_glob):
+                    return skill_name
+        return None
 
     # ------------------------------------------------------------------
     # P2: Bidirectional Spec Sync (ADR-002)
@@ -1119,6 +1136,11 @@ def main() -> None:
         action="store_true",
         help="(P4) Used with --jit: assert JIT prompt is < 10%% of total skill token corpus"
     )
+    parser.add_argument(
+        "--suggest",
+        metavar="ARTIFACT",
+        help="Given a missing artifact path, print the skill that produces it (reverse lookup)"
+    )
 
     args = parser.parse_args()
 
@@ -1140,6 +1162,17 @@ def main() -> None:
 
     if args.validate:
         print("✅ Schema is valid. No cycles or undefined dependencies detected!")
+        sys.exit(0)
+
+    # --suggest: reverse-lookup producer for a missing artifact
+    if args.suggest:
+        producer = engine.suggest_for_missing(args.suggest)
+        if producer:
+            print(f"NEEDS_CONTEXT: '{args.suggest}' not found.")
+            print(f"→ Run /{producer} first to generate this artifact, then return to continue.")
+        else:
+            print(f"⚠️  No producer registered for '{args.suggest}' in the Skill Graph schema.")
+            print("   Provide the file manually or check skill_graph_schema.yaml.")
         sys.exit(0)
 
     # P2: --sync-docs

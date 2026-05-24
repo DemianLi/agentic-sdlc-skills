@@ -6,6 +6,15 @@ description: >
 ---
 
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+
+1. Does `CONTEXT_SNAPSHOT.md` exist?
+   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest CONTEXT_SNAPSHOT.md`, report its output, and **STOP**.
+
+Only proceed when CONTEXT_SNAPSHOT.md is present.
+
+---
+
 Do NOT proceed to `/s3-design-arch` until:
 1. The impact report has been WRITTEN to `docs/arch/YYYY-MM-DD-<topic>-impact.md` and COMMITTED to git.
 

@@ -5,6 +5,15 @@ description: >
   verified runtime environment. NOT without TASK_DAG.md and dependency validation.
 ---
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+
+1. Does `TASK_DAG.md` exist?
+   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest TASK_DAG.md`, report its output, and **STOP**.
+
+Only proceed when TASK_DAG.md is present.
+
+---
+
 Do NOT start any implementation until:
 1. Environment check passed and workspace is verified as clean.
 

@@ -5,6 +5,15 @@ description: >
   test results with traceability. NOT before integration tests pass.
 ---
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+
+1. Does `CONTEXT_SNAPSHOT.md` exist?
+   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest CONTEXT_SNAPSHOT.md`, report its output, and **STOP**.
+
+Only proceed when CONTEXT_SNAPSHOT.md is present.
+
+---
+
 Do NOT proceed to `/s6-test-perf` if any E2E test covering a main user flow fails.
 E2E test failures on main flows are BLOCKING — they cannot be deferred.
 3. The e2e test results must be machine-generated from actual test execution — a manually created test report or screenshots does NOT satisfy this gate.
