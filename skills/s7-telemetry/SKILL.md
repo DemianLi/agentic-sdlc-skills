@@ -1,8 +1,8 @@
 ---
 name: s7-telemetry
 description: >
-  Use after /s7-release-notes to compare pre/post deploy performance metrics, detect
-  anomalies, and extract next_cycle_inputs for the next iteration.
+  Use when comparing pre/post deployment metrics. Outputs telemetry.json with anomaly
+  detection and next iteration seeds. NOT for deployment or release decisions.
 ---
 
 <HARD-GATE>
@@ -22,9 +22,7 @@ Do NOT generate Stage 2 artifacts or begin the next iteration until the user exp
 
 <what-to-do>
 
-You are the **Release Manager** in the telemetry and iteration close phase.
-Your task is to compare pre-deploy and post-deploy metrics, detect anomalies, and produce
-the handoff artifact that seeds the next Product Manager session.
+**Release Manager (telemetry phase)**: Compare pre/post metrics, detect anomalies, produce handoff for next iteration.
 
 ## Simulation Mode vs Live Mode
 
@@ -44,99 +42,22 @@ against the newly installed artifact. This is an honest approximation — set
 ## Workflow
 
 ### Step 1 — Collect Pre-Deploy Baseline
-
-Read `docs/tests/YYYY-MM-DD-perf-baseline.json`. Extract:
-- `latency_p50_ms`, `latency_p95_ms`, `latency_p99_ms`
-- `error_rate_pct`
-- `throughput_rps`
-- `memory_leak_detected`
+Read `docs/tests/YYYY-MM-DD-perf-baseline.json`: extract P50/P95/P99 latency, error_rate_pct, throughput_rps, memory_leak_detected.
 
 ### Step 2 — Collect Post-Deploy Metrics
-
-#### Live Mode
-Query production monitoring for the same metrics over the first 30 minutes post-deploy:
-```bash
-# Example: Prometheus query
-curl -s 'http://prometheus:9090/api/v1/query' \
-  --data-urlencode 'query=histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))'
-```
-
-#### Simulation Mode (dry-run)
-Re-run the performance test suite against the installed package:
-```bash
-# Install the newly built artifact (if not already installed)
-pip install dist/<artifact>.whl
-
-# Re-run perf tests — IMPORTANT: match warmup_iterations from perf-baseline.json
-cd tests/perf
-pytest test_perf.py -v --json-report --json-report-file=perf-post-deploy.json
-```
-
-**Warmup parity**: Read `warmup_iterations` from `perf-baseline.json` and use the same value when re-running the post-deploy suite. If the pre-deploy baseline used 10 warmup iterations, the post-deploy re-run must also use 10. Mismatched warmup states cause systematic cold-cache bias in the delta.
-
-Extract the same fields from the test output: P50/P95/P99 latency, error rate, throughput.
+**Live**: Query production monitoring (Prometheus/Datadog/CloudWatch) over first 30m. **Simulation (dry-run)**: Re-run perf suite on installed artifact (match warmup_iterations). Extract same fields.
 
 ### Step 3 — Anomaly Detection
-
-Apply SLO-headroom-relative detection. Full formula, examples, and severity thresholds:
-→ `references/anomaly-detection.md`
-
-Build a comparison table:
-
-| Metric | Pre | Post | SLO | SLO-delta | Anomaly? |
-|---|---|---|---|---|---|
-| latency_p50_ms | X | Y | N ms | Z% | YES / NO |
-| latency_p95_ms | X | Y | N ms | Z% | YES / NO |
-| latency_p99_ms | X | Y | N ms | Z% | YES / NO |
-| error_rate_pct | X | Y | 0% | raw delta | YES / NO |
-| throughput_rps | X | Y | — | raw delta | YES / NO |
-
-If `memory_leak_detected` changes from `false` to `true` → always an anomaly, regardless of delta.
+Apply SLO-headroom detection (formula: → `references/anomaly-detection.md`). Build table: Pre/Post/SLO/SLO-delta/Anomaly for each metric. Memory leak change false→true always anomaly.
 
 ### Step 4 — Rollback Decision
-
-| Condition | Decision |
-|---|---|
-| No anomalies | `rollback_triggered: false` |
-| Anomaly detected (SLO-delta 5-50%) | `rollback_triggered: false` + note in `anomalies` |
-| Any metric `post > 80% of SLO_limit` | Present to user, await rollback authorization |
-| Any metric `post > 2× pre-deploy baseline` | Present to user, await rollback authorization |
-| Error rate > 1% in live mode | Present to user, await rollback authorization |
-| Simulation mode | `rollback_triggered: false` (no live deployment to roll back) |
-
-**Never trigger rollback automatically** — always require explicit user confirmation.
+No anomalies → false. Anomaly (5-50% delta) → false + note. Any metric >80% SLO or >2× baseline or error >1% (live) → present to user, await auth. Simulation → false. Never auto-rollback.
 
 ### Step 5 — Extract next_cycle_inputs
-
-Synthesize what the next iteration should address. Sources:
-
-| Source | What to extract |
-|---|---|
-| `docs/audit/YYYY-MM-DD-<branch>-pr-review.md` | DEFERRED items |
-| `docs/audit/YYYY-MM-DD-<branch>-sast.md` | LOW severity items that were suppressed |
-| `test-results.json` traceability | ACs covered by only one test (low confidence) |
-| Anomalies from Step 3 | Metrics with delta 15-20% (close to threshold) |
-| `CHANGELOG.md` | Deprecated items |
-
-Each entry must be actionable:
-```json
-{
-  "source": "pr-review | sast | perf | changelog | telemetry",
-  "priority": "HIGH | MEDIUM | LOW",
-  "description": "One-sentence actionable item"
-}
-```
+From pr-review: DEFERRED. From SAST: LOW suppressed. From test-results: single-test ACs. From anomalies: 15-20% delta metrics. From CHANGELOG: deprecated. Format: source, priority (HIGH/MEDIUM/LOW), actionable description.
 
 ### Step 6 — Write telemetry.json
-
-Full JSON schema, required fields, and `next_cycle_inputs` format:
-→ `references/telemetry-schema.md`
-
-Commit the file:
-```bash
-git add docs/releases/YYYY-MM-DD-<version>-telemetry.json
-git commit -m "release(v<version>): add telemetry report and close iteration"
-```
+Write `docs/releases/YYYY-MM-DD-<version>-telemetry.json` (schema: → `references/telemetry-schema.md`). Commit with message "release(v<version>): add telemetry report".
 
 ## Red Flags — 停下來重新考慮
 
@@ -159,71 +80,12 @@ Report status using exactly one of:
 
 <supporting-info>
 
-## Role Identity: Release Manager (Telemetry & Iteration Close)
-- **Mindset**: Production sentinel and archaeologist. Confirm the ship is seaworthy, surface what should feed the next iteration.
-- **Upstream Dependency**: `/s7-release-notes` (CHANGELOG committed) + `/s7-deploy` (deploy.md) + `/s6-test-perf` (perf-baseline.json).
-- **Downstream Target**: `next_cycle_inputs` array → Product Manager's seed for `/s2-capture-vision`.
+Outputs: `docs/releases/YYYY-MM-DD-<version>-telemetry.json` with anomalies, status, next_cycle_inputs. Stage 7 final artifact.
 
-## Eval Fixtures
-
-Fixtures 位於 `tests/fixtures/s7-telemetry/cases.json`。
-
-每個 fixture 包含：`scenario`（情境描述）、`input`（輸入物件）、`expected_behavior`（預期行為）。
-
-冒煙測試：逐一確認 skill 對每個情境的輸出結構與 expected_behavior 一致。
+→ Full reference: `references/detail.md`
 
 ## Artifact Dependencies
-- **Reads**: `docs/tests/YYYY-MM-DD-perf-baseline.json`, `docs/releases/YYYY-MM-DD-<version>-deploy.md`, `CHANGELOG.md`, `docs/audit/*.md`, `test-results.json`
+- **Reads**: `docs/tests/YYYY-MM-DD-perf-baseline.json`, `docs/releases/YYYY-MM-DD-<version>-deploy.md`, CHANGELOG.md, `docs/audit/*.md`, `test-results.json`
 - **Writes**: `docs/releases/YYYY-MM-DD-<version>-telemetry.json`
-
-## Pipeline Position
-
-```
-[s7-build-artifact] → dist/<artifact>, git tag v<version>
-        ↓
-[s7-deploy] → docs/releases/.../deploy.md
-        ↓
-[s7-release-notes] → CHANGELOG.md
-        ↓
-[s7-telemetry] → docs/releases/.../telemetry.json   ← final artifact
-```
-
-## Simulation Mode Behavior
-
-When `deploy_mode: "dry-run"` (no real production):
-- Post-deploy metrics = re-run perf test suite on locally installed artifact
-- `simulation_mode: true` in telemetry.json
-- `status` field still uses `"healthy"` / `"degraded"` / `"rolled_back"` based on simulated metrics
-- Anomaly detection threshold unchanged (20% rule still applies)
-- `rollback_triggered` = `false` in dry-run (no live deployment to roll back)
-
-## Process Flow
-
-```
-deploy.md (DEPLOYED/DRY-RUN) + CHANGELOG.md + perf-baseline.json
-   ↓ All three exist?
-   ├── NO → NEEDS_CONTEXT
-   └── YES
-        ↓
-   Determine simulation_mode (from deploy.md)
-        ↓
-   Collect post-deploy metrics (live or re-run perf suite)
-        ↓
-   Compare pre vs post (20% rule per metric)
-        ↓
-   Any metric > 2× baseline?
-   ├── YES (live mode) → present rollback decision to user → BLOCKED
-   └── NO → log anomalies, continue
-        ↓
-   Extract next_cycle_inputs from audit/SAST/PR review/CHANGELOG
-        ↓
-   Write docs/releases/.../telemetry.json
-        ↓
-   git commit
-        ↓
-   "Stage 7 complete. next_cycle_inputs ready."
-        ↓
-   Await approval to close iteration
-```
 
 </supporting-info>

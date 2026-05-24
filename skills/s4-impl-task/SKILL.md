@@ -1,8 +1,8 @@
 ---
 name: s4-impl-task
 description: >
-  Use after /s4-tdd has produced failing tests — writes minimal production code to
-  make them green without over-engineering or touching out-of-scope files.
+  Use when failing tests from /s4-tdd exist — outputs passing production code, minimal and in-scope.
+  NOT for writing code before tests exist.
 ---
 <HARD-GATE>
 Do NOT write any production code until:

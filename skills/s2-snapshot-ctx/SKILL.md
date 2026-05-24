@@ -1,8 +1,8 @@
 ---
 name: s2-snapshot-ctx
 description: >
-  Use after /s2-struct-req to freeze the current iteration's requirements into a
-  compact context snapshot that all Stage 3–7 agents will read as their active memory.
+  Use when freezing committed requirements into a compact context snapshot for
+  downstream agents. Outputs CONTEXT_SNAPSHOT.md. NOT before requirements commit.
 ---
 
 <HARD-GATE>
@@ -19,16 +19,12 @@ explicitly approves. A user response that is silent on approval is NOT approval.
 
 <what-to-do>
 
-You are the **Product Manager** in documentation finalization mode. Your output is the single authoritative reference that all downstream Agents (Stages 3-7) will consult. Make it impossible to lose sight of the goal.
+You are the **Product Manager**. Your snapshot is the single authoritative reference for all downstream agents.
 
 ## Workflow
 
-### Step 1 — Commit Structured Requirements
-Confirm `docs/specs/YYYY-MM-DD-<topic>-requirements.md` is committed:
-```bash
-git add docs/specs/ && git commit -m "docs: add structured requirements for <topic>"
-```
-If not committed, STOP and do this first.
+### Step 1 — Verify Requirements Committed
+Confirm `docs/specs/YYYY-MM-DD-<topic>-requirements.md` exists in git. If not, **STOP** — do not proceed until committed.
 
 ## Red Flags — 停下來重新考慮
 
@@ -39,37 +35,21 @@ If not committed, STOP and do this first.
 | 如果 snapshot 超過 1 頁，可以放心加入更多背景資訊 | 不行。1 頁限制是刻意的。Stage 3-7 Agent 需要快速掃描。冗長 = 被忽視。刪除非關鍵項 |
 
 ### Step 2 — Generate CONTEXT_SNAPSHOT.md
-
-Create `CONTEXT_SNAPSHOT.md` in the project root. This file must be:
-- **Extremely concise** — maximum 1 page (≈50 lines)
-- **Zero ambiguity** — only committed facts, no speculation
-- **Agent-readable** — structured for fast consumption by LLMs
-
-Required format:
-```markdown
+Create `CONTEXT_SNAPSHOT.md` in project root, ≤50 lines. Format:
+```
 # Context Snapshot — <Topic> — <Date>
-
 ## Iteration Goal (1 sentence)
-<What this iteration delivers, in plain language>
-
-## Must-Have Requirements (REQ-IDs)
-- REQ-1: <one-line summary> | AC count: N
-- REQ-2: <one-line summary> | AC count: N
-
+## Must-Have Requirements
+- REQ-1: <summary> | AC count: N
 ## Out of Scope (explicit)
-- <item 1>
-- <item 2>
-
 ## Key Constraints
 - Tech stack: (from s1-lock-tech-stack)
 - Performance targets: (from REQ acceptance criteria)
 - Security requirements: (from RULES.md)
-
 ## Forbidden Actions for All Downstream Agents
-- Do NOT modify files outside the scope listed above
-- Do NOT add dependencies not in the locked tech stack
-- Do NOT skip acceptance criteria — each is a gate
-
+- Do NOT modify files outside scope
+- Do NOT add dependencies not in locked tech stack
+- Do NOT skip acceptance criteria
 ## Source Documents
 - Vision: docs/specs/YYYY-MM-DD-<topic>-vision.md
 - Requirements: docs/specs/YYYY-MM-DD-<topic>-requirements.md
@@ -77,12 +57,9 @@ Required format:
 - Context: CONTEXT.md
 ```
 
-### Step 3 — Commit and Broadcast
-```bash
-git add CONTEXT_SNAPSHOT.md && git commit -m "docs: add context snapshot for <topic> iteration"
-```
-
-Notify the user: *"Context Snapshot committed. Stage 3 (System Architect) can now begin."*
+### Step 3 — Commit
+**Run**: `git add CONTEXT_SNAPSHOT.md && git commit -m "docs: add context snapshot"`
+Notify: *"Context Snapshot committed. Stage 3 ready."*
 
 ---
 
@@ -98,27 +75,13 @@ Report status using exactly one of:
 
 <supporting-info>
 
-## Role Identity: Product Manager (Snapshot Mode)
-- **Mindset**: Information architecture. Your output is the single source of truth for all downstream Agents. If something isn't in the snapshot, Agents will not know it exists.
-- **Upstream Dependency**: `/s2-struct-req` — structured requirements must be committed.
-- **Downstream Target**: Stage 3 System Architect reads `CONTEXT_SNAPSHOT.md` as their first action.
-
 ## Artifact Standard
-- `CONTEXT_SNAPSHOT.md` at project root (overwrite if exists from previous iteration)
-- Maximum 50 lines
-- Must include `## Forbidden Actions` section
-- Must reference all source document paths
-
-## Eval Fixtures
-
-Fixtures 位於 `tests/fixtures/s2-snapshot-ctx/cases.json`。
-
-每個 fixture 包含：`scenario`（情境描述）、`input`（輸入物件）、`expected_behavior`（預期行為）。
-
-冒煙測試：逐一確認 skill 對每個情境的輸出結構與 expected_behavior 一致。
+`CONTEXT_SNAPSHOT.md` at project root, ≤50 lines, with `## Forbidden Actions` section and source document paths.
 
 ## Artifact Dependencies
-- **Reads**: `docs/specs/YYYY-MM-DD-<topic>-requirements.md`, `CONTEXT.md`, `RULES.md`
+- **Reads**: `docs/specs/YYYY-MM-DD-<topic>-requirements.md`, CONTEXT.md, RULES.md
 - **Writes**: `CONTEXT_SNAPSHOT.md`
+
+→ Full reference: `references/detail.md`
 
 </supporting-info>

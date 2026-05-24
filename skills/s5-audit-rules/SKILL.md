@@ -1,8 +1,8 @@
 ---
 name: s5-audit-rules
 description: >
-  Use after /s5-sast-lint to verify that the implementation respects the architectural
-  paradigms defined in RULES.md before peer review begins.
+  Use when code passes SAST lint and needs architecture compliance check — outputs RULES.md conformance report.
+  NOT for raw code before lint passes.
 ---
 <HARD-GATE>
 Do NOT hand off to `/s5-pr-review` if the code violates any architectural paradigm

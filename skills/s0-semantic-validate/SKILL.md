@@ -1,9 +1,8 @@
 ---
 name: s0-semantic-validate
 description: >
-  Use when an artifact exists but content correctness is unverified — semantic gate (json_query /
-  regex_match / file_hash); outputs VALIDATED or BLOCKED. NOT structural audit (s0-eval-skill)
-  or token check (s0-skill-budget).
+  Use when verifying artifact content is correct — json_query, regex_match, file_hash checks.
+  Outputs VALIDATED or BLOCKED. NOT for structural audit or token budget.
 ---
 
 <HARD-GATE>
@@ -47,65 +46,40 @@ You are the **Semantic Evidence Verifier**. Three checks. No edits. One output b
 
 ---
 
-### Step 1 — Validator DSL 讀取
+### Step 1 — Load Validators
 
-從 `skill_graph_schema.yaml` 讀取目標節點的 `validators` 欄位：
+Read target node's `validators` field from `skill_graph_schema.yaml`.
 
-```yaml
-# 範例節點配置
-s4-tdd:
-  validators:
-    - type: json_query
-      file: test-results.json
-      query: ".summary.failed == 0"
-      error_msg: "測試必須全部通過（failed == 0）"
-    - type: regex_match
-      file: "src/**/*.py"
-      pattern: "def test_"
-      min_matches: 1
-      error_msg: "必須存在至少一個 test_ 函式"
-    - type: file_hash
-      file: test-results.json
-      not_older_than_sentinel: true
-      error_msg: "測試報告必須比 sentinel 更新"
-```
+Three validator types:
 
-支援三種 validator type：
-
-| Type | 驗證內容 | 防範目標 |
+| Type | Content | Protects Against |
 |:---|:---|:---|
-| `json_query` | JSON 欄位值斷言（jq 語法） | 空 JSON、失敗報告 |
-| `regex_match` | 檔案內容 regex 匹配 | 空測試檔、佔位文字 |
-| `file_hash` | mtime vs sentinel 時間戳比對 | 複製舊報告欺騙 |
+| `json_query` | JSON field assertion (jq syntax) | empty JSON, failed reports |
+| `regex_match` | file content regex match | empty test files, stubs |
+| `file_hash` | mtime vs sentinel timestamp | old report copies |
 
----
+### Step 2 — Verify Each Validator
 
-### Step 2 — 逐項驗證
+For each validator, run check:
 
-對每個 validator，執行對應檢查並輸出：
-
-| 結果 | 條件 |
+| Result | Condition |
 |------|------|
-| ✅ PASS | 驗證條件完全滿足 |
-| ❌ FAIL | 驗證條件不滿足（輸出 `error_msg`） |
-| ⚠️ N/A | 節點無 validators 宣告（等同跳過） |
-| ⚠️ N/A | 節點無 validators 宣告 |
+| ✅ PASS | condition met |
+| ❌ FAIL | condition not met; output error_msg |
+| ⚠️ N/A | no validators declared |
 
----
-
-### Step 3 — 輸出報告
+### Step 3 — Output Report
 
 ```
 Semantic Validation: <node_id>  (<artifact_path>)
 V1 [✅/❌/⚠️] json_query: <query>
 V2 [✅/❌/⚠️] regex_match: <pattern>
 V3 [✅/❌/⚠️] file_hash: not_older_than_sentinel
-Overall: VALIDATED / BLOCKED / SKIP (P1 pending)
-Issues:
-- [Vn]: <error_msg>  （無問題寫「— none —」）
+Overall: VALIDATED / BLOCKED / N/A
+Issues: [list or none]
 ```
 
-Overall：全 ✅ → VALIDATED；有 ❌ → BLOCKED（不允許下游繼續）；⚠️ N/A → 跳過（節點無 validators 宣告）。
+Overall: all ✅ → VALIDATED; has ❌ → BLOCKED; all ⚠️ → N/A.
 
 ---
 
@@ -120,36 +94,9 @@ Overall：全 ✅ → VALIDATED；有 ❌ → BLOCKED（不允許下游繼續）
 
 <supporting-info>
 
-## Role Identity: Semantic Evidence Verifier
-- **Mindset**: 法證人員。只看物理證據，不接受口頭聲稱。工件必須自證其完成狀態。
-- **Upstream Dependency**: `skill_graph_schema.yaml` 的 `validators` 欄位 + 對應工件檔案。
-- **Downstream Target**: 通過後，下游節點可標記為可觸發；失敗則下游被物理阻斷。
+**Reads**: `skill_graph_schema.yaml` (validators field), artifact (user-provided path)  
+**Writes**: none (chat output only)
 
-## Semantic Boundary
-
-| Skill | 評估什麼 | 此 skill 的差異 |
-|-------|---------|----------------|
-| `s0-eval-skill` | Skill 的 6 項生產就緒標準（結構、語意邊界） | 此 skill 驗證**工件內容**（JSON 值、regex、mtime），不看 Skill 文件結構 |
-| `s0-eval-alignment` | 設計意圖漂移（批次掃描） | 此 skill 驗證單一**執行工件**是否語意正確；不看設計意圖 |
-| `s0-skill-budget` | Token 加載成本（D/I/S 三軸） | 此 skill 完全關注**工件真偽**，不計算 token |
-
-## 與 ADR-001 的關係
-
-本 Skill 是 ADR-001（語意驗證設計）的**執行契約**。
-設計文件：`docs/v3-architecture/ADR-001-semantic-validation.md`
-
-## Artifact Dependencies
-- **Reads**: `skill_graph_schema.yaml`（validators 欄位）、待驗證工件（用戶提供路徑）
-- **Writes**: 無（僅 chat 輸出）
-
-## Eval Fixtures
-
-冒煙測試（在 workspace 目錄執行）：
-```bash
-# 以語意失敗工件測試（期望：BLOCKED）
-echo '{"summary": {"failed": 1}}' > /tmp/test-results.json
-# 以語意成功工件測試（期望：VALIDATED）
-echo '{"summary": {"failed": 0}}' > /tmp/test-results.json
-```
+→ Full reference: `references/detail.md`
 
 </supporting-info>

@@ -1,8 +1,8 @@
 ---
 name: s5-pr-review
 description: >
-  Use after /s5-audit-rules to perform peer-style diff review with severity-graded
-  findings and scope drift detection — blocks PRs with unresolved CRITICAL issues.
+  Use when reviewing PRs for correctness. Outputs severity-graded findings with scope
+  drift detection. NOT for linting. Blocks on CRITICAL issues.
 ---
 
 <HARD-GATE>
@@ -21,124 +21,31 @@ Do NOT skip /s5-fix-optimize’s own HARD-GATE conditions.
 
 <what-to-do>
 
-You are the **Code Auditor** in peer review mode. You review like a senior engineer: concrete, specific, actionable. You name files, functions, and line numbers. You never say "consider improving" without specifying exactly what to improve and why.
-
-> **Voice Rule** (from gstack): Be concrete. Name files, functions, line numbers. "auth.ts:47 returns undefined when session expires — users see white screen. Fix: null check + redirect to /login. Two lines." Never: "There may be a potential issue in the authentication flow."
+**Code Auditor (peer review)**: Review like senior engineer—concrete, specific, actionable. Name files, functions, line numbers. No vague "consider improving"; state exact fix.
 
 ## Workflow
 
 ### Step 0 — Input Validation
-
-Before any review begins, verify required inputs exist:
-
-| Required Input | Where to find | If missing |
-|---|---|---|
-| Git diff (changed files) | `git diff <base>..HEAD --stat` | `NEEDS_CONTEXT`: cannot review without a diff — specify the base branch or commit |
-| `TASK_DAG.md` with TASK-N entries | Project root | `NEEDS_CONTEXT`: cannot check scope drift without task scope — run `/s3-build-dag` first |
-| SAST report from `/s5-audit-rules` | `docs/audit/YYYY-MM-DD-<branch>-sast.md` | **HARD-GATE violation** — SAST must pass before PR review; run `/s5-sast-lint` then `/s5-audit-rules` |
-| Design doc `docs/arch/*.md` | `docs/arch/` | Warning — proceed but scope drift check is limited to TASK_DAG scope only |
-
-If any **HARD-GATE violation** input is missing, stop and report `NEEDS_CONTEXT` immediately.
+**Required**: git diff, TASK_DAG.md, SAST report. If any missing → `NEEDS_CONTEXT`. Design doc optional (warning only).
 
 ---
 
 ### Step 0b — Mode Check
-
-Check whether `🔧 Hotfix Mode` was announced by `/s-fast-track` in this session.
-
-| Mode | Review scope |
-|---|---|
-| **Standard** | All steps: Scope Drift → Logic → Security → full CRITICAL/WARNING/SUGGESTION report |
-| **Hotfix Mode** | Steps 1 + 3 only. Step 2 limited to CRITICAL-level checks (skip N+1, naming, style). No SUGGESTION section in report. WARNING items collected but non-blocking. |
+**Standard**: all steps (Scope Drift → Logic → Security), full report. **Hotfix Mode** (from /s-fast-track): Steps 1+3 only, CRITICAL checks in step 2, no SUGGESTION, WARNINGs non-blocking.
 
 ---
 
-### Step 1 — Scope Drift Detection (FIRST — before code quality)
-
-This is the most important check. **Did the implementer build exactly what was requested?**
-
-1. Read `TASK_DAG.md` — what tasks were assigned?
-2. Read commit messages: `git log <base>..HEAD --oneline`
-3. Run: `git diff <base>..HEAD --stat`
-4. Compare files changed against the task scope in `TASK_DAG.md`
-
-**Evaluate**:
-- [ ] Are all changed files within the `File Scope` declared in the relevant TASK-N?
-- [ ] Are there any files changed that have NO corresponding task?
-- [ ] Are there any features added that are not in the TASK scope?
-
-**If scope drift is detected**, flag it as CRITICAL before any other review:
-> *"Scope drift detected: `src/feature-x.ts` was modified but is not in the scope of TASK-3, TASK-4, or TASK-5. This change must be justified or reverted."*
+### Step 1 — Scope Drift Detection
+Read TASK_DAG.md, commit messages, git diff. Compare changed files against task scope. Flag if files have no corresponding task or features not in scope. CRITICAL before other checks.
 
 ### Step 2 — Logic Review
-
-For each changed file, read the diff and check:
-- [ ] Does the implementation match the API Contract in the design doc?
-- [ ] Are error cases handled explicitly (not silently swallowed)?
-- [ ] Are there any edge cases visible in the code that have no test?
-- [ ] Does the naming match the domain glossary in `CONTEXT.md`?
-- [ ] Are there any obvious performance anti-patterns (N+1 queries, unnecessary loops)?
-- [ ] **Race condition**: Is there a read-then-write window where concurrent requests could corrupt state?
-- [ ] **Stale read**: Is cache invalidated correctly after every write path that changes the cached data?
-- [ ] **Trust boundary**: Is any user-controlled value passed into an internal service without re-validation at the boundary?
-- [ ] **Forgotten enum handler**: Does every `switch` / `if-else` chain handle all possible enum values, including future additions?
+Check: API contract match, error handling, edge cases without tests, naming (CONTEXT.md), N+1 queries, race conditions (read-then-write), stale cache, trust boundaries, enum handlers.
 
 ### Step 3 — Security Spot-Check
-- [ ] Are user inputs validated before use?
-- [ ] Are database queries parameterized (no string interpolation)?
-- [ ] Are secrets accessed via environment variables only?
-- [ ] Are authorization checks present on every protected endpoint?
+Check: input validation, parameterized queries, env-only secrets, authorization on protected endpoints.
 
-### Step 4 — Format the Review Report
-
-```markdown
-## PR Review Report — TASK-<N>
-
-**Scope Drift**: CLEAN / DETECTED (see below)
-**Overall Status**: APPROVED / CHANGES REQUIRED
-
----
-
-### 🔴 CRITICAL (blocking — must fix before merge)
-- `src/auth.ts:47` — `session.user` accessed without null check.
-  When session expires, this throws and returns 500 to client.
-  Fix: `if (!session.user) return res.redirect('/login');`
-
-### 🟡 WARNING (should fix — recommended but not blocking)
-- `src/orders/service.ts:112` — N+1 query in `getOrdersWithItems()`.
-  Fix: use `JOIN` or batch-load items after fetching orders.
-
-### 🟢 SUGGESTION (optional improvement)
-- `src/utils/format.ts:23` — `formatDate` could use `Intl.DateTimeFormat`
-  for locale-aware formatting in future i18n work.
-
----
-
-### ✅ Confirmed Good
-- Domain names match `CONTEXT.md` glossary throughout
-- Error responses follow the API Contract in design doc
-- No hardcoded values — all magic numbers extracted to constants
-```
-
-Present the report to the user. Wait for acknowledgment before proceeding to `/s5-fix-optimize`.
-
-**Hotfix Mode — simplified report format:**
-
-```markdown
-## PR Review Report (Hotfix Mode) — TASK-<N>
-
-**Scope Drift**: CLEAN / DETECTED
-**Overall Status**: APPROVED / CHANGES REQUIRED
-
-### 🔴 CRITICAL (blocking)
-- <file:line> — <issue> Fix: <exact fix>
-
-### 🟡 WARNING (non-blocking in Hotfix Mode — FYI only)
-- <file:line> — <issue>
-```
-
-If no CRITICALs: print `✅ APPROVED — no blocking issues.` and proceed.
-If user says "LGTM, deploy" in response to WARNINGs, treat as acknowledged and proceed.
+### Step 4 — Format Report
+Sections: Scope Drift (CLEAN/DETECTED), Overall Status (APPROVED/CHANGES REQUIRED), CRITICAL/WARNING/SUGGESTION with file:line, issue, fix. Hotfix Mode: simplified, WARNINGs non-blocking. No CRITICALs → "✅ APPROVED". Present and wait for acknowledgment.
 
 ---
 
@@ -164,62 +71,12 @@ Report status using exactly one of:
 
 <supporting-info>
 
-## Role Identity: Code Auditor (Peer Review Mode)
-- **Mindset**: Constructive critic with a concrete voice. You aim to elevate code quality through specific, actionable feedback. No vague comments. No "consider refactoring." Every comment names the file, line, and exact fix.
-- **Upstream Dependency**: `/s5-audit-rules` — SAST must be clean before human review.
-- **Downstream Target**: `/s5-fix-optimize` — receives the review report and implements fixes.
+Output: `docs/audit/YYYY-MM-DD-<branch>-pr-review.md` with Scope Drift status, Overall Status, CRITICAL/WARNING/SUGGESTION, Confirmed Good. Severity: CRITICAL (correctness/security/scope/contract), WARNING (perf/error/naming), SUGGESTION (optional).
 
-## Process Flow
-
-```dot
-digraph pr_review {
-    rankdir=TD;
-    scope   [label="1. Scope Drift Detection\n(TASK_DAG vs git diff --stat)", shape=box];
-    drift   [label="Scope drift\ndetected?", shape=diamond];
-    logic   [label="2. Logic Review\n(API contract / error handling /\nedge cases / naming / N+1)", shape=box];
-    sec     [label="3. Security Spot-Check\n(input validation / parameterized queries /\nenv secrets / auth checks)", shape=box];
-    report  [label="4. Format Report\n(CRITICAL / WARNING / SUGGESTION\n+ Confirmed Good)", shape=box, style=filled, fillcolor="#cce0ff"];
-    has_crit[label="CRITICAL\nissues found?", shape=diamond];
-    ack     [label="User acknowledges\nreport?", shape=diamond];
-    done    [label="DONE — APPROVED\nProceed to /s5-fix-optimize", shape=doublecircle];
-    changes [label="DONE_WITH_CONCERNS\nCHANGES REQUIRED", shape=doublecircle];
-    blocked [label="BLOCKED\nScope drift requires\nStage 3 re-scoping", shape=doublecircle];
-
-    scope -> drift;
-    drift -> blocked [label="yes — critical drift"];
-    drift -> logic [label="clean"];
-    logic -> sec -> report;
-    report -> has_crit;
-    has_crit -> changes [label="yes (blocking)"];
-    has_crit -> ack [label="no CRITICALs"];
-    ack -> done [label="yes"];
-}
-```
-
-## Artifact Standard
-Report file: `docs/audit/YYYY-MM-DD-<branch>-pr-review.md`
-
-Required sections:
-- Scope Drift status (CLEAN or DETECTED with specifics)
-- Overall Status (APPROVED or CHANGES REQUIRED)
-- CRITICAL / WARNING / SUGGESTION sections (use severity labels)
-- Confirmed Good section (what was done well)
-
-Severity definitions:
-- **CRITICAL**: correctness bug, security vulnerability, scope violation, contract mismatch
-- **WARNING**: performance issue, missing error handling, naming mismatch
-- **SUGGESTION**: optional style or future-proofing improvement
-
-## Eval Fixtures
-
-Fixtures located at `tests/fixtures/s5-pr-review/cases.json`.
-
-Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected outcome).
-
-Smoke test: sequentially verify skill output structure and expected_behavior alignment for each scenario.
+→ Full reference: `references/detail.md`
 
 ## Artifact Dependencies
-- **Reads**: `git diff`, `docs/arch/YYYY-MM-DD-<topic>-design.md`, `docs/specs/YYYY-MM-DD-<topic>-requirements.md`
+- **Reads**: git diff, TASK_DAG.md, `docs/arch/YYYY-MM-DD-<topic>-design.md`
 - **Writes**: PR review report
 
 </supporting-info>

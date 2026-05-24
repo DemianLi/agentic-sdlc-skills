@@ -1,8 +1,8 @@
 ---
 name: s5-fix-optimize
 description: >
-  Use after /s5-pr-review to fix CRITICAL issues and apply reviewer-approved refactors
-  before handing off to Stage 6 testing.
+  Use when PR review has CRITICAL issues or approved refactors — outputs fixed code ready for Stage 6.
+  NOT for changes not approved in review.
 ---
 <HARD-GATE>
 Do NOT hand off to Stage 6 if any test is failing.

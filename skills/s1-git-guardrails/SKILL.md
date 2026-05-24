@@ -1,9 +1,8 @@
 ---
 name: s1-git-guardrails
 description: >
-  Use during Stage 1 setup or any time a project needs safety rails — installs a
-  PreToolUse hook that intercepts destructive git commands (push, reset --hard,
-  clean -f, branch -D, checkout .) before they execute.
+  Use when installing safety hooks to block destructive git commands. Outputs
+  verification test confirming guardrails active. NOT for settings changes.
 ---
 
 <HARD-GATE>
@@ -18,7 +17,7 @@ Do NOT skip the verification output — the blocked terminal output must be visi
 
 <what-to-do>
 
-You are the **Foundation Engineer** in safety-rail mode. Your job is to ensure no destructive git command runs without the user's explicit awareness.
+**Foundation Engineer (safety-rail mode)**: Ensure no destructive git command runs without explicit user awareness.
 
 ### 絕對不要觸發的情境
 
@@ -46,87 +45,19 @@ These patterns are intercepted before execution:
 ## Workflow
 
 ### Step 1 — Choose Scope
+Ask: project-only (`.claude/settings.json`) or global (`~/.claude/settings.json`)? Re-prompt if invalid; default to project after 2 failed attempts.
 
-Ask the user:
+### Step 2 — Install Script
+Copy bundled script to `.claude/hooks/` (project) or `~/.claude/hooks/` (global), `chmod +x`. If mkdir/cp fails → BLOCKED with error.
 
-> "Should these guardrails apply to this project only, or to all projects globally?"
-
-- **Project-level**: write to `.claude/settings.json` in the repo root
-- **Global**: write to `~/.claude/settings.json`
-
-**Input Validation:**
-
-| 失敗情境 | 行為 |
-|---------|------|
-| 用戶輸入非 "project" / "global" 的回應 | Re-prompt：「請回答 `project`（僅此 repo）或 `global`（所有 repo）。」|
-| 用戶多次輸入無效（>2 次） | 預設使用 `project` scope 並說明：「已預設使用 project scope。」|
-
-### Step 2 — Install the Block Script
-
-Copy the bundled script to the appropriate hooks directory:
-
-**Project-level:**
-```bash
-mkdir -p .claude/hooks
-cp <skill-path>/scripts/block-dangerous-git.sh .claude/hooks/
-chmod +x .claude/hooks/block-dangerous-git.sh
-```
-
-**Global:**
-```bash
-mkdir -p ~/.claude/hooks
-cp <skill-path>/scripts/block-dangerous-git.sh ~/.claude/hooks/
-chmod +x ~/.claude/hooks/block-dangerous-git.sh
-```
-
-> 若 `mkdir` 或 `cp` 失敗（權限不足）→ BLOCKED — 報告具體錯誤，要求用戶手動建立目錄並複製腳本。
-
-### Step 3 — Add the PreToolUse Hook
-
-Merge the following into the target `settings.json` under `hooks.PreToolUse`. Do NOT replace existing entries — append to the array:
-
-```json
-{
-  "matcher": "Bash",
-  "hooks": [
-    {
-      "type": "command",
-      "command": "<absolute-path-to>/block-dangerous-git.sh"
-    }
-  ]
-}
-```
-
-Replace `<absolute-path-to>` with the actual absolute path to the installed script.
-
-> 若 `settings.json` 不存在或 JSON 解析失敗 → BLOCKED — 「`settings.json` 格式錯誤，hook 未寫入。請確認文件為有效 JSON 後重試。」
+### Step 3 — Add PreToolUse Hook
+Merge into target `settings.json` under `hooks.PreToolUse[].matcher = "Bash"` entry pointing to installed script absolute path. If settings.json invalid JSON → BLOCKED.
 
 ### Step 4 — Verify
+Run test: `echo '{"tool":"Bash","command":"git reset --hard"}' | <path>/block-dangerous-git.sh`. Expect exit code 2 (blocked). Exit code ≠ 2 → BLOCKED.
 
-Run the verification test and paste the output:
-
-```bash
-echo '{"tool":"Bash","command":"git reset --hard HEAD~1"}' \
-  | <path-to>/block-dangerous-git.sh
-echo "Exit code: $?"
-```
-
-Expected output:
-```
-⛔ git-guardrails: 'git reset --hard' is blocked. Requires explicit user confirmation.
-Exit code: 2
-```
-
-Exit code `2` = Claude Code will block the command and show the stderr message to the user.
-
-> 若驗證輸出的 exit code ≠ 2 → BLOCKED — 「Hook 驗證失敗，護欄未生效。請檢查腳本路徑與 `settings.json` 設定是否正確。」
-
-### Step 5 — Customization (optional)
-
-Offer the user the option to adjust which patterns are blocked:
-> "The default blocks push, reset --hard, clean -f, branch -D, and checkout/restore. Would you like to add or remove any patterns?"
-
-Edit the `BLOCKED_PATTERNS` array in the script accordingly.
+### Step 5 — Customize (optional)
+Offer: add/remove blocked patterns? Edit `BLOCKED_PATTERNS` in script accordingly.
 
 ---
 
@@ -150,67 +81,12 @@ Report status using exactly one of:
 
 <supporting-info>
 
-## Role Identity: Foundation Engineer (Safety-Rail Mode)
-- **Mindset**: Irreversibility is the enemy. Every command that can't be undone in one step is a command that deserves a pause. The hook doesn't prevent the user from running the command — it just ensures Claude won't run it autonomously.
-- **Upstream Dependency**: Stage 1 setup (`s1-config-context`, `s1-define-rules`).
-- **Downstream Impact**: Active for all subsequent stages (2–7). The user can always run blocked commands manually in their terminal.
+Outputs: script installed at `.claude/hooks/block-dangerous-git.sh` (or `~/.claude/hooks/`) + PreToolUse hook wired to `settings.json` + verification test showing exit code 2.
 
-## Semantic Boundary
-
-| Skill | 用途 | 差別 |
-|-------|------|------|
-| `s1-git-guardrails` | 安裝 PreToolUse hook 攔截破壞性 git 命令 | 只管安全 hook 安裝與驗證 |
-| `s1-config-context` | 初始化 CONTEXT.md 與基礎 `settings.json` | 管理 project 元資料；不安裝安全攔截 hook |
-| `update-config` | 修改 Claude Code 的任意 `settings.json` 設定 | 通用設定修改；不涉及攔截邏輯 |
-
-## How the Hook Works
-
-Claude Code's `PreToolUse` hook fires before every Bash tool call. The hook script:
-1. Receives the command string via stdin as JSON: `{"tool": "Bash", "command": "..."}`
-2. Extracts the `command` field
-3. Checks it against the blocked pattern list
-4. Returns exit code `2` to block + stderr message shown to user, or exit code `0` to allow
-
-The user retains full ability to run any command in their own terminal. The guardrail only constrains Claude's autonomous execution.
-
-## Process Flow
-
-```dot
-digraph git_guardrails {
-    rankdir=TD;
-    scope    [label="1. Choose scope\n(project vs global)", shape=diamond];
-    install  [label="2. Install script\n+ chmod +x", shape=box];
-    wire     [label="3. Add PreToolUse hook\nto settings.json", shape=box];
-    verify   [label="4. Run verification test\n(expect exit 2)", shape=box];
-    pass     [label="Test passes?", shape=diamond];
-    custom   [label="5. Customize patterns\n(optional)", shape=box];
-    done     [label="DONE\nGuardrails active", shape=doublecircle];
-    blocked  [label="BLOCKED\nReport error", shape=doublecircle];
-
-    scope -> install;
-    install -> wire;
-    wire -> verify;
-    verify -> pass;
-    pass -> custom [label="yes"];
-    pass -> blocked [label="no"];
-    custom -> done;
-}
-```
-
-## Artifact Standard
-- Script: `.claude/hooks/block-dangerous-git.sh` (project) or `~/.claude/hooks/block-dangerous-git.sh` (global)
-- Settings entry: `hooks.PreToolUse[].matcher = "Bash"` pointing to the installed script
-
-## Eval Fixtures
-
-Fixtures located at `tests/fixtures/s1-git-guardrails/cases.json`.
-
-Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
-
-Smoke test: Confirm skill installs hook, adds PreToolUse entry correctly, runs verification test and receives exit code 2 for blocked commands and 0 for allowed commands.
+→ Full reference: `references/detail.md`
 
 ## Artifact Dependencies
-- **Reads**: `RULES.md`
+- **Reads**: RULES.md
 - **Writes**: `.claude/hooks/block-dangerous-git.sh` (or `~/.claude/hooks/`), `.claude/settings.json`
 
 </supporting-info>

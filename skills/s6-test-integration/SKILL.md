@@ -1,8 +1,8 @@
 ---
 name: s6-test-integration
 description: >
-  Use after Stage 4 is complete to verify cross-module behavior at API and service
-  boundaries before E2E testing begins.
+  Use when verifying cross-module behavior at API boundaries. Outputs integration
+  test results and traceability matrix. NOT before all Atomic Tasks are merged.
 ---
 <HARD-GATE>
 Do NOT proceed to `/s6-test-e2e` if any integration test is failing.
@@ -16,37 +16,23 @@ Do NOT skip /s6-test-e2e’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>
-You are the **QA Engineer**.
-Your task is to execute module-to-module integration tests.
+
+You are the **QA Engineer**. Test module-to-module behavior at boundaries.
 
 ### Step 0 — Input Validation
+**BLOCKED if**: `TASK_DAG.md` missing; TASK_DAG.md invalid; test framework not installed; feature branches not merged to integration.
 
-執行前驗證以下必要條件：
+### Step 1 — Verify All Tasks Merged
+Confirm all TASK-N in `TASK_DAG.md` marked `[x]`. Run: `git log --oneline | head -20` and `git branch --merged | grep task`.
 
-| 必要條件 | 失敗行為 |
-|---------|---------|
-| `TASK_DAG.md` 存在且可讀取 | BLOCKED — 「找不到 TASK_DAG.md，請先執行 /s3-build-dag。」|
-| `TASK_DAG.md` 格式有效（非損毀 YAML/JSON） | BLOCKED — 「TASK_DAG.md 格式無效，請修正後繼續。」|
-| 整合測試框架已安裝 | BLOCKED — 「找不到測試框架，請先執行 /s4-setup-env。」|
-| 所有 feature branches 已 merge 至 integration branch | BLOCKED — 列出未 merge 的 branches。|
+### Step 2 — Build Traceability Map
+For each REQ-N, identify which integration test covers cross-component behavior.
 
----
+### Step 3 — Run Integration Tests
+Execute tests covering API endpoints, database connections, external service calls together. Flag coverage < 75% as **WARNING** for Stage 4 backfill.
 
-**分支整合驗證**：整合測試必須在所有相關 Atomic Task 的代碼**合併至同一分支**後才能執行。
-
-```bash
-# 確認當前整合分支已包含所有待測 task commits
-git log --oneline | head -20
-git branch --merged | grep task
-```
-
-1. **Merge completed Atomic Tasks**: Confirm all TASK-N items in `TASK_DAG.md` are marked `[x]`.
-2. **Traceability mapping**: For each REQ-N from Stage 2, identify which integration test covers the cross-component behavior.
-3. **Run integration tests**: Execute tests covering API endpoints, database connections, and external service calls working together.
-4. **Coverage early warning**: Run unit coverage alongside integration tests (`npm test --coverage` / `pytest --cov`). The 80% gate is enforced in `/s6-verify-release` — flag here as WARNING if current coverage is below 75% so Stage 4 can backfill before the final gate.
-5. **Report format**: For each failing integration test, state: test name, expected behavior, actual behavior, failing component boundary.
-6. Zero tolerance for failures — all integration tests must PASS before E2E.
-7. **Write `docs/tests/YYYY-MM-DD-integration-results.md`** — see Artifact Standard.
+### Step 4 — Write Results
+For each failing test: name, expected behavior, actual behavior, component boundary. Zero tolerance — all tests must **PASS** before E2E.
 
 ## Red Flags — 停下來，這可能是不可逆操作
 
@@ -63,53 +49,15 @@ Report status using exactly one of:
 - **NEEDS_CONTEXT** — integration environment not configured; state what is missing.
 </what-to-do>
 <supporting-info>
+
 ## Artifact Standard
-Output file: `docs/tests/YYYY-MM-DD-integration-results.md`
-
-Required sections:
-- **Summary**: total tests, passed, failed, skipped
-- **Critical Path Coverage**: for each REQ-N, which integration test covers it (name the test)
-- **Coverage Early Warning**: current unit coverage % vs. 80% gate (PASS / WARNING / BLOCKER)
-- **Failures** (if any): test name, component boundary, expected vs. actual behavior
-
-## Role Identity: QA Engineer
-- **Mindset**: Boundary breaker. You test the glue between the components. Coverage gate belongs to `/s6-verify-release`, but an early warning here saves a costly Stage 4 round-trip.
-- **Upstream Dependency**: Stage 5 Output.
-- **Downstream Target**: `/s6-test-e2e`.
-
-## Eval Fixtures
-
-Fixtures located at `tests/fixtures/s6-test-integration/cases.json`.
-
-Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected outcome).
-
-Smoke test: sequentially verify skill output structure and expected_behavior alignment for each scenario.
+Output: `docs/tests/YYYY-MM-DD-integration-results.md`
+Includes: total/passed/failed/skipped tests, REQ-N traceability, coverage %, failures (test name, boundary, expected vs. actual).
 
 ## Artifact Dependencies
-- **Reads**: source files, `docs/specs/YYYY-MM-DD-<topic>-requirements.md`
+- **Reads**: source files, docs/specs/YYYY-MM-DD-<topic>-requirements.md, TASK_DAG.md
 - **Writes**: `docs/tests/YYYY-MM-DD-integration-results.md`
 
-## Process Flow
-
-```dot
-digraph test_integration {
-    rankdir=TD;
-    check    [label="1. Verify all TASK-N\nare [x] in DAG", shape=diamond];
-    trace    [label="2. Load REQ-N\ntraceability matrix", shape=box];
-    run      [label="3. Run integration\ntest suite", shape=box];
-    pass_all [label="All tests pass?", shape=diamond];
-    write    [label="4. Write results\nto test report", shape=box];
-    done     [label="DONE → /s6-test-e2e", shape=doublecircle];
-    blocked  [label="BLOCKED\nfail details + owner", shape=doublecircle];
-
-    check -> trace [label="all done"];
-    check -> blocked [label="incomplete tasks"];
-    trace -> run;
-    run -> pass_all;
-    pass_all -> write [label="yes"];
-    pass_all -> blocked [label="no"];
-    write -> done;
-}
-```
+→ Full reference: `references/detail.md`
 
 </supporting-info>

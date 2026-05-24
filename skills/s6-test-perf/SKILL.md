@@ -1,8 +1,8 @@
 ---
 name: s6-test-perf
 description: >
-  Use after /s6-test-e2e to validate SLOs under load and capture a P50/P95/P99
-  performance baseline for pre/post deploy comparison.
+  Use when validating performance under load — P50/P95/P99, SLO gates, baselines.
+  Outputs perf report JSON. NOT for functional testing.
 ---
 <HARD-GATE>
 Do NOT proceed to `/s6-verify-release` if performance metrics exceed the thresholds
@@ -16,48 +16,36 @@ Do NOT skip /s6-verify-release’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>
-You are the **QA Engineer**.
-Your task is to validate system performance under load.
-1. **Load performance targets**: Read performance acceptance criteria from Stage 2 requirements (e.g., "API must respond < 200ms at P99 under 100 concurrent users").
-2. **Run load tests**: Execute performance tests with a tool appropriate to the project (k6, Artillery, Locust, ab).
-3. **Warmup before measurement**: Run 10–20 warmup iterations (discard results) before capturing the actual P50/P95/P99 metrics. Warmup ensures the runtime (interpreter JIT, OS file-system cache, module import) reaches steady state — the same hot state as a production request.
 
-   ```python
-   # Warmup phase — discard these results
-   for _ in range(10):
-       func(test_input)
+You are the **QA Engineer**. Validate system performance under load.
 
-   # Measurement phase — capture these
-   times = []
-   for _ in range(N_iterations):
-       t0 = time.perf_counter()
-       func(test_input)
-       times.append((time.perf_counter() - t0) * 1000)
-   ```
+### Step 1 — Load Performance Targets
 
-   Record `warmup_iterations` in `perf-baseline.json` so `/s7-telemetry` can reproduce the same warm-state condition when re-running post-deploy.
+Read performance ACs from Stage 2 requirements (e.g., "P99 < 200ms at 100 concurrent users").
 
-4. **Capture baseline metrics**:
-   - Response time: P50, P95, P99
-   - Error rate under load
-   - Throughput (req/s at target concurrency)
-   - Memory usage (no leak over 10-minute sustained load)
+### Step 2 — Run Load Tests
 
-   **記憶體洩漏偵測（Optional but Recommended）**：
-   ```python
-   # Python: memory-profiler / tracemalloc
-   from tracemalloc import start, take_snapshot, compare_to
-   # 比較 sustained load 前後的記憶體快照；若 RSS 持續增長則 memory_leak_detected: true
-   ```
-   Node.js：使用 `--inspect` + Chrome DevTools heap snapshot 比較 before/after。
+Use appropriate tool (k6, Artillery, Locust, ab) per project standards.
 
-   **資料庫死鎖偵測（Optional but Recommended）**：
-   - PostgreSQL：`log_lock_waits = on`，分析 `pg_log` 中的 lock wait timeout
-   - MySQL：`innodb_print_all_deadlocks = ON`，掃描 error log 中的 `DEADLOCK` 關鍵字
-   - 出現 deadlock 或 lock wait timeout → `slo_gate: "FAIL"`
-5. **Regression check**: Compare against previous iteration's baseline (if exists). Any metric 20%+ worse is a regression.
-6. **Report format**: Provide numeric values for every metric, not vague descriptions.
-7. **Write `docs/tests/YYYY-MM-DD-perf-baseline.json`** — see Artifact Standard. This file is the pre-deploy baseline read by `/s7-telemetry` for post-deploy comparison.
+### Step 3 — Warmup Before Measurement
+
+Run 10–20 warmup iterations (discard) before capturing P50/P95/P99. Warmup ensures JIT, filesystem cache, and module imports reach steady state (production-like). Record `warmup_iterations` in perf-baseline.json.
+
+### Step 4 — Capture Baseline Metrics
+
+- Response time: P50, P95, P99
+- Error rate under load
+- Throughput (req/s at target concurrency)
+- Memory usage (detect leak over 10-min sustained load, optional but recommended)
+- Database deadlock detection (PostgreSQL/MySQL, optional but recommended)
+
+### Step 5 — Regression Check
+
+Compare vs previous baseline (if exists). Any metric 20%+ worse is a regression.
+
+### Step 6 — Write Baseline File
+
+Output: `docs/tests/YYYY-MM-DD-perf-baseline.json` (see Artifact Standard). Read by `/s7-telemetry` post-deploy.
 
 ## Red Flags — 停下來，這可能是不可逆操作
 
@@ -75,72 +63,10 @@ Report status using exactly one of:
 - **NEEDS_CONTEXT** — no performance acceptance criteria defined in Stage 2; state what thresholds to use.
 </what-to-do>
 <supporting-info>
-## Artifact Standard
-Output file: `docs/tests/YYYY-MM-DD-perf-baseline.json`
 
-This file is consumed by `/s7-telemetry` as the pre-deploy baseline for production comparison. Every field must come from the load test tool's output — no manual estimates.
+**Reads**: source files, RULES.md (performance thresholds if defined)  
+**Writes**: `docs/tests/YYYY-MM-DD-perf-baseline.json`
 
-```json
-{
-  "timestamp": "2024-01-01T00:00:00Z",
-  "tool": "k6 | Artillery | Locust | ab | custom-timing-harness",
-  "concurrency": 100,
-  "duration_seconds": 600,
-  "warmup_iterations": 10,
-  "latency_p50_ms": 38,
-  "latency_p95_ms": 95,
-  "latency_p99_ms": 180,
-  "error_rate_pct": 0.08,
-  "throughput_rps": 820,
-  "memory_leak_detected": false,
-  "slo_gate": "PASS"
-}
-```
-
-Field rules:
-- `slo_gate`: `"PASS"` if all Stage 2 performance ACs met; `"FAIL"` blocks progression to `/s6-verify-release`
-- `memory_leak_detected`: set to `true` if memory grows monotonically over the 10-minute sustained test
-
-## Role Identity: QA Engineer
-- **Mindset**: Stress instigator. You push the system to its limits to see where it cracks. The baseline you capture here is the contract that `/s7-telemetry` will hold production to.
-- **Upstream Dependency**: `/s6-test-e2e`.
-- **Downstream Target**: `/s6-verify-release`.
-
-
-## Eval Fixtures
-
-Fixtures located at `tests/fixtures/s6-test-perf/cases.json`.
-
-Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected outcome).
-
-Smoke test: confirm skill output structure and expected_behavior alignment for each scenario.
-
-## Artifact Dependencies
-- **Reads**: source files, `RULES.md` (performance thresholds if defined)
-- **Writes**: `docs/tests/YYYY-MM-DD-perf-baseline.json`
-
-## Process Flow
-
-```dot
-digraph test_perf {
-    rankdir=TD;
-    load     [label="1. Load perf AC\nfrom OpenSpec", shape=box];
-    run      [label="2. Run load test\n(k6 / Artillery)", shape=box];
-    capture  [label="3. Capture P50 / P95 / P99\nand throughput", shape=box];
-    regress  [label="Regression > 20%\nvs baseline?", shape=diamond];
-    slo      [label="SLO targets\nmet?", shape=diamond];
-    done     [label="DONE → /s6-verify-release", shape=doublecircle];
-    concerns [label="DONE_WITH_CONCERNS\nlist regressions", shape=doublecircle];
-    blocked  [label="BLOCKED\nSLO breach", shape=doublecircle];
-
-    load -> run;
-    run -> capture;
-    capture -> regress;
-    regress -> concerns [label="yes — minor"];
-    regress -> slo [label="no"];
-    slo -> done [label="met"];
-    slo -> blocked [label="not met"];
-}
-```
+→ Full reference: `references/detail.md`
 
 </supporting-info>

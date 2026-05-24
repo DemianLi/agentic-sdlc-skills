@@ -1,8 +1,8 @@
 ---
 name: s4-setup-env
 description: >
-  Use at the start of each atomic task to verify the workspace is clean, the correct
-  branch is checked out, and the dev environment is ready for implementation.
+  Use when preparing environment for an atomic task. Outputs branch setup and
+  verified runtime environment. NOT without TASK_DAG.md and dependency validation.
 ---
 <HARD-GATE>
 Do NOT start any implementation until:
@@ -15,39 +15,24 @@ Do NOT skip /s4-tdd’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>
-You are the **Implementer**.
-Your task is to prepare the development environment for a specific Atomic Task.
 
-## Step 0 — Input Validation
+You are the **Implementer**. Prepare the development environment for an atomic task.
 
-| 失敗情境 | 行為 |
-|---------|------|
-| `TASK_DAG.md` 不存在 | BLOCKED — 「找不到 TASK_DAG.md，請先執行 /s3-build-dag。」|
-| `TASK_DAG.md` 存在但目標任務的依賴未標記 [DONE] | BLOCKED — 列出未完成的依賴任務，停止執行。|
-| Runtime 版本與 lock file 不符 | BLOCKED — 「版本不符：expected `<version>`，actual `<version>`，請先修正版本。」|
-| 工作區有未提交的變更 | BLOCKED — 「工作區不乾淨，請先 commit 或 stash 後繼續。」|
-| Lock file 損毀或無法解析 | BLOCKED — 「Lock file 無法解析，請重新生成 lock file 後繼續。」|
+### Step 0 — Input Validation
+**BLOCKED if**: TASK_DAG.md missing; task dependencies unmarked [DONE]; runtime version mismatched; workspace unclean; lock file unreadable.
 
----
+### Step 1 — Select Task
+Read `TASK_DAG.md` for next task with all dependencies [DONE]. Confirm: *"Next task is TASK-N: <title>. Confirm?"*
 
-1. **Task Assignment**: Read `TASK_DAG.md` to identify the next task where all dependencies are marked `[DONE]`. Confirm with user: *"Next task is TASK-N: <title>. Starting this now — confirm?"*
-2. **Branch Setup**: 選擇以下其中一種工作流：
+### Step 2 — Branch Setup
+**Standard mode**: `git checkout -b task-N-<slug>`
+**Worktree mode** (parallel): `git worktree add ../task-N-<slug> -b task-N-<slug>`
 
-   **標準模式**（單一工作目錄）：
-   ```bash
-   git checkout -b task-N-<slug>
-   ```
+### Step 3 — Validate Environment
+Check: `node --version` / `go version` / `python --version` must match lock file. Run: `npm ci` / `go mod download` (pinned, not latest).
 
-   **Worktree 模式**（並行開發，多個 task 同時進行不需 stash 切換）：
-   ```bash
-   git worktree add ../task-N-<slug> -b task-N-<slug>
-   cd ../task-N-<slug>
-   ```
-   Worktree 模式讓每個 task 在獨立目錄下開發，適合 DAG 中多條平行路徑同時推進的場景。
-3. **Environment Validation**: Run the project's environment check to confirm all dependencies match Stage 1's locked versions:
-   - `node --version` / `go version` / `python --version` — must match lock file
-   - `npm ci` / `go mod download` — install from lock file, not latest
-4. **Workspace Verification**: Confirm no uncommitted changes from prior task that might contaminate this one.
+### Step 4 — Verify Workspace
+Confirm no uncommitted changes from prior tasks.
 
 ## Red Flags — 停下來重新考慮
 
@@ -66,45 +51,11 @@ Report status using exactly one of:
 - **NEEDS_CONTEXT** — state what environment information is missing.
 </what-to-do>
 <supporting-info>
-## Role Identity: Implementer
-- **Mindset**: Clean workbench. You don't start coding until the tools are sharp and the environment is pristine.
-- **Upstream Dependency**: Stage 3 (Task DAG).
-- **Downstream Target**: `/s4-impl-task` & `/s4-tdd`.
-## Process Flow
-
-```dot
-digraph setup_env {
-    rankdir=TD;
-    select   [label="1. Select Task\nfrom TASK_DAG.md", shape=box];
-    branch   [label="2. Checkout\nfeature branch", shape=box];
-    runtime  [label="Runtime matches\nRULES.md?", shape=diamond];
-    install  [label="3. Install deps\n(pinned versions)", shape=box];
-    clean    [label="Workspace clean?\n(no leftover state)", shape=diamond];
-    ready    [label="4. Environment\nREADY", shape=box];
-    done     [label="DONE → /s4-impl-task\n& /s4-tdd", shape=doublecircle];
-    blocked  [label="BLOCKED\nfix runtime", shape=doublecircle];
-
-    select -> branch;
-    branch -> runtime;
-    runtime -> install [label="yes"];
-    runtime -> blocked [label="no — mismatch"];
-    install -> clean;
-    clean -> ready [label="yes"];
-    clean -> install [label="no — clean first"];
-    ready -> done;
-}
-```
-
-## Eval Fixtures
-
-Fixtures 位於 `tests/fixtures/s4-setup-env/cases.json`。
-
-每個 fixture 包含：`scenario`（情境描述）、`input`（輸入物件）、`expected_behavior`（預期行為）。
-
-冒煙測試：逐一確認 skill 對每個情境的輸出結構與 expected_behavior 一致。
 
 ## Artifact Dependencies
-- **Reads**: `TASK_DAG.md`, `RULES.md`
+- **Reads**: TASK_DAG.md, RULES.md
 - **Writes**: feature branch (git), runtime environment setup
+
+→ Full reference: `references/detail.md`
 
 </supporting-info>
