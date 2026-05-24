@@ -5,6 +5,18 @@ description: >
   NOT for writing code before tests exist.
 ---
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+
+Check in order — stop at the first missing file:
+1. Does `RULES.md` exist?
+   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest RULES.md`, report its output, and **STOP**.
+2. Does `TASK_DAG.md` exist?
+   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest TASK_DAG.md`, report its output, and **STOP**.
+
+Only proceed when both files are present.
+
+---
+
 Do NOT write any production code until:
 1. All tests for this Atomic Task are GREEN and code is committed.
 

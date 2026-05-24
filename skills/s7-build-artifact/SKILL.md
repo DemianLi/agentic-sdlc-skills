@@ -6,8 +6,15 @@ description: >
 ---
 
 <HARD-GATE>
-Do NOT proceed with build if `test-results.json` missing or `release_gate` not `"PASS"`.
-Blocked or missing gate = Stage 6 incomplete, not a judgment call.
+## Step 0 — Prerequisite Check (run before anything else)
+
+1. Does `test-results.json` exist?
+   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest test-results.json`, report its output, and **STOP**.
+   - **Yes, but `release_gate` ≠ `"PASS"`** → NEEDS_CONTEXT: "test-results.json exists but release_gate is not PASS. Stage 6 is incomplete — return to /s6-verify-release."
+
+Only proceed when test-results.json exists and `release_gate` is `"PASS"`.
+
+---
 
 After presenting build summary, proceed immediately to /s7-deploy.
 Do NOT skip /s7-deploy's HARD-GATE conditions.

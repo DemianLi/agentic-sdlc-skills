@@ -6,6 +6,17 @@ description: >
 ---
 
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+
+1. Does `TASK_DAG.md` exist?
+   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest TASK_DAG.md`, report its output, and **STOP**.
+   - **Yes, but no `AC-N.M` entries found** → NEEDS_CONTEXT: "TASK_DAG.md has no Acceptance Criteria. Add AC-N.M entries to the relevant task, then return to /s4-tdd."
+
+Only proceed past this step when TASK_DAG.md exists and contains at least one `AC-N.M` entry.
+
+---
+
+## TDD Iron Law
 Do NOT write any production code until ALL of the following are true:
 1. A failing test exists for the behavior.
 2. You HAVE RUN the test — paste ACTUAL terminal output showing FAILED or ERROR.
