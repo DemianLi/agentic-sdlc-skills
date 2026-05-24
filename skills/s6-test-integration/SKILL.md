@@ -5,11 +5,6 @@ description: >
   test results and traceability matrix. NOT before all Atomic Tasks are merged.
 ---
 <HARD-GATE>
-## Step 0 — Prerequisite Check (run before anything else)
-Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s6-test-integration`
-If it reports any missing prerequisite, follow its suggestion and **STOP**.
-
----
 
 Do NOT proceed to `/s6-test-e2e` if any integration test is failing.
 Every integration test failure must be reported as a BLOCKER.

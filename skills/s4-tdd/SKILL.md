@@ -6,14 +6,6 @@ description: >
 ---
 
 <HARD-GATE>
-## Step 0 — Prerequisite Check (run before anything else)
-Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s4-tdd`
-If it reports any missing prerequisite, follow its suggestion and **STOP**.
-
-If prerequisites pass but `TASK_DAG.md` contains no `AC-N.M` entries →
-NEEDS_CONTEXT: "TASK_DAG.md has no Acceptance Criteria. Add AC-N.M entries to the relevant task, then return to /s4-tdd."
-
----
 
 ## TDD Iron Law
 Do NOT write any production code until ALL of the following are true:
