@@ -5,6 +5,12 @@ description: >
   NOT for changes not approved in review.
 ---
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s5-fix-optimize`
+If it reports any missing prerequisite, follow its suggestion and **STOP**.
+
+---
+
 Do NOT hand off to Stage 6 if any test is failing.
 Every fix and optimization must keep the full test suite GREEN.
 If a fix requires changing a test, the change must be justified to the user.
