@@ -6,6 +6,15 @@ description: >
 ---
 
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+
+1. Does any file matching `docs/specs/*-alignment.md` exist?
+   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest "docs/specs/*-alignment.md"`, report its output, and **STOP**.
+
+Only proceed when an alignment doc is present.
+
+---
+
 Do NOT commit the structured requirements document until every requirement has explicit, testable acceptance criteria (binary pass/fail), and the user has reviewed and signed off.
 
 ---

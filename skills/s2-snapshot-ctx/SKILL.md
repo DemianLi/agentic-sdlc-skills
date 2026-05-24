@@ -6,6 +6,15 @@ description: >
 ---
 
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+
+1. Does any file matching `docs/specs/*-requirements.md` exist?
+   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest "docs/specs/*-requirements.md"`, report its output, and **STOP**.
+
+Only proceed when a committed requirements doc is present.
+
+---
+
 Do NOT generate the Context Snapshot until the structured requirements document
 has been committed to git. The snapshot is derived from committed source of truth, not drafts.
 

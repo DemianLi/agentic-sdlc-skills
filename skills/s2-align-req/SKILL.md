@@ -6,6 +6,15 @@ description: >
 ---
 
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+
+1. Does any file matching `docs/specs/*-vision.md` exist?
+   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest "docs/specs/*-vision.md"`, report its output, and **STOP**.
+
+Only proceed when a vision spec is present.
+
+---
+
 Do NOT proceed to `/s2-struct-req` until every ambiguity, contradiction, and
 out-of-scope item listed in the vision spec has been explicitly resolved.
 Present the resolved scope boundary to the user and await confirmation.
