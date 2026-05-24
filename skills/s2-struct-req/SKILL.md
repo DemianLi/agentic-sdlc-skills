@@ -1,8 +1,8 @@
 ---
 name: s2-struct-req
 description: >
-  Use after /s2-align-req to convert fully-aligned requirements into testable
-  engineering documents (PRD, User Stories, or Gherkin acceptance criteria).
+  Use when converting aligned requirements into testable engineering documents
+  (PRD, User Stories, Gherkin). NOT for requirements lacking alignment.
 ---
 
 <HARD-GATE>
@@ -16,68 +16,35 @@ Do NOT skip /s2-snapshot-ctx’s own HARD-GATE conditions.
 
 <what-to-do>
 
-You are the **Product Manager** in documentation mode. Ambiguity here becomes bugs in Stage 4. Every word in this document is a contract.
+You are the **Product Manager**. Every word is a contract; ambiguity becomes bugs in Stage 4.
 
 ## Workflow
 
-### Step 1 — Choose Document Format
-Based on the project type, select the appropriate format:
-
-| Project Type | Recommended Format |
-|---|---|
-| User-facing product | User Stories + Acceptance Criteria |
-| API / Service | PRD with Request/Response schemas |
-| Complex behavior | Gherkin BDD scenarios (`Given/When/Then`) |
-| Infrastructure | Technical Spec with measurable constraints |
-
-Ask the user to confirm the format before proceeding.
+### Step 1 — Choose Format
+Select: **User Stories + Acceptance Criteria** | **PRD with schemas** | **Gherkin BDD** | **Technical Spec**. Ask user to confirm.
 
 ### Step 2 — Structure Each Requirement
-
-For each requirement from the alignment output, write:
-
+For each requirement, write:
 ```
-## REQ-<N>: <Short Title>
-
-**User Story**: As a <role>, I want <action>, so that <business value>.
-
+## REQ-<N>: <Title>
+**User Story**: As a <role>, I want <action>, so that <value>.
 **Acceptance Criteria**:
-- [ ] AC-<N>.1: Given <context>, when <action>, then <observable outcome>
-- [ ] AC-<N>.2: Given <edge case>, when <action>, then <safe handling>
-
-**Priority**: Must-Have / Should-Have / Nice-to-Have
-**Business Value**: <why this matters in user or revenue terms>
+- [ ] AC-<N>.1: Given <context>, when <action>, then <outcome>
+- [ ] AC-<N>.2: Given <edge case>, when <action>, then <handling>
+**Priority**: Must-Have | Should-Have | Nice-to-Have
+**Business Value**: <why this matters>
 ```
 
 ### Step 3 — Validate Testability
+Ask: *"Can a QA engineer automate a test for this?"* Replace vague language:
+- ~~"works correctly"~~ → "returns valid response within spec"
+- ~~"is fast"~~ → "responds within 200ms at P99 under 100 concurrent users"
+- ~~"user-friendly"~~ → "measurable UX metric"
 
-For each Acceptance Criterion, ask: *"Can a QA engineer write an automated test for this?"*
-- If YES: the criterion is valid
-- If NO: rewrite it with a concrete, observable, binary outcome
+### Step 4 — User Sign-Off
+Present complete document: *"This is the contract for Stages 3–4. Approve to proceed."* Wait for explicit approval.
 
-Forbidden criterion language:
-- ~~"works correctly"~~ → define what correct means
-- ~~"is fast"~~ → replace with "responds within 200ms at P99 under 100 concurrent users"
-- ~~"is user-friendly"~~ → define the measurable UX metric
-
-### Step 4 — User Sign-Off Gate
-
-Present the complete structured document to the user and state:
-> *"This document is the contract for Stage 3 and Stage 4. Once you approve it, scope changes require a new requirement."*
-
-Wait for explicit approval.
-
----
-
-## Change Control
-
-Once this document is approved and committed, it becomes a contract. Any scope change requires:
-
-1. Create a new version (e.g., `v1.1`) of the requirements file — do NOT silently edit the committed version.
-2. Explicitly state what changed and why (ADDED / MODIFIED / REMOVED requirement).
-3. Re-present to the user and obtain a new explicit sign-off before Stage 3 proceeds.
-
-> If a Stage 4 implementer discovers a requirement is unclear or missing, they must return here — not interpret forward.
+**Change Control**: After approval, versioning required for scope changes (v1.1). Stage 4 implementers must return here if requirements are unclear.
 
 ---
 
@@ -101,31 +68,14 @@ Report status using exactly one of:
 
 <supporting-info>
 
-## Role Identity: Product Manager (Documentation Mode)
-- **Mindset**: Precision and clarity. Every ambiguity in this document becomes a bug in Stage 4. You are writing a contract, not a wish list.
-- **Upstream Dependency**: `/s2-align-req` — resolved scope boundary must exist.
-- **Downstream Target**: `/s2-snapshot-ctx` — the snapshot uses this as its authoritative source.
-
 ## Artifact Standard
-Output file: `docs/specs/YYYY-MM-DD-<topic>-requirements.md`
-
-Required sections:
-- `## REQ-N` blocks (one per requirement, using format above)
-- `## Test Coverage Map` — matrix mapping each AC to which Stage-6 test type covers it
-- `## Scope Contract` — re-state IN/OUT scope from alignment
-
-Commit before transitioning.
-
-## Eval Fixtures
-
-Fixtures 位於 `tests/fixtures/s2-struct-req/cases.json`。
-
-每個 fixture 包含：`scenario`（情境描述）、`input`（輸入物件）、`expected_behavior`（預期行為）。
-
-冒煙測試：逐一確認 skill 對每個情境的輸出結構與 expected_behavior 一致。
+Output: `docs/specs/YYYY-MM-DD-<topic>-requirements.md`
+Requires: `## REQ-N` blocks, `## Test Coverage Map` (AC to test type), `## Scope Contract` (IN/OUT scope). Commit before transitioning.
 
 ## Artifact Dependencies
 - **Reads**: `docs/alignment/YYYY-MM-DD-<topic>-alignment.md`
 - **Writes**: `docs/specs/YYYY-MM-DD-<topic>-requirements.md`
+
+→ Full reference: `references/detail.md`
 
 </supporting-info>

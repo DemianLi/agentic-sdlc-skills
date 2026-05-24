@@ -1,8 +1,8 @@
 ---
 name: s6-test-e2e
 description: >
-  Use after /s6-test-integration to validate full user flows and edge cases against
-  the acceptance criteria defined in Stage 2.
+  Use when validating full user flows against acceptance criteria. Outputs E2E
+  test results with traceability. NOT before integration tests pass.
 ---
 <HARD-GATE>
 Do NOT proceed to `/s6-test-perf` if any E2E test covering a main user flow fails.
@@ -16,28 +16,23 @@ Do NOT skip /s6-test-perf’s own HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>
-You are the **QA Engineer**.
-Your task is to run End-to-End tests simulating real user behavior.
+
+You are the **QA Engineer**. Run End-to-End tests simulating real user behavior.
 
 ### Step 0 — Input Validation
+**BLOCKED if**: E2E framework not installed; CONTEXT_SNAPSHOT.md missing; test environment not accessible (check BASE_URL). **DONE_WITH_CONCERNS** if suite crashes/times out; report partial results.
 
-執行前驗證以下必要條件：
+### Step 1 — Load User Flows
+Read `CONTEXT_SNAPSHOT.md` for main flows requiring E2E testing.
 
-| 必要條件 | 失敗行為 |
-|---------|---------|
-| E2E 測試框架已安裝（Playwright / Cypress / Selenium） | BLOCKED — 「找不到 E2E 測試框架，請先執行 /s4-setup-env。」|
-| `CONTEXT_SNAPSHOT.md` 存在（或等效 context 文件） | NEEDS_CONTEXT — 「缺少 context snapshot，請先執行 /s2-snapshot-ctx。」|
-| 測試目標環境可存取（localhost 或 staging URL） | BLOCKED — 「測試目標環境無法存取，請確認 `BASE_URL` 環境變數已設定。」|
-| 測試執行中途 crash 或逾時 | DONE_WITH_CONCERNS — 回報部分結果，標記未完成的測試項目。|
+### Step 2 — Map to Acceptance Criteria
+Each E2E test traces to AC-N.M from Stage 2 structured requirements.
 
----
+### Step 3 — Execute E2E Tests
+Run Playwright / Cypress / Selenium. Verify boundary conditions from Stage 2. **Zero failures on main flows** — main-flow failures are hard blockers. Secondary-flow failures may be deferred with user approval.
 
-1. **Load user flows**: Read `CONTEXT_SNAPSHOT.md` for the main user flows that must be E2E tested.
-2. **Map to acceptance criteria**: Each E2E test must trace back to a specific AC-N.M from Stage 2 structured requirements.
-3. **Execute E2E tests**: Run Playwright / Cypress / Selenium against the test environment.
-4. **Boundary validation**: Verify edge cases defined in Stage 2 boundary conditions.
-5. **Zero failures on main flows**: Any main-flow failure is a hard blocker. Secondary-flow failures are HIGH severity but may be deferred with user approval.
-6. **Write `docs/tests/YYYY-MM-DD-e2e-results.md`** — see Artifact Standard.
+### Step 4 — Write Results
+Output: `docs/tests/YYYY-MM-DD-e2e-results.md`
 
 ## Red Flags — 停下來，這可能是不可逆操作
 
@@ -54,57 +49,15 @@ Report status using exactly one of:
 - **NEEDS_CONTEXT** — E2E test environment not configured; state what is missing.
 </what-to-do>
 <supporting-info>
+
 ## Artifact Standard
-Output file: `docs/tests/YYYY-MM-DD-e2e-results.md`
-
-Required sections:
-- **Summary**: total flows tested, passed, failed
-- **AC Traceability**: for each AC-N.M from Stage 2, which E2E test covers it
-- **Main Flows** (PASS / FAIL per flow): use the flow names from `CONTEXT_SNAPSHOT.md`
-- **Secondary Flows** (PASS / DEFERRED per flow, with user approval noted if deferred)
-- **Failures** (if any): step in user journey that fails, screenshot or log excerpt
-
-## Role Identity: QA Engineer
-- **Mindset**: User proxy. If the user can break it, you must find it first.
-- **Upstream Dependency**: `/s6-test-integration`.
-- **Downstream Target**: `/s6-test-perf`.
-
-## Eval Fixtures
-
-Fixtures located at `tests/fixtures/s6-test-e2e/cases.json`.
-
-Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected outcome).
-
-Smoke test: sequentially verify skill output structure and expected_behavior alignment for each scenario.
+Output: `docs/tests/YYYY-MM-DD-e2e-results.md`
+Includes: total/passed/failed flows, AC-N.M traceability, main/secondary flow status, failures with journey step and logs.
 
 ## Artifact Dependencies
-- **Reads**: source files, `CONTEXT_SNAPSHOT.md` (user flows)
+- **Reads**: source files, CONTEXT_SNAPSHOT.md (user flows)
 - **Writes**: `docs/tests/YYYY-MM-DD-e2e-results.md`
 
-## Process Flow
-
-```dot
-digraph test_e2e {
-    rankdir=TD;
-    load     [label="1. Load User Flows\n(CONTEXT_SNAPSHOT)", shape=box];
-    map      [label="2. Map flows to\nAC-N.M criteria", shape=box];
-    run      [label="3. Run E2E suite\n(Playwright / Cypress)", shape=box];
-    main     [label="Main flow\npasses?", shape=diamond];
-    second   [label="4. Check secondary\nflows", shape=box];
-    all_pass [label="All secondary\npass?", shape=diamond];
-    done     [label="DONE → /s6-test-perf", shape=doublecircle];
-    blocked  [label="BLOCKED\nmain flow failure", shape=doublecircle];
-    concerns [label="DONE_WITH_CONCERNS\nlog secondary failures", shape=doublecircle];
-
-    load -> map;
-    map -> run;
-    run -> main;
-    main -> blocked [label="no — stop"];
-    main -> second [label="yes"];
-    second -> all_pass;
-    all_pass -> done [label="yes"];
-    all_pass -> concerns [label="no"];
-}
-```
+→ Full reference: `references/detail.md`
 
 </supporting-info>

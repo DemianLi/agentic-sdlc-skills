@@ -20,8 +20,6 @@ No output shown = gate not satisfied. Code written before the test: DELETE IT. N
 <what-to-do>
 
 **NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST.**
-> "If you didn't watch the test fail, you don't know if it tests the right thing."
-
 Write code before the test? Delete it. Not "as reference". Not "adapted". Delete means delete.
 
 **FORBIDDEN — Horizontal Slices**: NOT `test1+test2+test3 → impl1+impl2+impl3`. CORRECT: `(test1→impl1→commit)` repeat.
@@ -46,9 +44,8 @@ RED: Write ONE minimal failing test — run it — paste terminal output
 Required: `FAILED test_foo.py::test_bar - AssertionError... / 1 failed in 0.12s`
 - Test passes immediately → testing existing behavior; fix the test
 - Failure is syntax/import error → fix test file; must be a real assertion failure
-```
-GREEN: Absolute minimal code to pass that one test. No extra features. No refactoring.
-```
+
+**GREEN**: Absolute minimal code to pass that one test. No extra features. No refactoring.
 
 ### Step 3 — Incremental Loop
 Repeat: `RED → verify failure → GREEN → verify all pass → micro-refactor → commit`
@@ -82,6 +79,9 @@ Repeat: `RED → verify failure → GREEN → verify all pass → micro-refactor
 | "Deleting X hours of work is wasteful" | Sunk cost. Unverified code is the real waste. |
 | "Tests after achieve the same goals" | After: "what does this do?" First: "what SHOULD this do?" |
 | Code exists before test / passes immediately / can't explain failure | DELETE and restart |
+| "Too simple to test" | Simple code breaks. The test documents expected behavior. |
+| "I already manually tested it" | Ad-hoc ≠ systematic. Reproducibility is the whole point. |
+| "This is too complex to test" | Hard to test = hard to use. Your design is the problem. |
 
 ## Coverage Gate
 → `references/coverage-gate.md`. Quick ref: `pytest --cov=. --cov-report=term-missing`

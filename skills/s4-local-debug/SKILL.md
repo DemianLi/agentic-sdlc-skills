@@ -1,192 +1,103 @@
 ---
 name: s4-local-debug
 description: >
-  Use when a build fails, tests pass but behavior is wrong, or a stack trace needs
-  root-cause analysis — requires a reproduction test before any fix is committed.
+  Use when diagnosing build failures or behavior mismatches with evidence-based
+  debugging. Outputs fix + regression test. NOT for writing new tests (use s4-tdd).
 ---
 
 <HARD-GATE>
-Do NOT apply any fix until:
-1. Root cause has been confirmed via INSTRUMENT phase and fix is committed with regression test.
+Do NOT apply any fix until root cause is confirmed via INSTRUMENT phase and fix is committed with regression test.
 
----
-⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
 After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to Stage 5 Code Auditor.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+  "Awaiting your approval to proceed to Stage 5 Code Auditor."
 </HARD-GATE>
 
 <what-to-do>
 
-You are the **Implementer** in debug mode. Your task is to diagnose and fix failures using a disciplined, evidence-based loop. Never guess. Never fix without first understanding.
+You are the **Implementer** in debug mode. Your task: diagnose and fix failures using disciplined, evidence-based investigation. Never guess. Never fix without understanding.
 
 ## Diagnosis Loop: 6 Phases
 
 ### Phase 1 — REPRODUCE
-Make the failure consistent and deterministic before touching any code.
 
-- [ ] Run the build or test suite: `npm test` / `go test ./...` / `pytest`
-- [ ] Confirm the error message is consistent across runs
-- [ ] Document the exact error output (copy verbatim, do not paraphrase)
-- [ ] Identify: is this a **build error**, **runtime error**, or **test failure**?
+- [ ] Run build/test: `npm test` / `go test ./...` / `pytest`
+- [ ] Confirm error is consistent
+- [ ] Document error output verbatim
+- [ ] Identify: **build**, **runtime**, or **test failure**?
 
-> **Stop**: If you cannot reproduce it consistently, STOP. Report `NEEDS_CONTEXT: failure is intermittent — cannot diagnose reliably.`
+Stop if not reproducible: Report `NEEDS_CONTEXT: intermittent — cannot diagnose.`
 
 ### Phase 2 — MINIMISE
-Reduce the failing case to its smallest possible form.
 
-- [ ] Identify the smallest input / code path that triggers the failure
-- [ ] Remove all unrelated code from the reproduction scope
-- [ ] If a test is failing, confirm which single assertion fails first
+- [ ] Identify smallest input/path triggering failure
+- [ ] Remove all unrelated code
+- [ ] For tests: confirm which assertion fails first
 
 ### Phase 2.5 — ANALOGY
-Find a working counterpart in the codebase and compare it against the broken code.
 
-- [ ] Identify a similar feature/module that works correctly
-- [ ] Diff the two side by side: same data flow? same error handling? same initialization order?
-- [ ] Every difference is a hypothesis candidate — list them before moving to Phase 3
+Find working counterpart; diff side-by-side (same data flow? error handling? init order?). List every difference as hypothesis candidate.
 
-> 95% of "unsolvable" bugs trace back to incomplete investigation, not unsolvable problems. The working analog often reveals the missing piece within minutes.
+(95% of "unsolvable" bugs = incomplete investigation.)
 
 ### Phase 3 — HYPOTHESISE
-State your hypothesis before touching code.
 
-- [ ] Write down: *"I believe the root cause is _____ because _____."*
-- [ ] List the specific file, function, and line number you suspect
-- [ ] Identify what evidence would confirm or disprove this hypothesis
-
-> Do NOT write a fix yet. Hypothesise first.
+Write: *"Root cause is _____ because _____."* List file/function/line suspected. Identify confirming evidence.
 
 ### Phase 4 — INSTRUMENT
-Add targeted observability to gather evidence.
 
-- [ ] Add `console.log` / `fmt.Printf` / `print` at the suspected location — **on a separate commit branch, never merge debug logs**
-- [ ] Run the reproduction case and collect actual vs. expected values
-- [ ] Cross-reference with the stack trace line numbers
+Add `console.log` / `fmt.Printf` at suspected location (separate branch). Collect actual vs. expected. Cross-reference stack trace.
 
 ### Phase 5 — FIX
-Apply the minimal targeted fix only once the root cause is confirmed.
 
-- [ ] Change only what is necessary to address the root cause
-- [ ] Do NOT refactor unrelated code in the same commit
-- [ ] Do NOT add features — fix only the failing behavior
-- [ ] Remove all instrumentation added in Phase 4
+Change only what addresses root cause. NO refactoring. NO features. Remove all instrumentation.
 
 ### Phase 6 — REGRESSION TEST
-Prove the fix is permanent with an automated test.
 
-- [ ] Write a failing test **before** applying the fix (per TDD Iron Law in `/s4-tdd`)
-- [ ] Confirm the test was failing **before** the fix
-- [ ] Apply the fix and confirm all tests pass
-- [ ] Commit with format: `fix: <root cause description> (+ regression test)`
+Write failing test **before** fix. Watch it fail. Apply fix. Confirm GREEN. Commit: `fix: <root cause> (+ regression test)`
 
-> A bug fixed without a regression test is a bug waiting to return.
+(Bug without test = time bomb.)
 
 ---
 
-## Quick Reference: Error Type Triage
+## Error Type Triage
 
-| Error Type | First Action |
-|------------|--------------|
-| Build / compile error | Read the first error only — fix it, then re-run |
-| Type error (TS, Go, Python) | Check the type at source, not at point of use |
-| Test failure | Read the assertion diff carefully — actual vs. expected |
-| Runtime panic / exception | Read the top-most frame of the stack trace |
-| Flaky test | Run 3× — if inconsistent, mark as `NEEDS_CONTEXT` |
-| Dependency version conflict | Check lock file vs. installed versions |
-
----
-
-## Escalation Protocol
-
-After **3 failed fix attempts** on the same root cause:
-1. STOP the current approach entirely
-2. Report `BLOCKED: attempted [X], [Y], [Z] — root cause still unclear`
-3. Ask the user: "Should I try a different approach or escalate?"
-
-Do not loop more than 3 times on the same hypothesis.
+| Error | First Action |
+|------|--------------|
+| Build | Read first error; fix; re-run |
+| Type error | Check at source, not use point |
+| Test failure | Read diff: actual vs. expected |
+| Runtime panic | Read top stack frame |
+| Flaky test | Run 3× — inconsistent? NEEDS_CONTEXT |
+| Dependency version | Check lock file vs. installed |
 
 ---
 
-## Red Flags — 停下來重新考慮
+## Escalation: 3-Attempt Limit
 
-| 如果你在想… | 現實是 |
+After 3 failed attempts: STOP. Report `BLOCKED: attempted [X], [Y], [Z] — unclear`. Ask: escalate?
+
+---
+
+## Red Flags
+
+| What you're thinking… | Reality |
 |------------|--------|
-| "失敗很明顯，就是那個地方的邏輯有問題，直接改吧，不用 INSTRUMENT" | 「明顯」的假設往往錯得最離譜；沒有實際數據，就是猜測；必須貼出 log 和堆棧追蹤的證據 |
-| "我已經找到 3 個假設都沒成功，但有個 4 號假設非常可能，再試一次" | 3 次試驗的極限是硬規則；第 4 次意味著你沒有真正理解根因；停止、報告 BLOCKED、尋求幫助 |
-| "這個回歸測試有點複雜，我先提交修復，等測試寫完了再補回來" | 修復 + 回歸測試是一體的；沒有測試的修復就是時間炸彈；必須先寫測試，看失敗，再修復 |
+| "Failure is obvious, logic wrong, just fix — no INSTRUMENT needed" | "Obvious" assumptions fail most; no data = guessing; need logs + stack trace evidence |
+| "3 hypotheses failed but 4th is very likely, try once more" | 3 attempts is hard limit; 4th means you don't truly understand; STOP, report BLOCKED, seek help |
+| "Regression test is complex, I'll submit fix first, add test later" | Fix + test are inseparable; fix without test = time bomb; test first (RED), watch fail, then fix |
 
 ---
 
 ## Completion Report
 
-At the end of this skill, report status using exactly one of:
 - **DONE** — root cause identified, fix applied, regression test added, full suite GREEN.
-- **DONE_WITH_CONCERNS** — fixed, but note specific remaining risks (e.g., "similar pattern exists in module X").
-- **BLOCKED** — state exact blocker, what was tried (all 3 attempts), and what is needed.
-- **NEEDS_CONTEXT** — state exactly what information is missing (cannot reproduce without it).
-
+- **DONE_WITH_CONCERNS** — fixed, but note specific risks (e.g., "similar pattern in module X").
+- **BLOCKED** — state exact blocker, what was tried (all 3 attempts), what is needed.
+- **NEEDS_CONTEXT** — state exactly what information is missing.
 </what-to-do>
 
 <supporting-info>
-
-## Role Identity: Implementer (Debug Mode)
-- **Mindset**: Disciplined detective. You gather evidence before forming conclusions. You never guess. If you cannot explain *why* the fix works, it is not a fix — it is a workaround.
-- **Upstream Dependency**: `/s4-impl-task` (implementation complete but failing).
-- **Downstream Target**: Stage 5 (Code Auditor) — only hand off code where **all tests pass** and **no debug logs remain**.
-
-## Semantic Boundary
-
-| Skill | 用途 | 差別 |
-|-------|------|------|
-| `s4-local-debug` | 診斷 tests GREEN 後仍行為異常的根因；系統化調試 | 調試已實現但行為錯誤的代碼；需先有 GREEN 狀態 |
-| `s4-impl-task` | 讓失敗測試從紅轉綠 | 首次實現；測試已存在但代碼未寫 |
-| `s4-tdd` | 建立失敗測試（紅燈） | 只寫測試；不動 production code |
-| `s4-setup-env` | 配置開發環境與 worktree | 環境問題；若 IDE/依賴異常先用此 skill |
-
-## Process Flow
-
-```dot
-digraph debug_loop {
-    reproduce [label="REPRODUCE\nConsistent failure?", shape=diamond];
-    minimise  [label="MINIMISE\nSmallest failing case", shape=box];
-    hypothesise [label="HYPOTHESISE\nState root cause guess", shape=box];
-    instrument [label="INSTRUMENT\nAdd targeted logging", shape=box];
-    confirmed  [label="Root cause\nconfirmed?", shape=diamond];
-    fix        [label="FIX\nMinimal targeted change", shape=box];
-    regression [label="REGRESSION TEST\nWrite test → watch fail → apply fix → GREEN", shape=box];
-    done       [label="DONE\nReport status", shape=doublecircle];
-    blocked    [label="BLOCKED\n3 attempts exhausted", shape=doublecircle];
-
-    reproduce -> minimise [label="yes"];
-    reproduce -> done [label="no (NEEDS_CONTEXT)"];
-    minimise -> hypothesise;
-    hypothesise -> instrument;
-    instrument -> confirmed;
-    confirmed -> fix [label="yes"];
-    confirmed -> hypothesise [label="no, new hypothesis\n(max 3 attempts)"];
-    fix -> regression;
-    regression -> done;
-    hypothesise -> blocked [label="3rd attempt failed"];
-}
-```
-
-## Artifact Standard
-- **Regression test file**: Must be committed alongside the fix
-- **Commit message format**: `fix: <short root-cause description>\n\nRoot cause: <explanation>\nRegression test: <test name>`
-- **No debug logs**: All `console.log` / `print` / `fmt.Printf` added during Phase 4 must be removed before handoff
-
-## Eval Fixtures
-
-Fixtures 位於 `tests/fixtures/s4-local-debug/cases.json`。
-
-每個 fixture 包含：`scenario`（情境描述）、`input`（輸入物件）、`expected_behavior`（預期行為）。
-
-冒煙測試：逐一確認 skill 對每個情境的輸出結構與 expected_behavior 一致。
-
-## Artifact Dependencies
-- **Reads**: failing test output, source files
-- **Writes**: bug fix commits, regression test
-
+**Reads**: failing test output, source files
+**Writes**: bug fix commits, regression test
+→ Full reference: `references/detail.md`
 </supporting-info>

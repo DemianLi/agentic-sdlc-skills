@@ -1,207 +1,105 @@
 ---
 name: s6-verify-release
 description: >
-  Use after all Stage 6 tests pass to compile the final test report and issue a
-  release gate decision (PASS or BLOCKED) as test-results.json.
+  Use when issuing release gate decision (PASS/BLOCKED) in test-results.json. Outputs
+  traceability matrix, coverage, blockers. NOT for individual test runs.
 ---
-
 <HARD-GATE>
-Do NOT issue the "Ready for Delivery" signal until:
-1. Unit test coverage is at or above the threshold defined in RULES.md (default: 80%).
+Do NOT issue "Ready for Delivery" until:
+1. Unit test coverage ≥ threshold in RULES.md (default: 80%).
 2. ALL integration tests pass.
-3. ALL E2E tests for the in-scope user flows pass.
-4. The `test-results.json` artifact has been written and committed.
-5. The `test-results.json` must be machine-generated from actual command runs — a manually created file does NOT satisfy this gate.
-If any gate fails, status is BLOCKED — Stage 7 cannot proceed.
+3. ALL E2E tests for in-scope flows pass.
+4. `test-results.json` written & committed (machine-generated, NOT manual).
+If any gate fails: BLOCKED — Stage 7 cannot proceed.
 
----
-⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the required artifact, your message MUST end with exactly:
-  “Awaiting your approval to proceed to Stage 7 Release Manager.”
-Do NOT generate the next stage’s artifact, code, or analysis until the user
-explicitly approves. A user response that is silent on approval is NOT approval.
+After presenting the artifact, your message MUST end with exactly:
+  "Awaiting your approval to proceed to Stage 7 Release Manager."
 </HARD-GATE>
-
 <what-to-do>
+You are the **QA Engineer** in final validation mode—the last gate before production.
 
-You are the **QA Engineer** in final validation mode. You are the last gate before production. Nothing passes you unless it is demonstrably verified against every acceptance criterion from Stage 2.
+## Coverage Thresholds
 
-## Coverage Thresholds (from RULES.md)
-
-| Test Type | Minimum Threshold | Scope |
+| Test Type | Minimum | Scope |
 |---|---|---|
 | Unit Tests | 80% line coverage | All in-scope modules |
-| Integration Tests | 100% of critical paths | As defined in REQ acceptance criteria |
-| E2E Tests | 100% of main user flows | As listed in CONTEXT_SNAPSHOT.md |
+| Integration Tests | 100% critical paths | REQ acceptance criteria |
+| E2E Tests | 100% main user flows | CONTEXT_SNAPSHOT.md |
 
-If RULES.md specifies different thresholds, those override the defaults above.
+(RULES.md overrides defaults)
 
 ## Workflow
 
 ### Step 0 — Pre-flight Check
 
-Before running any tests, verify the following. If any check fails, **stop immediately and report `NEEDS_CONTEXT` with the exact gap. Do not attempt to run tests.**
+If any check fails, **stop and report `NEEDS_CONTEXT`**.
 
-| Check | What to verify | If it fails |
+| Check | What to verify | Failure |
 |---|---|---|
-| Test runner is configured | `package.json` has a `test` script, or `pytest.ini` / `pyproject.toml` / `go.mod` exists with test config | Report: "`NEEDS_CONTEXT`: no test runner configured. Cannot run tests until test infrastructure is set up." |
-| Test files exist | At least one `*.test.*` / `test_*.py` / `*_test.go` file exists in the codebase | Report: "`NEEDS_CONTEXT`: no test files found. Stage 4 TDD artifacts are missing — run `/s4-tdd` first." |
-| Requirements doc exists | `docs/specs/YYYY-MM-DD-<topic>-requirements.md` is present for AC traceability | Report: "`NEEDS_CONTEXT`: no requirements doc found at `docs/specs/`. Cannot build traceability matrix without REQ-N / AC-N.M definitions." |
-| Coverage threshold is knowable | `RULES.md` specifies a coverage %, OR default 80% is acceptable | If absent from `RULES.md`, proceed with 80% default and note: "Coverage threshold not set in RULES.md — applying default 80%." |
+| Test runner | test script in package.json or pytest.ini/go.mod present | BLOCKED: no test runner |
+| Test files exist | ≥1 `*.test.*`/`test_*.py`/`*_test.go` | BLOCKED: run `/s4-tdd` |
+| Requirements doc | `docs/specs/YYYY-MM-DD-*-requirements.md` present | BLOCKED: no REQ-N/AC |
+| Coverage threshold | `RULES.md` %, OR 80% default | Note default if absent |
 
 ### Step 1 — Run Full Test Suite
-```bash
-# Unit + Integration
-npm test -- --coverage
-# OR
-go test ./... -coverprofile=coverage.out && go tool cover -func coverage.out
-# OR
-pytest --cov=. --cov-report=json
 
-# E2E (if configured)
-npx playwright test
-```
+**npm test -- --coverage** OR **pytest --cov=. --cov-report=json** OR **go test ./... -coverprofile=coverage.out**
+
+Run **npx playwright test** if E2E configured.
 
 ### Step 2 — Validate Coverage
-- [ ] Extract coverage percentage for each in-scope module
-- [ ] Flag any module below the threshold as a BLOCKER
-- [ ] Confirm that tests added in Stage 4 (`/s4-tdd`) cover all acceptance criteria from Stage 2
+- [ ] Extract coverage % per in-scope module
+- [ ] Flag any module below threshold as BLOCKER
+- [ ] Confirm Stage 4 tests cover all Stage 2 ACs
 
 ### Step 3 — Acceptance Criterion Traceability
-For each REQ-N from `docs/specs/YYYY-MM-DD-<topic>-requirements.md`:
-- [ ] AC-N.1: which test covers this? (name the test)
-- [ ] AC-N.2: which test covers this?
-- [ ] If an AC has no test: mark as BLOCKER
 
-This is the traceability matrix — you cannot release without it.
+For each REQ-N in requirements doc:
+- [ ] AC-N.1: which test covers this? (name it)
+- [ ] AC-N.2: which test covers this?
+- [ ] If AC has no test: BLOCKER
+
+This traceability matrix is release-critical.
 
 ### Step 4 — Write test-results.json
 
-**4a. Install required plugins** (one-time setup, add to project deps):
-```bash
-pip install pytest-json-report pytest-cov        # Python
-# npm / Go projects: see framework-equivalent JSON reporters
-```
+**4a. Install plugins**: **pip install pytest-json-report pytest-cov** (Python; npm/Go equivalents)
 
-**4b. Run tests with automated JSON output** (Python example):
-```bash
-pytest --cov=. --cov-report=json \
-       --json-report --json-report-file=test-results.raw.json
-```
-The plugin captures pass/fail/duration per test automatically.
+**4b. Run with JSON**: **pytest --cov=. --cov-report=json --json-report --json-report-file=test-results.raw.json**
 
-**4c. Augment with AC traceability** — the raw JSON does not include REQ-N mapping; add it via docstring convention or a small merge script at `docs/scripts/merge-test-results.py`. The final merged output must match the schema below.
+**4c. Augment traceability**: Merge raw JSON with REQ-N mapping via docstring or `docs/scripts/merge-test-results.py`.
 
-**4d. Final artifact** — `test-results.json` at project root:
-```json
-{
-  "timestamp": "2024-01-01T00:00:00Z",
-  "topic": "<iteration topic>",
-  "release_gate": "PASS",
-  "unit_tests": {
-    "total": 142,
-    "passed": 142,
-    "failed": 0,
-    "coverage_pct": 87.3,
-    "threshold_pct": 80,
-    "gate": "PASS"
-  },
-  "integration_tests": {
-    "total": 18,
-    "passed": 18,
-    "failed": 0,
-    "gate": "PASS"
-  },
-  "e2e_tests": {
-    "total": 5,
-    "passed": 5,
-    "failed": 0,
-    "gate": "PASS"
-  },
-  "traceability": [
-    { "req": "REQ-1", "ac": "AC-1.1", "test": "test_order_creation_success", "status": "PASS" },
-    { "req": "REQ-1", "ac": "AC-1.2", "test": "test_order_creation_invalid_items", "status": "PASS" }
-  ],
-  "blockers": []
-}
-```
+**4d. Artifact**: `test-results.json` at root. If any gate FAIL, set **"release_gate": "BLOCKED"** and populate **"blockers"**.
 
-If any gate is FAIL, set `"release_gate": "BLOCKED"` and populate `"blockers"` array.
+**4e. Example test-results.json**:
+
+Include: `timestamp`, `topic`, `release_gate`, `unit_tests`, `integration_tests`, `e2e_tests`, `traceability`, `blockers`.
 
 ### Step 5 — Issue Signal
 
-**If PASS**: Commit `test-results.json` and state:
-> *"All quality gates PASS. Coverage: X%. Traceability: complete. Ready for Stage 7."*
+**If PASS**: Commit & state "All quality gates PASS. Coverage: X%. Ready for Stage 7."
 
-**If BLOCKED**: State exactly which gates failed and what must be fixed. Do NOT proceed to Stage 7.
+**If BLOCKED**: State which gates failed; list required fixes. Do NOT proceed.
 
 ---
 
-## Red Flags — 停下來，這可能是不可逆操作
+## Red Flags
 
-| 如果你在想… | 現實是 |
+| What you're thinking… | Reality |
 |------------|--------|
-| test-results.json 我手動填的，數字是對的 | 手動填的無法追蹤數據來源，無法審計；一旦部署後出問題，無法重現驗證過程 |
-| coverage 79% 差一點點算通過 | coverage gate 定義在 RULES.md；差 1% 就是不通過；門檻存在的目的就是強制執行，不是建議值 |
-| 沒有 traceability matrix，但覆蓋看起來夠 | traceability matrix 是法律文件；「看起來夠」不是證據；必須有 AC-N.M 到 test case 的映射 |
+| I'll manually fill test-results.json, numbers are correct | Manual files cannot be audited; if issues arise post-deploy, you cannot prove what was tested |
+| Coverage 79% is close enough | Gate threshold is set in RULES.md — 1% short is FAIL. Thresholds exist to be enforced, not suggested. |
+| No traceability matrix but coverage looks good | Traceability is a legal document. "Looks good" is not evidence. Every AC-N.M must map to a test case. |
 
 ## Completion Report
 
-Report status using exactly one of:
 - **DONE** — `release_gate: PASS`; `test-results.json` committed. Stage 7 may begin.
-- **BLOCKED** — list each failing gate with specific numbers (e.g., "coverage 74% < 80% threshold in `src/orders/`").
+- **BLOCKED** — list each failing gate with numbers (e.g., "coverage 74% < 80% in `src/orders/`").
 - **NEEDS_CONTEXT** — test runner not configured; state what setup is needed.
-
 </what-to-do>
 
 <supporting-info>
-
-## Role Identity: QA Engineer (Final Gate)
-- **Mindset**: Gatekeeper. Zero tolerance for uncovered acceptance criteria. Nothing passes without evidence. "It worked when I tried it" is not evidence — automated test results are evidence.
-- **Upstream Dependency**: `/s6-test-perf` — performance baseline must be captured before final verification.
-- **Downstream Target**: Stage 7 Release Manager reads `test-results.json` as their first action. If `release_gate` is not `PASS`, Stage 7 is blocked.
-
-## Process Flow
-
-```dot
-digraph verify_release {
-    rankdir=TD;
-    suite    [label="1. Run full test suite\n(unit + integration + e2e)", shape=box];
-    cov      [label="Coverage ≥ 80%?", shape=diamond];
-    trace    [label="2. AC traceability matrix\n(every REQ-N mapped)", shape=box];
-    write    [label="3. Write\ntest-results.json", shape=box];
-    gate     [label="release_gate\n= PASS?", shape=diamond];
-    done     [label="DONE → Stage 7\nRelease Manager", shape=doublecircle, style=filled, fillcolor="#ccffcc"];
-    blocked  [label="BLOCKED\nStage 7 cannot start", shape=doublecircle, style=filled, fillcolor="#ffcccc"];
-
-    suite -> cov;
-    cov -> trace [label="yes"];
-    cov -> blocked [label="no — below threshold"];
-    trace -> write;
-    write -> gate;
-    gate -> done [label="PASS"];
-    gate -> blocked [label="FAIL"];
-}
-```
-
-## Artifact Standard
-Output file: `test-results.json` at project root
-
-Required fields: `timestamp`, `topic`, `release_gate` (PASS/BLOCKED), `unit_tests` object, `integration_tests` object, `e2e_tests` object, `traceability` array, `blockers` array.
-
-Commit before transitioning. Never modify `test-results.json` manually — it must be machine-generated from actual test runs.
-
-
-## Eval Fixtures
-
-Fixtures located at `tests/fixtures/s6-verify-release/cases.json`.
-
-Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected outcome).
-
-Smoke test: confirm skill output structure and expected_behavior alignment for each scenario.
-
-## Artifact Dependencies
-- **Reads**: `docs/tests/YYYY-MM-DD-integration-results.md`, `docs/tests/YYYY-MM-DD-e2e-results.md`, `docs/tests/YYYY-MM-DD-perf-baseline.json`, `docs/specs/YYYY-MM-DD-<topic>-requirements.md`, `RULES.md` (coverage threshold)
-- **Writes**: `test-results.json`
-
+**Reads**: docs/tests/YYYY-MM-DD-integration-results.md, docs/tests/YYYY-MM-DD-e2e-results.md, docs/tests/YYYY-MM-DD-perf-baseline.json, docs/specs/YYYY-MM-DD-*-requirements.md, RULES.md
+**Writes**: test-results.json
+→ Full reference: `references/detail.md`
 </supporting-info>

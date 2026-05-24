@@ -1,42 +1,38 @@
 ---
 name: s7-build-artifact
 description: >
-  Use after /s6-verify-release confirms release_gate: PASS to build, version,
-  and tag the deployable artifact.
+  Use when building and tagging deployable artifact after Stage 6 verification passes.
+  Outputs artifact + SHA-256 + git tag. NOT for testing or verification.
 ---
 
 <HARD-GATE>
-Do NOT proceed with the build if `test-results.json` does not exist at project root
-or if `release_gate` is not `"PASS"`. A blocked or missing gate file means Stage 6
-did not complete — this is a pipeline violation, not a judgment call.
+Do NOT proceed with build if `test-results.json` missing or `release_gate` not `"PASS"`.
+Blocked or missing gate = Stage 6 incomplete, not a judgment call.
 
----
-⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:
-After presenting the build summary, proceed immediately to /s7-deploy.
-Do NOT skip /s7-deploy's own HARD-GATE conditions.
+After presenting build summary, proceed immediately to /s7-deploy.
+Do NOT skip /s7-deploy's HARD-GATE conditions.
 </HARD-GATE>
 
 <what-to-do>
 
-You are the **Release Manager** in the build phase.
-Your task is to produce a versioned, reproducible artifact from the source that passed Stage 6.
+You are the **Release Manager** in build phase. Task: produce versioned, reproducible artifact from source that passed Stage 6.
 
 ## Pre-flight Check
 
-Before building, verify all of the following. Stop immediately and report `NEEDS_CONTEXT` if any check fails.
+Stop with `NEEDS_CONTEXT` if any check fails.
 
-| Check | What to verify | If it fails |
+| Check | Verify | Failure |
 |---|---|---|
-| `test-results.json` exists | File present at project root | `NEEDS_CONTEXT: test-results.json missing. Cannot build without Stage 6 gate.` |
-| `release_gate` is PASS | `cat test-results.json \| jq .release_gate` == `"PASS"` | `BLOCKED: release_gate is not PASS. Stage 7 is unconditionally blocked until Stage 6 issues are resolved.` |
-| Version is set | `pyproject.toml` / `package.json` / `go.mod` has an explicit version | `NEEDS_CONTEXT: no version found in project manifest. Set version before building.` |
-| Build tool available | `python -m build` / `npm pack` / `go build` works | Report specific error and missing dependency |
+| test-results.json | File at root | NEEDS_CONTEXT: missing |
+| release_gate | `jq .release_gate` == `"PASS"` | BLOCKED: not PASS |
+| Version | manifest has version | NEEDS_CONTEXT: not found |
+| Build tool | `python -m build` / `npm pack` works | Report error |
 
 ## Workflow
 
 ### Step 1 — Determine Artifact Type
 
-| Project type | Artifact | Build command |
+| Project type | Artifact | Command |
 |---|---|---|
 | Python library | `.whl` + `.tar.gz` | `python -m build` |
 | Python service | Docker image | `docker build -t <name>:<version> .` |
@@ -44,133 +40,62 @@ Before building, verify all of the following. Stop immediately and report `NEEDS
 | Node service | Docker image | `docker build -t <name>:<version> .` |
 | Go binary | Binary | `go build -o dist/<name> .` |
 
-If a `Dockerfile` is present, prefer the Docker path for services.
+If `Dockerfile` present, prefer Docker for services.
 
 ### Step 2 — Build
 
-```bash
-# Python wheel example:
-pip install build
-python -m build
-# Outputs: dist/<name>-<version>-py3-none-any.whl and dist/<name>-<version>.tar.gz
+**Python**: `pip install build && python -m build` (outputs to dist/)
 
-# Verify contents:
-ls -lh dist/
-```
-
-Capture the exact SHA-256 of the primary artifact:
-```bash
-shasum -a 256 dist/<artifact>
-```
+**Capture SHA-256**: `shasum -a 256 dist/<artifact>`
 
 ### Step 3 — Git Tag
 
 ```bash
 git tag -a v<version> -m "Release v<version>"
-# Verify:
 git show v<version> --stat
 ```
 
-Do NOT push the tag to remote unless the user explicitly instructs it.
+Do NOT push tag to remote unless explicitly instructed.
 
 ### Step 4 — Report Build Summary
 
-Present a structured summary:
+Present: version, artifact type, path, SHA-256, git tag, timestamp, reproducible (yes/no).
 
-```
-## Build Summary
-
-| Field | Value |
-|---|---|
-| Version | v1.0.0 |
-| Artifact type | Python wheel |
-| Primary artifact | dist/string-stats-api-1.0.0-py3-none-any.whl |
-| SHA-256 | abc123... |
-| Git tag | v1.0.0 |
-| Build timestamp | 2026-05-16T11:30:00Z |
-| Reproducible | yes (pinned deps in requirements.txt) |
-```
+---
 
 ## Simulation Mode
 
-If no registry is configured (e.g., trial validation context), the artifact lives in `dist/`
-and the git tag is local only. This is acceptable — document it as `deploy_target: "local"`.
-Do NOT attempt to push to PyPI / Docker Hub / npm unless explicitly instructed.
+If no registry configured (trial context), artifact lives in `dist/` and git tag is local only. Document as `deploy_target: "local"`.
 
-**Monorepo caveat**: If the trial project lives inside a larger repository (e.g. as a subdirectory),
-`git tag` in Step 3 will tag the monorepo root — not the trial project. In this case, **skip
-the git tag step** and note `git_tag: "skipped (monorepo context)"` in the build summary.
-Git tags only make sense when the repository root corresponds to the project being released.
+Do NOT push to PyPI / Docker Hub / npm unless explicitly instructed.
 
-## Red Flags — 停下來，這可能是不可逆操作
+**Monorepo caveat**: If trial project in larger repo subdirectory, `git tag` tags monorepo root, not trial project. Skip git tag step; note `git_tag: "skipped (monorepo context)"`. Git tags only make sense when repo root = project root.
 
-| 如果你在想… | 現實是 |
+---
+
+## Red Flags
+
+| What you're thinking… | Reality |
 |------------|--------|
-| release_gate 是 BLOCKED 但測試其實都過了 | 你在 Stage 7，不是 Stage 6。Stage 6 有修正的機會；如果 release_gate 不是 PASS，退回 Stage 6，不要繼續 |
-| 版本號沒 bump，先用舊版本建構 | 如果版本未更新，新舊 artifact 無法區分；build 前必須確認版本號已正確 |
-| 我直接 push tag 到 remote | 推送 tag 是不可逆操作；不要在未獲授權的情況下推送 |
+| release_gate BLOCKED but tests pass | You're in Stage 7, not Stage 6. Stage 6 has fix opportunity; if gate not PASS, return to Stage 6 |
+| Version not bumped, use old version | New/old artifacts can't be distinguished without version update; confirm version before building |
+| Push tag to remote directly | Tag push is irreversible; never push without authorization |
+
+---
 
 ## Completion Report
 
-Report status using exactly one of:
 - **DONE** — artifact built; SHA-256 captured; git tag created. Ready for `/s7-deploy`.
-- **BLOCKED** — `release_gate` not PASS; list the specific value found.
+- **BLOCKED** — `release_gate` not PASS; list specific value found.
 - **NEEDS_CONTEXT** — state exactly what is missing (build tool, version, manifest).
 
 </what-to-do>
 
 <supporting-info>
 
-## Role Identity: Release Manager (Build Phase)
-- **Mindset**: Build integrity guardian. Every artifact must be traceable to a specific commit and reproducible from that commit.
-- **Upstream Dependency**: `/s6-verify-release` — `test-results.json` with `release_gate: "PASS"` is the entry token.
-- **Downstream Target**: `/s7-deploy` reads the artifact path and SHA-256 from the build summary.
+**Reads**: test-results.json, pyproject.toml/package.json/go.mod, source files
+**Writes**: dist/<artifact> (or Docker image), local git tag v<version>
 
-## Eval Fixtures
-
-Fixtures 位於 `tests/fixtures/s7-build-artifact/cases.json`。
-
-每個 fixture 包含：`scenario`（情境描述）、`input`（輸入物件）、`expected_behavior`（預期行為）。
-
-冒煙測試：逐一確認 skill 對每個情境的輸出結構與 expected_behavior 一致。
-
-## Artifact Dependencies
-- **Reads**: `test-results.json`, `pyproject.toml` / `package.json` / `go.mod`, source files
-- **Writes**: `dist/<artifact>` (or Docker image layer cache), local git tag `v<version>`
-
-## Pipeline Position
-
-```
-[s6-verify-release] → test-results.json (release_gate: PASS)
-        ↓
-[s7-build-artifact] → dist/<artifact>, git tag v<version>
-        ↓
-[s7-deploy] → docs/releases/.../deploy.md
-        ↓
-[s7-release-notes] → CHANGELOG.md
-        ↓
-[s7-telemetry] → docs/releases/.../telemetry.json
-```
-
-## Process Flow
-
-```
-test-results.json
-   ↓ release_gate == PASS?
-   ├── NO → BLOCKED (return to Stage 6)
-   └── YES
-        ↓
-   Read version from manifest
-        ↓
-   Build artifact (python -m build / npm pack / docker build)
-        ↓
-   Capture SHA-256
-        ↓
-   Create git tag v<version>
-        ↓
-   Report Build Summary
-        ↓
-   Await approval → /s7-deploy
-```
+→ Full reference: `references/detail.md`
 
 </supporting-info>

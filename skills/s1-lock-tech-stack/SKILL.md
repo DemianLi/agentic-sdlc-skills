@@ -1,8 +1,8 @@
 ---
 name: s1-lock-tech-stack
 description: >
-  Use when finalizing the tech stack for a new project, or when a major dependency
-  decision needs to be locked before implementation begins.
+  Use when finalizing tech stack before implementation — outputs locked RULES.md stack section.
+  NOT for changing stack mid-implementation.
 ---
 
 <HARD-GATE>

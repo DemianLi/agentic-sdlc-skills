@@ -1,8 +1,8 @@
 ---
 name: s1-config-context
 description: >
-  Use when starting a new project with no CONTEXT.md, or when onboarding a new AI
-  agent to an existing codebase that lacks a shared vocabulary and defined AI boundaries.
+  Use when project has no CONTEXT.md — outputs glossary and AI boundary doc.
+  NOT for projects that already have an existing CONTEXT.md.
 ---
 
 <HARD-GATE>
