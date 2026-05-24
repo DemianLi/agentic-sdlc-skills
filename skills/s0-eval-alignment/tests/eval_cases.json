@@ -1,4 +1,24 @@
 {
+  "s-fast-track": {
+    "golden_path": "User reports a confirmed bug in a single module with a clear reproduction step — route directly to s4 without full pipeline",
+    "adversarial": "User asks to fast-track a new checkout flow that touches the payment, inventory, and notification modules"
+  },
+  "s0-brainstorm": {
+    "golden_path": "User says 'I want to make the app feel faster' with no further detail — clarify the actual problem before writing any spec",
+    "adversarial": "User has a detailed requirements document and asks to brainstorm additional features on top of it"
+  },
+  "s0-semantic-validate": {
+    "golden_path": "Verify that test-results.json contains zero failures before marking s4-tdd as complete",
+    "adversarial": "User asks to check whether a SKILL.md follows the 6 production quality criteria"
+  },
+  "s0-skill-budget": {
+    "golden_path": "Audit a newly written SKILL.md to confirm it stays within the 105-line D/I/S budget before merging",
+    "adversarial": "User asks to evaluate whether the skill handles edge cases correctly and has proper negative triggers"
+  },
+  "s0-trace-feature": {
+    "golden_path": "Trace how a password-reset request flows through the codebase from the API endpoint to the email service",
+    "adversarial": "User asks to design the architecture for a new real-time notification system"
+  },
   "s1-define-rules": {
     "golden_path": "Set up coding standards and security baseline for a new project before any code is written",
     "adversarial": "User asks to skip the security section and only define formatting rules"
