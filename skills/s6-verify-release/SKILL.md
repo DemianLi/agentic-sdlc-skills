@@ -6,14 +6,8 @@ description: >
 ---
 <HARD-GATE>
 ## Step 0 — Prerequisite Check (run before anything else)
-
-Check in order — stop at the first missing file:
-1. Does any file matching `docs/tests/*-e2e-results.md` exist?
-   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest "docs/tests/*-e2e-results.md"`, report its output, and **STOP**.
-2. Does `RULES.md` exist?
-   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest RULES.md`, report its output, and **STOP**.
-
-Only proceed when both are present.
+Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s6-verify-release`
+If it reports any missing prerequisite, follow its suggestion and **STOP**.
 
 ---
 

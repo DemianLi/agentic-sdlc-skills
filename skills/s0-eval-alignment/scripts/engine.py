@@ -881,6 +881,39 @@ class SkillGraphEngine:
 
         return blocked
 
+    def check_prereqs_for(self, skill_name: str) -> Optional[tuple]:
+        """
+        Check whether all direct prerequisites for a skill are satisfied.
+
+        Returns (missing_description, suggested_skill) for the first unsatisfied
+        prerequisite (topological order = progressive disclosure), or None when
+        all prerequisites are met.
+
+        Handles both output-file-based completion and sentinel-file-based
+        completion (skills with outputs: []).
+        """
+        if skill_name not in self.skills:
+            return None
+
+        completed = self.get_completed_nodes()
+        requires = self.skills[skill_name].get("requires", [])
+        topo_order = self.topological_sort()
+        ordered_requires = [r for r in topo_order if r in requires]
+
+        for req_skill in ordered_requires:
+            if req_skill in completed:
+                continue
+            outputs = self.skills[req_skill].get("outputs", [])
+            if outputs:
+                missing_artifact = outputs[0]
+                missing_desc = f"'{missing_artifact}' not found"
+            else:
+                missing_artifact = f".{req_skill}.done"
+                missing_desc = f"setup sentinel '.{req_skill}.done' not found"
+            return (missing_desc, req_skill)
+
+        return None
+
     def suggest_for_missing(self, artifact_path: str) -> Optional[str]:
         """
         Reverse-lookup: given a missing artifact path, return the skill name that produces it.
@@ -1141,6 +1174,17 @@ def main() -> None:
         metavar="ARTIFACT",
         help="Given a missing artifact path, print the skill that produces it (reverse lookup)"
     )
+    parser.add_argument(
+        "--check-prereqs",
+        action="store_true",
+        help="Check whether all prerequisites for --for <skill> are satisfied; print suggestion if not"
+    )
+    parser.add_argument(
+        "--for",
+        dest="for_skill",
+        metavar="SKILL",
+        help="Skill name to use with --check-prereqs"
+    )
 
     args = parser.parse_args()
 
@@ -1162,6 +1206,23 @@ def main() -> None:
 
     if args.validate:
         print("✅ Schema is valid. No cycles or undefined dependencies detected!")
+        sys.exit(0)
+
+    # --check-prereqs: check all direct prerequisites for a skill
+    if args.check_prereqs:
+        if not args.for_skill:
+            print("❌ --check-prereqs requires --for <skill>", file=sys.stderr)
+            sys.exit(1)
+        result = engine.check_prereqs_for(args.for_skill)
+        if result is None:
+            if args.for_skill not in engine.skills:
+                print(f"⚠️  Unknown skill '{args.for_skill}'. Check skill_graph_schema.yaml.", file=sys.stderr)
+                sys.exit(1)
+            print(f"✅ All prerequisites for /{args.for_skill} are satisfied. Proceed.")
+        else:
+            missing_desc, suggested_skill = result
+            print(f"NEEDS_CONTEXT: {missing_desc}.")
+            print(f"→ Run /{suggested_skill} first to satisfy this prerequisite, then return to /{args.for_skill}.")
         sys.exit(0)
 
     # --suggest: reverse-lookup producer for a missing artifact

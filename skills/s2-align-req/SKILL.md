@@ -7,11 +7,8 @@ description: >
 
 <HARD-GATE>
 ## Step 0 — Prerequisite Check (run before anything else)
-
-1. Does any file matching `docs/specs/*-vision.md` exist?
-   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest "docs/specs/*-vision.md"`, report its output, and **STOP**.
-
-Only proceed when a vision spec is present.
+Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s2-align-req`
+If it reports any missing prerequisite, follow its suggestion and **STOP**.
 
 ---
 

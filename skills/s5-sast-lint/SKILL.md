@@ -7,11 +7,8 @@ description: >
 
 <HARD-GATE>
 ## Step 0 — Prerequisite Check (run before anything else)
-
-1. Does `RULES.md` exist?
-   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest RULES.md`, report its output, and **STOP**.
-
-Only proceed when RULES.md is present.
+Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s5-sast-lint`
+If it reports any missing prerequisite, follow its suggestion and **STOP**.
 
 ---
 

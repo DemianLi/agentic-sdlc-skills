@@ -7,14 +7,8 @@ description: >
 
 <HARD-GATE>
 ## Step 0 — Prerequisite Check (run before anything else)
-
-Check in order — stop at the first missing file:
-1. Does `TASK_DAG.md` exist?
-   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest TASK_DAG.md`, report its output, and **STOP**.
-2. Does any file matching `docs/audit/*-sast.md` exist?
-   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest "docs/audit/*-sast.md"`, report its output, and **STOP**.
-
-Only proceed when both are present.
+Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s5-pr-review`
+If it reports any missing prerequisite, follow its suggestion and **STOP**.
 
 ---
 

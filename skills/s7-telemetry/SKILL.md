@@ -7,19 +7,12 @@ description: >
 
 <HARD-GATE>
 ## Step 0 — Prerequisite Check (run before anything else)
+Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s7-telemetry`
+If it reports any missing prerequisite, follow its suggestion and **STOP**.
 
-Check in order — stop at the first missing file:
-1. Does any file matching `docs/releases/*-deploy.md` exist?
-   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest "docs/releases/*-deploy.md"`, report its output, and **STOP**.
-   - **Yes, but no `Status: DEPLOYED` or `Status: DRY-RUN` line** → NEEDS_CONTEXT: "Deploy log exists but deployment status is missing. Update the deploy log, then return to /s7-telemetry."
-2. Does `CHANGELOG.md` exist?
-   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest CHANGELOG.md`, report its output, and **STOP**.
-   - **Yes, but no `## [vN.N.N]` version block** → NEEDS_CONTEXT: "CHANGELOG.md exists but has no version block. Run /s7-release-notes first."
-3. Does any file matching `docs/tests/*-perf-baseline.json` exist?
-   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest "docs/tests/*-perf-baseline.json"`, report its output, and **STOP**.
-   - **Yes, but `slo_gate` ≠ `"PASS"`** → NEEDS_CONTEXT: "Perf baseline exists but slo_gate is not PASS. Return to /s6-test-perf."
-
-Only proceed when all three files exist with valid content.
+If prerequisites pass, additionally verify content (engine cannot check these):
+- `docs/releases/*-deploy.md` has no `Status: DEPLOYED` or `Status: DRY-RUN` → NEEDS_CONTEXT: "Deploy log missing status. Update the deploy log, then return to /s7-telemetry."
+- `docs/tests/*-perf-baseline.json` has `slo_gate` ≠ `"PASS"` → NEEDS_CONTEXT: "Perf baseline slo_gate is not PASS. Return to /s6-test-perf."
 
 ---
 ⛔ OUTPUT DISCIPLINE — applies after the gate conditions above are met:

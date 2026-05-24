@@ -7,12 +7,11 @@ description: >
 
 <HARD-GATE>
 ## Step 0 — Prerequisite Check (run before anything else)
+Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s7-build-artifact`
+If it reports any missing prerequisite, follow its suggestion and **STOP**.
 
-1. Does `test-results.json` exist?
-   - **No** → run `python skills/s0-eval-alignment/scripts/engine.py --suggest test-results.json`, report its output, and **STOP**.
-   - **Yes, but `release_gate` ≠ `"PASS"`** → NEEDS_CONTEXT: "test-results.json exists but release_gate is not PASS. Stage 6 is incomplete — return to /s6-verify-release."
-
-Only proceed when test-results.json exists and `release_gate` is `"PASS"`.
+If prerequisites pass but `test-results.json` has `release_gate` ≠ `"PASS"` →
+NEEDS_CONTEXT: "test-results.json exists but release_gate is not PASS. Stage 6 is incomplete — return to /s6-verify-release."
 
 ---
 
