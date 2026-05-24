@@ -6,6 +6,12 @@ description: >
 ---
 
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s3-breakdown-wbs`
+If it reports any missing prerequisite, follow its suggestion and **STOP**.
+
+---
+
 Do NOT proceed to `/s3-build-dag` until:
 1. The full WBS has been written and COMMITTED to git (`docs/arch/YYYY-MM-DD-<topic>-wbs.md`).
 

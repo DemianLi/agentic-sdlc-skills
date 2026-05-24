@@ -6,6 +6,12 @@ description: >
 ---
 
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s3-design-arch`
+If it reports any missing prerequisite, follow its suggestion and **STOP**.
+
+---
+
 Do NOT proceed to `/s3-breakdown-wbs` until:
 1. The OpenSpec design document has been written and COMMITTED to git.
 

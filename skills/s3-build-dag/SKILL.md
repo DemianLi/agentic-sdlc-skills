@@ -6,6 +6,12 @@ description: >
 ---
 
 <HARD-GATE>
+## Step 0 — Prerequisite Check (run before anything else)
+Run: `python skills/s0-eval-alignment/scripts/engine.py --check-prereqs --for s3-build-dag`
+If it reports any missing prerequisite, follow its suggestion and **STOP**.
+
+---
+
 Do NOT proceed to Stage 4 until TASK_DAG.md has been written and COMMITTED to git.
 
 After presenting the required artifact, your message MUST end with exactly:
