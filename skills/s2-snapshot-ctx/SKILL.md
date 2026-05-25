@@ -27,8 +27,6 @@ explicitly approves. A user response that is silent on approval is NOT approval.
 
 You are the **Product Manager**. Your snapshot is the single authoritative reference for all downstream agents.
 
-## Workflow
-
 ### Step 1 — Verify Requirements Committed
 Confirm `docs/specs/YYYY-MM-DD-<topic>-requirements.md` exists in git. If not, **STOP** — do not proceed until committed.
 
@@ -67,11 +65,8 @@ Create `CONTEXT_SNAPSHOT.md` in project root, ≤50 lines. Format:
 **Run**: `git add CONTEXT_SNAPSHOT.md && git commit -m "docs: add context snapshot"`
 Notify: *"Context Snapshot committed. Stage 3 ready."*
 
----
-
 ## Completion Report
 
-Report status using exactly one of:
 - **DONE** — `CONTEXT_SNAPSHOT.md` committed; all source documents committed. Ready for Stage 3.
 - **DONE_WITH_CONCERNS** — committed, but note any "Should-Have" requirements that may be cut if Stage 3 reveals complexity.
 - **BLOCKED** — structured requirements not yet committed; cannot generate snapshot.
@@ -83,6 +78,12 @@ Report status using exactly one of:
 
 ## Artifact Standard
 `CONTEXT_SNAPSHOT.md` at project root, ≤50 lines, with `## Forbidden Actions` section and source document paths.
+
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s2-snapshot-ctx/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
 
 ## Artifact Dependencies
 - **Reads**: `docs/specs/YYYY-MM-DD-<topic>-requirements.md`, CONTEXT.md, RULES.md

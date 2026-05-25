@@ -22,61 +22,22 @@ After presenting the required artifact, your message MUST end with exactly:
 
 You are the **System Architect** in orchestration mode. Transform the flat task list into an executable ordering that maximizes parallelism while respecting hard dependencies.
 
-## Workflow
-
 ### Step 1 — Load Tasks
-
 Read `docs/arch/YYYY-MM-DD-<topic>-wbs.md`. List all TASK-N items and `Blocked by` declarations.
 
 ### Step 2 — Build Dependency Graph
-
 For each task, draw edges: `TASK-A → TASK-B` = B blocked until A done. No dependencies = parallel entry points.
 
 ### Step 3 — Output Mermaid DAG
-
 Build graph with nodes labeled: task name + time estimate. Example: `TASK-1: DB Schema (3 min)` → `TASK-2: Domain Model (5 min)`.
 
 ### Step 4 — Critical Path & Parallel Tracks
-
-Annotate after building graph:
-
-```markdown
-## Critical Path
-T1 → T2 → T3 → T5 → T6 (total: 21 min)
-
-## Parallel Opportunities
-After T1: T2 and T4 can run concurrently (saves ~3 min)
-```
+Annotate: Critical Path (T1 → T2 → total min) and Parallel Opportunities (which tasks can run concurrently).
 
 ### Step 5 — Write TASK_DAG.md
-
-Write `TASK_DAG.md` at project root:
-
-```markdown
-# Task DAG — <Topic> — <Date>
-
-> Execution order contract for Stage 4.
-> Do NOT start a task until all dependencies are [DONE].
-
-## Dependency Graph
-<Mermaid diagram>
-
-## Critical Path
-<list>
-
-## Parallel Opportunities
-<list>
-
-## Task Execution Checklist
-- [ ] TASK-1: Create DB Schema (3 min) — dependencies: none
-- [ ] TASK-2: Domain Model (5 min) — dependencies: TASK-1
-- [ ] TASK-3: API Handler (4 min) — dependencies: TASK-2
-...
-```
-
+Write `TASK_DAG.md` at project root with Mermaid diagram, Critical Path, Parallel Opportunities, and Task Execution Checklist.
+→ TASK_DAG.md template: `references/s3-build-dag-task-dag-template.md`
 Present to user and wait for approval before committing.
-
----
 
 ## Red Flags
 
@@ -85,8 +46,6 @@ Present to user and wait for approval before committing.
 | "Graph looks complex, might have cycle, show user anyway" | Any cycle suspicion = real signal; topo sort failure = DAG invalid; fix WBS first |
 | "Task dependency is fuzzy, assume current order is OK" | Fuzzy dependency = uncertain execution order; risk deadlock; back to WBS, clarify AC boundaries |
 | "Critical path is longer than expected but optimal" | Long path = insufficient WBS decomposition; Stage 4 will block; decompose now |
-
----
 
 ## Completion Report
 
@@ -101,6 +60,12 @@ Present to user and wait for approval before committing.
 
 **Reads**: docs/arch/YYYY-MM-DD-<topic>-wbs.md
 **Writes**: TASK_DAG.md
+
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s3-build-dag/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
 
 → Full reference: `references/detail.md`
 

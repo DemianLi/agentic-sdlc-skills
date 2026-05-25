@@ -40,14 +40,8 @@ Write code before the test? Delete it. Not "as reference". Not "adapted". Delete
 Verify before any test: (1) ≥1 `AC-N.M` criterion exists; (2) each AC has binary PASS/FAIL testable from outside; (3) public interface (function/endpoint/class name) specified. Any fail → ask user to fix first.
 
 ### Step 2 — Tracer Bullet
-```
-RED: Write ONE minimal failing test — run it — paste terminal output
-```
-Required: `FAILED test_foo.py::test_bar - AssertionError... / 1 failed in 0.12s`
-- Test passes immediately → testing existing behavior; fix the test
-- Failure is syntax/import error → fix test file; must be a real assertion failure
-
-**GREEN**: Absolute minimal code to pass that one test. No extra features. No refactoring.
+**RED**: Write ONE minimal test → run it → paste ACTUAL failure (`FAILED ... 1 failed in 0.12s`). Not syntax error — must be assertion failure.
+**GREEN**: Absolute minimal code to pass. No extras. No refactoring.
 
 ### Step 3 — Incremental Loop
 Repeat: `RED → verify failure → GREEN → verify all pass → micro-refactor → commit`
@@ -56,34 +50,17 @@ Repeat: `RED → verify failure → GREEN → verify all pass → micro-refactor
 - [ ] Extract duplication; improve names per `CONTEXT.md` glossary
 - [ ] Full suite must remain GREEN. **Never refactor while RED.**
 
----
-
-## Checklist Per Cycle
-
-```
-[ ] Test describes BEHAVIOR, not implementation detail
-[ ] Test uses public interface only (no private method access)
-[ ] Test would survive an internal refactor without changes
-[ ] Watched test FAIL before writing production code
-[ ] Failure was for the EXPECTED reason
-[ ] Production code is MINIMAL to pass this one test
-[ ] No speculative features added
-[ ] Full suite still GREEN after change
-```
-
----
+→ Per-cycle checklist: `references/tdd-cycle-checklist.md`
 
 ## Red Flags
 
 | Rationalization | Reality |
 |----------------|---------|
 | "I'll write tests after" | Tests after pass immediately — prove nothing. |
-| "Deleting X hours of work is wasteful" | Sunk cost. Unverified code is the real waste. |
-| "Tests after achieve the same goals" | After: "what does this do?" First: "what SHOULD this do?" |
 | Code exists before test / passes immediately / can't explain failure | DELETE and restart |
-| "Too simple to test" | Simple code breaks. The test documents expected behavior. |
-| "I already manually tested it" | Ad-hoc ≠ systematic. Reproducibility is the whole point. |
 | "This is too complex to test" | Hard to test = hard to use. Your design is the problem. |
+
+→ Full table: `references/red-flags.md`
 
 ## Coverage Gate
 → `references/coverage-gate.md`. Quick ref: `pytest --cov=. --cov-report=term-missing`
@@ -96,6 +73,12 @@ Repeat: `RED → verify failure → GREEN → verify all pass → micro-refactor
 </what-to-do>
 
 <supporting-info>
+
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s4-tdd/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
 
 ## Artifact Dependencies
 - **Reads**: TASK_DAG.md (Atomic Task + Acceptance Criteria)

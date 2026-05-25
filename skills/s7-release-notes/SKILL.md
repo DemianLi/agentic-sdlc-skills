@@ -17,58 +17,21 @@ Do NOT skip /s7-telemetry's HARD-GATE conditions.
 
 <what-to-do>
 
-You are the **Release Manager** in the release notes phase. Task: produce auditable, version entry in CHANGELOG.md.
-
-## Workflow
+You are the **Release Manager** in the release notes phase. Produce auditable version entry in CHANGELOG.md.
 
 ### Step 1 — Gather Source Material
-
-| Source | Extract |
-|---|---|
-| git log | Commits since last tag |
-| docs/specs/*.md | REQ-N titles |
-| docs/audit/*.md | Breaking changes |
-| docs/releases/*.md | Version, deploy mode |
-| CHANGELOG.md | Previous format |
-
-**Get commits**: `git log $(git describe --tags HEAD^ 2>/dev/null)..HEAD --oneline`
+Read: git commits since last tag (`git log $(git describe --tags HEAD^ 2>/dev/null)..HEAD --oneline`), REQ-N titles from `docs/specs/*.md`, breaking changes from `docs/audit/*.md`, version/deploy mode from `docs/releases/*.md`.
 
 ### Step 2 — Classify Changes
-
-Map commits and REQ to category:
-
-| Category | Contents |
-|---|---|
-| **Added** | New features from REQ-N / endpoints / functions |
-| **Changed** | Modified behavior NOT breaking |
-| **Deprecated** | Removed in future version |
-| **Removed** | Removed in this version |
-| **Fixed** | Bug fixes from audit/tests |
-| **Security** | Security patches (SAST findings fixed) |
-
-Only include categories with entries. Do not invent.
+Map commits and REQ to categories: Added, Changed, Deprecated, Removed, Fixed, Security. Only include categories with entries. Do not invent.
+→ Category definitions: `references/s7-release-notes-categories.md`
 
 ### Step 3 — Write CHANGELOG.md Entry
-
-Format: Keep a Changelog + Semantic Versioning (see `references/changelog-template.md`)
-
-Rules:
-- Link to REQ-N: `(REQ-1)`
-- No implementation details
-- Imperative: "Add", not "Added"
-- If dry-run: `> Note: validated via dry-run`
-
-**Conditional**: If breaking changes OR API changes, add migration guide or API summary after.
+Format: Keep a Changelog + Semantic Versioning (→ `references/changelog-template.md`). Link REQ-N, use imperative ("Add"), no implementation details. If dry-run: add `> Note: validated via dry-run`. If breaking/API changes: append migration guide.
 
 ### Step 4 — Prepend to CHANGELOG.md
-
-If missing: create with header (All notable changes + format links).
-
-If exists: prepend after `## [Unreleased]` (or header if no section).
-
-**Commit**: `git add CHANGELOG.md && git commit -m "docs: add CHANGELOG entry for v<version>"`
-
----
+If missing: create with header. If exists: prepend after `## [Unreleased]`.
+Commit: `git add CHANGELOG.md && git commit -m "docs: add CHANGELOG entry for v<version>"`
 
 ## Red Flags
 
@@ -77,8 +40,6 @@ If exists: prepend after `## [Unreleased]` (or header if no section).
 | Deploy not confirmed but I'll write CHANGELOG anyway | CHANGELOG is history; recording undeployed changes = lie; must wait for deploy.md Status |
 | This commit is unclear, I'll guess | Guessed release notes can't be audited; if commit ≠ REQ, mark `Internal: <hash>` and skip |
 | No breaking change but mention precaution anyway | Breaking = API contract change; precautions go in Changed/Fixed, not Breaking |
-
----
 
 ## Completion Report
 
@@ -92,6 +53,12 @@ If exists: prepend after `## [Unreleased]` (or header if no section).
 
 **Reads**: git log, docs/specs/*.md, docs/audit/*.md, docs/releases/YYYY-MM-DD-<version>-deploy.md
 **Writes**: CHANGELOG.md (appended)
+
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s7-release-notes/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
 
 → Full reference: `references/detail.md`
 
