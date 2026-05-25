@@ -167,6 +167,12 @@ def scan_skill(skill: str, step: str, base: Path, eval_cases: Optional[Dict] = N
         result["c4_required"] = False
         result["c4_pass"] = True
 
+    # P4 — <what-to-do> line budget (informational; does not affect verdict)
+    wt_match = re.search(r'<what-to-do>(.*?)</what-to-do>', content, re.DOTALL)
+    wt_lines = len(wt_match.group(1).splitlines()) if wt_match else 0
+    result["p4_lines"] = wt_lines
+    result["p4_pass"] = wt_lines <= 50
+
     # Overall verdict
     all_c1 = result["c1_gate"] and result["c1_approval"]
     all_c2 = result["c2_reads"] and result["c2_writes"]
@@ -187,12 +193,12 @@ def sym(ok: bool) -> str:
 
 
 def judge_sym(verdict: str) -> str:
-    return {"ALIGNED": "✅", "PARTIAL": "⚠️ PARTIAL", "DRIFTED": "❌ DRIFTED"}.get(verdict, verdict)
+    return {"ALIGNED": "✅", "PARTIAL": "⚠️ WEAK", "DRIFTED": "❌ DRIFTED"}.get(verdict, verdict)
 
 
 def overall_sym(status: str) -> str:
-    return {"ALIGNED": "✅ ALIGNED", "PARTIAL": "⚠️ PARTIAL",
-            "DRIFTED": "❌ DRIFTED", "MISSING": "❌ MISSING"}.get(status, status)
+    return {"ALIGNED": "✅ READY", "PARTIAL": "⚠️ NEAR-READY",
+            "DRIFTED": "❌ DRAFT", "MISSING": "❌ MISSING"}.get(status, status)
 
 
 def build_report(results: List[Dict]) -> str:
@@ -214,8 +220,8 @@ def build_report(results: List[Dict]) -> str:
         "",
         "## 總覽表",
         "",
-        "| Skill | Step | Judge | Tests | C1 GATE | C1 Phrase | C2 Chain | C3 Description | C4 RedFlag | 整體 |",
-        "|-------|------|-------|-------|---------|-----------|----------|----------------|------------|------|",
+        "| Skill | Step | Judge | Tests | P2/P3 GATE | P3 Phrase | P2 Chain | P1 Description | P2 RedFlag | P4 行數 | 整體 |",
+        "|-------|------|-------|-------|-----------|-----------|----------|----------------|------------|---------|------|",
     ]
 
     aligned = partial = drifted = missing = 0
@@ -224,18 +230,19 @@ def build_report(results: List[Dict]) -> str:
 
     for r in results:
         if r["status"] == "MISSING":
-            lines.append(f"| {r['skill']} | {r['step']} | — | — | — | — | — | — | — | ❌ MISSING |")
+            lines.append(f"| {r['skill']} | {r['step']} | — | — | — | — | — | — | — | — | ❌ MISSING |")
             missing += 1
             continue
 
         c4_cell = sym(r["c4_pass"]) if r["c4_required"] else "—"
+        p4_cell = f"{'✅' if r['p4_pass'] else '⚠️'} {r['p4_lines']}L"
         row = (
             f"| {r['skill']} | {r['step']} | {judge_sym(r['judge'])} "
             f"| {sym(r['has_tests'])} "
             f"| {sym(r['c1_gate'])} | {sym(r['c1_approval'])} "
             f"| {sym(r['c2_reads'] and r['c2_writes'])} "
             f"| {'✅ PASS' if r['c3_pass'] else '❌ FAIL'} "
-            f"| {c4_cell} | {overall_sym(r['status'])} |"
+            f"| {c4_cell} | {p4_cell} | {overall_sym(r['status'])} |"
         )
         lines.append(row)
 
@@ -245,29 +252,31 @@ def build_report(results: List[Dict]) -> str:
 
     lines += [
         "",
-        f"**總計：{aligned}/{len(results)} ✅ ALIGNED，"
-        f"{partial}/{len(results)} ⚠️ PARTIAL，"
-        f"{drifted}/{len(results)} ❌ DRIFTED**",
+        f"**總計：{aligned}/{len(results)} ✅ READY，"
+        f"{partial}/{len(results)} ⚠️ NEAR-READY，"
+        f"{drifted}/{len(results)} ❌ DRAFT**",
         "",
         "---",
         "",
-        "## 強制執行機制掃描（Judge + C1–C4）",
+        "## 強制執行機制掃描（Judge + P 屬性檢查）",
         "",
-        "| 檢查 | 結果 |",
-        "|------|------|",
-        f"| Judge (J1 <what-to-do> + J2 Completion Report) | ✅ {j_aligned} / ⚠️ {j_partial} / ❌ {j_drifted} |",
-        f"| Tests eval_cases.json 覆蓋 | {sum(r.get('has_tests', False) for r in non_missing)}/{len(results)} |",
-        f"| C1 HARD-GATE 存在 | {sum(r.get('c1_gate', False) for r in non_missing)}/{len(results)} |",
-        f"| C1 gate phrase (boundary: 'Awaiting…' / intra: 'proceed immediately to') | {sum(r.get('c1_approval', False) for r in non_missing)}/{len(results)} |",
-        f"| C2 Reads + Writes 聲明 | {sum(r.get('c2_reads', False) and r.get('c2_writes', False) for r in non_missing)}/{len(results)} |",
-        f"| C3 Description 不含流程描述詞（Matt Pocock）| {sum(r.get('c3_pass', False) for r in non_missing)}/{len(results)} |",
-        f"| C4 紅旗表（{len(C4_SKILLS)} 個高風險 skill）| {sum(r.get('c4_pass', False) for r in non_missing if r.get('c4_required', False))}/{len(C4_SKILLS)} |",
+        "| 檢查 | P 屬性 | 結果 |",
+        "|------|--------|------|",
+        f"| Judge J1 <what-to-do> 步驟結構 | P2 Executable | ✅ {j_aligned} / ⚠️ {j_partial} / ❌ {j_drifted} |",
+        f"| Judge J2 Completion Report 狀態 | P3 Bounded | ✅ {j_aligned} / ⚠️ {j_partial} / ❌ {j_drifted} |",
+        f"| Tests eval_cases.json 覆蓋 | P5 Auditable | {sum(r.get('has_tests', False) for r in non_missing)}/{len(results)} |",
+        f"| HARD-GATE 存在 | P2 Executable | {sum(r.get('c1_gate', False) for r in non_missing)}/{len(results)} |",
+        f"| gate phrase (boundary: 'Awaiting…' / intra: 'proceed immediately to') | P3 Bounded | {sum(r.get('c1_approval', False) for r in non_missing)}/{len(results)} |",
+        f"| Reads + Writes 聲明 | P2 Executable | {sum(r.get('c2_reads', False) and r.get('c2_writes', False) for r in non_missing)}/{len(results)} |",
+        f"| Description 不含流程描述詞 | P1 Scopeable | {sum(r.get('c3_pass', False) for r in non_missing)}/{len(results)} |",
+        f"| 紅旗表（{len(C4_SKILLS)} 個高風險 skill）| P2 Executable | {sum(r.get('c4_pass', False) for r in non_missing if r.get('c4_required', False))}/{len(C4_SKILLS)} |",
+        f"| <what-to-do> ≤ 50 行（資訊欄）| P4 Efficient | {sum(r.get('p4_pass', False) for r in non_missing)}/{len(non_missing)} |",
     ]
 
     if partials or drifteds:
         lines += ["", "---", "", "## 需關注清單"]
         for r in drifteds + partials:
-            tag = "❌ DRIFTED" if r["status"] == "DRIFTED" else "⚠️ PARTIAL"
+            tag = "❌ DRAFT" if r["status"] == "DRIFTED" else "⚠️ NEAR-READY"
             issues = []
             for ji in r.get("judge_issues", []):
                 issues.append(f"Judge: {ji}")

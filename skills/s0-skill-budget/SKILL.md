@@ -53,17 +53,17 @@ Token Budget Audit: <skill-name>  (<KB>, ~<tokens>)
 D  D1[✅/❌] D2[✅/❌] D3[✅/⚠️] D4[✅/❌] D5[✅/❌]
 I  I1[✅/❌] I2[✅/❌] I3[✅/⚠️]
 S  S1[✅/❌] S2[✅/❌] S3[✅/⚠️]
-Overall: PASS / PARTIAL / FAIL
+Overall: PASS / WEAK / FAIL
 Issues: [list or none]
 ```
-Overall: all ✅ → PASS; has ⚠️ no ❌ → PARTIAL; has ❌ → FAIL.
+
+Overall: all ✅ → PASS; has ⚠️ no ❌ → WEAK; has ❌ → FAIL.
 
 ## Completion Report
 
-- **PASS** — 全部 D/I/S 項均為 ✅；可合入。
-- **PARTIAL** — 有 ⚠️ 但無 ❌；可合入，建議修正。
-- **FAIL** — 有 ≥1 ❌；不建議合入，說明具體項目。
-- **BLOCKED** — 輸入驗證失敗；說明確切原因。
+- **DONE** — 全部 D/I/S 項均為 ✅；可合入。
+- **DONE_WITH_CONCERNS** — 有 ⚠️ 但無 ❌；可合入，建議修正。
+- **BLOCKED** — 有 ≥1 ❌ 或輸入驗證失敗；說明具體原因，不建議合入。
 
 </what-to-do>
 
