@@ -88,15 +88,34 @@ Last updated: 2026-05-19
 
 ---
 
-## Score Summary Rule
+## Criterion 7 — 有界執行 (Bounded Execution) `→ P3 Bounded`
 
-> 注意：P3（有界性）目前無對應 Criterion，由 scan.py J2 單獨驗證。
+**Purpose**: Ensure the skill knows when it ends and how to hand off, so the executor can transfer control without ambiguity.
+
+**Handoff instruction**: A phrase that tells the model what to do after the skill completes — one of:
+- `proceed immediately to /skill-name` (intra-workflow, non-boundary)
+- `Awaiting your approval` (boundary skill, waits for human gate)
+- `report DONE` (terminal skill, chain ends here)
+
+| Score | Condition |
+|-------|-----------|
+| ✅ PASS | Completion Report defines ≥2 distinct status types (e.g., DONE + BLOCKED) AND has an explicit handoff instruction |
+| ⚠️ WEAK | ≥2 status types but no handoff instruction; OR handoff present but only 1 status type defined |
+| ❌ FAIL | No Completion Report section; OR only 1 status type with no handoff instruction |
+
+**Valid status types**: `DONE`, `BLOCKED`, `DONE_WITH_CONCERNS`, `NEEDS_CONTEXT`
+
+**Evidence to capture**: Line number of Completion Report + count of distinct status types + handoff phrase found.
+
+---
+
+## Score Summary Rule
 
 | Total ✅ | Result | 統一標籤 |
 |---------|--------|---------|
-| 6/6 | PRODUCTION READY | **READY** |
-| 5/6, ❌ ≤ 1 | NEAR READY — address ❌ before shipping | **NEAR-READY** |
-| 4/6 or below | DRAFT — not safe for production routing | **DRAFT** |
+| 7/7 | PRODUCTION READY | **READY** |
+| 6/7, ❌ ≤ 1 | NEAR READY — address ❌ before shipping | **NEAR-READY** |
+| 5/7 or below | DRAFT — not safe for production routing | **DRAFT** |
 
 ---
 
@@ -114,16 +133,17 @@ Use this template exactly:
 
 ## Score Summary
 
-| # | Criterion | Score | Evidence |
-|---|-----------|-------|----------|
-| 1 | 衝突防禦 | ✅/⚠️/❌ | Line N: ... |
-| 2 | 雙向阻斷 | ✅/⚠️/❌ | Line N: ... |
-| 3 | 輸入清洗 | ✅/⚠️/❌ | Line N: ... |
-| 4 | 漸進披露 | ✅/⚠️/❌ | Line N: ... |
-| 5 | 優雅降級 | ✅/⚠️/❌ | Line N: ... |
-| 6 | 漂移監控 | ✅/⚠️/❌ | Line N: ... |
+| # | Criterion | P 屬性 | Score | Evidence |
+|---|-----------|--------|-------|----------|
+| 1 | 衝突防禦 | P1 Scopeable 正向 | ✅/⚠️/❌ | Line N: ... |
+| 2 | 雙向阻斷 | P1 Scopeable 負向 | ✅/⚠️/❌ | Line N: ... |
+| 3 | 輸入清洗 | P2 Executable 輸入 | ✅/⚠️/❌ | Line N: ... |
+| 4 | 漸進披露 | P4 Efficient | ✅/⚠️/❌ | Line N: ... |
+| 5 | 優雅降級 | P2 Executable 降級 | ✅/⚠️/❌ | Line N: ... |
+| 6 | 漂移監控 | P5 Auditable | ✅/⚠️/❌ | Line N: ... |
+| 7 | 有界執行 | P3 Bounded | ✅/⚠️/❌ | Line N: ... |
 
-**Total**: X/6 PASS — [PRODUCTION READY / NEAR READY / DRAFT]
+**Total**: X/7 PASS — [READY / NEAR-READY / DRAFT]
 
 ## Defect Details
 
