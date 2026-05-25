@@ -105,12 +105,17 @@ def paranoid_judge(content: str) -> Dict:
     return {"verdict": verdict, "issues": issues}
 
 
+_REPO_ROOT = Path(__file__).parents[3]  # scan.py: scripts/ → s0-eval-alignment/ → skills/ → repo root
+
+
 def verify_test_coverage(skill: str, base: Path) -> bool:
     """
     Returns True if tests/fixtures/<skill>/cases.json exists and has ≥1 case.
-    Aligns with Rubric C6 (P5 Auditable) which checks the same data source.
+    Aligns with Rubric C6 (P5 Auditable) — same data source.
+    Uses _REPO_ROOT (derived from scan.py location) so path is stable
+    regardless of the base arg used by callers and tests.
     """
-    fixture = base.parent / "tests" / "fixtures" / skill / "cases.json"
+    fixture = _REPO_ROOT / "tests" / "fixtures" / skill / "cases.json"
     if not fixture.exists():
         return False
     try:
