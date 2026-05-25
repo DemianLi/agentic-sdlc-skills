@@ -1,0 +1,12 @@
+[
+  {
+    "scenario": "golden path — skill is triggered with valid input",
+    "input": {"vision_text": "We need a feature to export reports as PDF"},
+    "expected_behavior": "Skill captures intent, presents draft spec for approval, waits before writing"
+  },
+  {
+    "scenario": "adversarial — vague input with no actionable vision",
+    "input": {"vision_text": "make it better"},
+    "expected_behavior": "Skill returns BLOCKED — asks user to clarify the specific problem or goal"
+  }
+]
