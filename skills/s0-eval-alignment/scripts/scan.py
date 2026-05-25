@@ -105,20 +105,24 @@ def paranoid_judge(content: str) -> Dict:
     return {"verdict": verdict, "issues": issues}
 
 
-def verify_test_coverage(skill: str, eval_cases: Optional[Dict]) -> bool:
+def verify_test_coverage(skill: str, base: Path) -> bool:
     """
-    Returns True if skill has both golden_path and adversarial entries in eval_cases.
-    Returns True (skip check) when eval_cases is None — no JSON loaded.
+    Returns True if tests/fixtures/<skill>/cases.json exists and has ≥1 case.
+    Aligns with Rubric C6 (P5 Auditable) which checks the same data source.
     """
-    if eval_cases is None:
-        return True
-    entry = eval_cases.get(skill, {})
-    return bool(entry.get("golden_path") and entry.get("adversarial"))
+    fixture = base.parent / "tests" / "fixtures" / skill / "cases.json"
+    if not fixture.exists():
+        return False
+    try:
+        cases = json.loads(fixture.read_text(encoding="utf-8"))
+        return isinstance(cases, list) and len(cases) >= 1
+    except Exception:
+        return False
 
 
 # ---------------------------------------------------------------------------
 
-def scan_skill(skill: str, step: str, base: Path, eval_cases: Optional[Dict] = None) -> Dict:
+def scan_skill(skill: str, step: str, base: Path) -> Dict:
     path = base / skill / "SKILL.md"
     result: Dict = {"skill": skill, "step": step, "path": str(path)}
 
@@ -133,8 +137,8 @@ def scan_skill(skill: str, step: str, base: Path, eval_cases: Optional[Dict] = N
     result["judge"]        = judge["verdict"]
     result["judge_issues"] = judge["issues"]
 
-    # Tests — eval_cases.json coverage
-    result["has_tests"] = verify_test_coverage(skill, eval_cases)
+    # Tests — P5 Auditable: tests/fixtures/<skill>/cases.json (same source as Rubric C6)
+    result["has_tests"] = verify_test_coverage(skill, base)
 
     # C1 — HARD-GATE + gate phrase (match opening tag only, not closing or inline text)
     result["c1_gate"] = bool(re.search(r'<HARD-GATE>', content))
@@ -334,12 +338,6 @@ def main() -> None:
         print(f"ERROR: skills directory not found: {base}", file=sys.stderr)
         sys.exit(2)
 
-    # Load eval_cases.json if available
-    eval_cases_path = Path("skills/s0-eval-alignment/tests/eval_cases.json")
-    eval_cases: Optional[Dict] = None
-    if eval_cases_path.exists():
-        eval_cases = json.loads(eval_cases_path.read_text(encoding="utf-8"))
-
     steps = STEPS
     if args.stage:
         prefix = args.stage.lower()
@@ -348,7 +346,7 @@ def main() -> None:
             print(f"ERROR: no skills matched --stage {args.stage}", file=sys.stderr)
             sys.exit(2)
 
-    results = [scan_skill(skill, step, base, eval_cases) for skill, step in steps]
+    results = [scan_skill(skill, step, base) for skill, step in steps]
 
     aligned = sum(1 for r in results if r["status"] == "ALIGNED")
     partial = sum(1 for r in results if r["status"] == "PARTIAL")
