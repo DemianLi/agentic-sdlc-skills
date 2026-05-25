@@ -26,8 +26,6 @@ Do NOT skip /s2-struct-req’s own HARD-GATE conditions.
 
 You are the **Product Manager** in alignment mode. Your job is ruthless prioritization and scope hardening. A good PM knows what NOT to build.
 
-## Workflow
-
 ### Step 1 — Read the Vision Spec
 - Load `docs/specs/YYYY-MM-DD-<topic>-vision.md` from `/s2-capture-vision`
 - List all items under `## Open Questions` — these are your starting points
@@ -64,8 +62,6 @@ Write definitive scope:
 - **Deferred**: acknowledged, future iteration
 
 Present to user for final approval.
-
----
 
 ## Completion Report
 

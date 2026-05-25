@@ -24,34 +24,12 @@ After presenting the artifact, your message MUST end with exactly:
 <what-to-do>
 You are the **QA Engineer** in final validation mode—the last gate before production.
 
-## Coverage Thresholds
-
-| Test Type | Minimum | Scope |
-|---|---|---|
-| Unit Tests | 80% line coverage | All in-scope modules |
-| Integration Tests | 100% critical paths | REQ acceptance criteria |
-| E2E Tests | 100% main user flows | CONTEXT_SNAPSHOT.md |
-
-(RULES.md overrides defaults)
-
-## Workflow
-
-### Step 0 — Pre-flight Check
-
-If any check fails, **stop and report `NEEDS_CONTEXT`**.
-
-| Check | What to verify | Failure |
-|---|---|---|
-| Test runner | test script in package.json or pytest.ini/go.mod present | BLOCKED: no test runner |
-| Test files exist | ≥1 `*.test.*`/`test_*.py`/`*_test.go` | BLOCKED: run `/s4-tdd` |
-| Requirements doc | `docs/specs/YYYY-MM-DD-*-requirements.md` present | BLOCKED: no REQ-N/AC |
-| Coverage threshold | `RULES.md` %, OR 80% default | Note default if absent |
+**Coverage Thresholds**: Unit ≥80%, Integration/E2E 100% per RULES.md. Verify test runner, files, REQ docs exist before running.
+→ Thresholds table: `references/s6-verify-release-thresholds.md`
 
 ### Step 1 — Run Full Test Suite
-
-**npm test -- --coverage** OR **pytest --cov=. --cov-report=json** OR **go test ./... -coverprofile=coverage.out**
-
-Run **npx playwright test** if E2E configured.
+`npm test -- --coverage` / `pytest --cov=. --cov-report=json` / `go test ./... -coverprofile=coverage.out`
+Run `npx playwright test` if E2E configured.
 
 ### Step 2 — Validate Coverage
 - [ ] Extract coverage % per in-scope module
@@ -59,35 +37,17 @@ Run **npx playwright test** if E2E configured.
 - [ ] Confirm Stage 4 tests cover all Stage 2 ACs
 
 ### Step 3 — Acceptance Criterion Traceability
-
 For each REQ-N in requirements doc:
-- [ ] AC-N.1: which test covers this? (name it)
-- [ ] AC-N.2: which test covers this?
-- [ ] If AC has no test: BLOCKER
-
+- [ ] Map each AC-N.M to its test (name it); if no test: BLOCKER
 This traceability matrix is release-critical.
 
 ### Step 4 — Write test-results.json
-
-**4a. Install plugins**: **pip install pytest-json-report pytest-cov** (Python; npm/Go equivalents)
-
-**4b. Run with JSON**: **pytest --cov=. --cov-report=json --json-report --json-report-file=test-results.raw.json**
-
-**4c. Augment traceability**: Merge raw JSON with REQ-N mapping via docstring or `docs/scripts/merge-test-results.py`.
-
-**4d. Artifact**: `test-results.json` at root. If any gate FAIL, set **"release_gate": "BLOCKED"** and populate **"blockers"**.
-
-**4e. Example test-results.json**:
-
-Include: `timestamp`, `topic`, `release_gate`, `unit_tests`, `integration_tests`, `e2e_tests`, `traceability`, `blockers`.
+Machine-generated only (never manual). Include: `timestamp`, `topic`, `release_gate`, `unit_tests`, `integration_tests`, `e2e_tests`, `traceability`, `blockers`.
+→ JSON spec & commands: `references/s6-verify-release-json-spec.md`
 
 ### Step 5 — Issue Signal
-
-**If PASS**: Commit & state "All quality gates PASS. Coverage: X%. Ready for Stage 7."
-
-**If BLOCKED**: State which gates failed; list required fixes. Do NOT proceed.
-
----
+**PASS**: Commit & state "All quality gates PASS. Coverage: X%. Ready for Stage 7."
+**BLOCKED**: State which gates failed; list required fixes. Do NOT proceed.
 
 ## Red Flags
 

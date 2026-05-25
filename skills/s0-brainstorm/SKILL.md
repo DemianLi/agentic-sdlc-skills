@@ -18,17 +18,11 @@ Do NOT invoke /s2-capture-vision or any other skill automatically.
 
 ### 絕對不要觸發的情境
 
-**Do NOT use this skill when:**
-
 | 情境 | 改用 |
 |------|------|
 | 你已有明確的功能需求（e.g., "我要做一個 user login 功能"） | `/s2-capture-vision` — 問題已清楚，直接進 vision capture |
 | 你在調查一個已知 bug 或錯誤 | `/s4-local-debug` — 診斷流程，不是問題探索 |
 | 你想驗證現有 spec 是否完整 | `/s0-trace-feature` — spec 驗證，非問題發現 |
-
----
-
-## Workflow
 
 ### Step 0 — Input Validation
 
@@ -38,8 +32,6 @@ Do NOT invoke /s2-capture-vision or any other skill automatically.
 |---------|------|
 | 用戶對問題完全沒有描述（只說「不知道」）| Re-prompt：「請描述一個讓你感到困擾或想改變的事情，哪怕只是一個感覺。」|
 | 用戶已提供清楚功能需求（非模糊感覺）| 停止並提示：「你的需求已足夠清楚，建議使用 `/s2-capture-vision` 直接進入需求捕捉。」|
-
----
 
 ### Step 1 — Empty the Container
 User describes vague feeling/frustration without structure. Reflect back: "What I'm hearing is: [paraphrase]. Is that roughly right?" One reflection, then wait.
@@ -62,11 +54,8 @@ Ask: "Which feels closest to what you're solving?" Wait for explicit selection.
 ### Step 7 — Write Problem Draft
 Write `docs/brainstorm/YYYY-MM-DD-<topic>-problem-draft.md`: chosen framing, problem space map, rejected framings, open questions, what this IS NOT. Create dir if needed.
 
----
-
 ## Completion Report
 
-Report status using exactly one of:
 - **DONE** — problem statement draft written and committed; user chose a framing; ready for `/s2-capture-vision` if user decides to proceed.
 - **DONE_WITH_CONCERNS** — draft written, but note if the chosen framing is still fuzzy or the reality-check revealed deep unknowns.
 - **BLOCKED** — user cannot converge on any framing; state which framings were tried and why they were rejected.

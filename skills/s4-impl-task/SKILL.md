@@ -37,15 +37,11 @@ Your task is to write the core business logic to satisfy the Atomic Task and pas
 
 ### 絕對不要觸發的情境
 
-**Do NOT use this skill when:**
-
 | 情境 | 改用 |
 |------|------|
 | 沒有任何失敗測試（測試尚未建立） | `/s4-tdd` — 先建立紅燈測試，再實現 |
 | Tests 已全部 GREEN，但 behavior 不符預期 | `/s4-local-debug` — 診斷行為異常，不是首次實現 |
 | 開發環境有問題（dependency missing、build error） | `/s4-setup-env` — 先修環境，再執行 impl |
-
----
 
 1. **Verify Tests Exist**: Confirm `/s4-tdd` has produced at least one failing test for this task. If not, STOP and invoke `/s4-tdd` first.
    *Exception: if the current session was declared Vibe Mode by `/s-fast-track` (user confirmed ⚡), skip this check and proceed directly to Step 2 without pre-existing tests.*
@@ -64,10 +60,7 @@ Your task is to write the core business logic to satisfy the Atomic Task and pas
 | "這個修改超出了 TASK-N 的 File Scope，但我確定它不會破壞其他地方" | 「我確定」≠ 驗證；超出 File Scope 的改動由 Stage 5 審計，不是現在；回滾 |
 | "TASK_DAG.md 顯示還有後續任務，我先預先實現一部分以加快進度" | 預先實現 = 隱藏的依賴污染；DAG 會被打破；只實現當前 TASK-N 的 AC，其他任務由 s4-tdd 負責 |
 
----
-
 ## Completion Report
-Report status using exactly one of:
 - **DONE** — all tests GREEN; `TASK_DAG.md` updated; no files outside declared scope modified.
 - **DONE_WITH_CONCERNS** — GREEN, but note any RULES.md deviations that need auditor attention.
 - **BLOCKED** — cannot make tests GREEN without violating RULES.md or the API Contract; state the conflict.

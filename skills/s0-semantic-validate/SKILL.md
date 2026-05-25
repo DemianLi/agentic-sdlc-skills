@@ -19,49 +19,29 @@ After presenting the report, your message MUST end with exactly:
 
 You are the **Semantic Evidence Verifier**. Three checks. No edits. One output block.
 
----
-
 ### 絕對不要觸發的情境
-
 | 情境 | 正確技能 |
 |------|----------|
 | 用戶想評估 skill 的生產就緒度（結構、測資） | `s0-eval-skill` |
 | 用戶想批次掃描設計意圖漂移 | `s0-eval-alignment` |
 | 用戶想檢查 token 加載成本 | `s0-skill-budget` |
-| 用戶想執行 V3.0 架構文件討論 | 直接閱讀 `docs/v3-architecture/` |
-| 工件檔案完全不存在 | 這是 BLOCKED，不是語意失敗；回報 `NEEDS_CONTEXT` |
-
----
+| 工件檔案完全不存在 | 回報 `NEEDS_CONTEXT`，不是語意失敗 |
 
 ### Step 0 — Input Validation
-
-接受輸入：`node_id`（skill graph 節點 ID，如 `s4-tdd`）或 `artifact_path`（待驗證工件路徑）。
+接受輸入：`node_id` 或 `artifact_path`。
 
 | 失敗情境 | 行為 |
 |---------|------|
 | 兩者都未提供 | BLOCKED — 「請提供 node_id 或 artifact_path。」 |
 | node_id 不在 schema 中 | BLOCKED — 「`<node_id>` 不存在於 skill_graph_schema.yaml。」 |
-| artifact_path 不存在 | BLOCKED (NEEDS_CONTEXT) — 「工件不存在，無法語意驗證。」 |
-| node_id 無 validators 欄位 | PASS (N/A) — 「此節點無 validators 宣告，跳過語意驗證。」 |
-
----
+| artifact_path 不存在 | BLOCKED (NEEDS_CONTEXT) |
+| node_id 無 validators 欄位 | PASS (N/A) — 跳過語意驗證 |
 
 ### Step 1 — Load Validators
-
-Read target node's `validators` field from `skill_graph_schema.yaml`.
-
-Three validator types:
-
-| Type | Content | Protects Against |
-|:---|:---|:---|
-| `json_query` | JSON field assertion (jq syntax) | empty JSON, failed reports |
-| `regex_match` | file content regex match | empty test files, stubs |
-| `file_hash` | mtime vs sentinel timestamp | old report copies |
+Read target node's `validators` field from `skill_graph_schema.yaml`. Three types: `json_query`, `regex_match`, `file_hash`.
+→ 各類型說明：`references/s0-semantic-validate-validators.md`
 
 ### Step 2 — Verify Each Validator
-
-For each validator, run check:
-
 | Result | Condition |
 |------|------|
 | ✅ PASS | condition met |
@@ -69,7 +49,6 @@ For each validator, run check:
 | ⚠️ N/A | no validators declared |
 
 ### Step 3 — Output Report
-
 ```
 Semantic Validation: <node_id>  (<artifact_path>)
 V1 [✅/❌/⚠️] json_query: <query>
@@ -78,10 +57,7 @@ V3 [✅/❌/⚠️] file_hash: not_older_than_sentinel
 Overall: VALIDATED / BLOCKED / N/A
 Issues: [list or none]
 ```
-
 Overall: all ✅ → VALIDATED; has ❌ → BLOCKED; all ⚠️ → N/A.
-
----
 
 ## Completion Report
 
