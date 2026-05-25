@@ -27,28 +27,13 @@ Do NOT skip the verification output — the blocked terminal output must be visi
 
 ### 絕對不要觸發的情境
 
-**Do NOT use this skill when:**
-
 | 情境 | 改用 |
 |------|------|
-| 你只想修改 `settings.json` 中的模型或工具設定（非 hook） | `/update-config` — 通用設定修改，不涉及安全攔截 |
-| 你想初始化整個 Stage 1 環境（CONTEXT.md、RULES.md） | `/s1-config-context` — 完整 Stage 1 初始化流程 |
+| 你只想修改 `settings.json` 中的模型或工具設定（非 hook） | `/update-config` |
+| 你想初始化整個 Stage 1 環境（CONTEXT.md、RULES.md） | `/s1-config-context` |
 
----
-
-## Blocked Commands
-
-These patterns are intercepted before execution:
-
-| Pattern | Risk |
-|---------|------|
-| `git push` (all variants) | Overwrites remote history, triggers CI/CD, notifies other developers |
-| `git reset --hard` | Destroys all uncommitted local changes — unrecoverable |
-| `git clean -f` / `-fd` | Deletes untracked files/directories — unrecoverable |
-| `git branch -D` | Force-deletes branch, potentially losing commits not merged elsewhere |
-| `git checkout .` / `git restore .` | Discards all working-tree changes — unrecoverable |
-
-## Workflow
+Blocked patterns: `git push`, `git reset --hard`, `git clean -f/-fd`, `git branch -D`, `git checkout .`/`git restore .`
+→ Risk table: `references/s1-git-guardrails-blocked-commands.md`
 
 ### Step 1 — Choose Scope
 Ask: project-only (`.claude/settings.json`) or global (`~/.claude/settings.json`)? Re-prompt if invalid; default to project after 2 failed attempts.
@@ -65,8 +50,6 @@ Run test: `echo '{"tool":"Bash","command":"git reset --hard"}' | <path>/block-da
 ### Step 5 — Customize (optional)
 Offer: add/remove blocked patterns? Edit `BLOCKED_PATTERNS` in script accordingly.
 
----
-
 ## Red Flags — 停下來重新考慮
 
 | 如果你在想… | 現實是 |
@@ -77,7 +60,6 @@ Offer: add/remove blocked patterns? Edit `BLOCKED_PATTERNS` in script accordingl
 
 ## Completion Report
 
-Report status using exactly one of:
 - **DONE** — script installed, hook wired, verification test passed. Guardrails active.
 - **DONE_WITH_CONCERNS** — active, but list any patterns the user chose to skip.
 - **BLOCKED** — state the exact error (permissions, settings.json parse error, etc.).
@@ -88,6 +70,12 @@ Report status using exactly one of:
 <supporting-info>
 
 Outputs: script installed at `.claude/hooks/block-dangerous-git.sh` (or `~/.claude/hooks/`) + PreToolUse hook wired to `settings.json` + verification test showing exit code 2.
+
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s1-git-guardrails/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
 
 → Full reference: `references/detail.md`
 

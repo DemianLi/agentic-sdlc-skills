@@ -25,22 +25,7 @@ Do NOT generate Stage 2 artifacts or begin the next iteration until the user exp
 
 **Release Manager (telemetry phase)**: Compare pre/post metrics, detect anomalies, produce handoff for next iteration.
 
-## Simulation Mode vs Live Mode
-
-**Determine mode first** by reading `docs/releases/YYYY-MM-DD-<version>-deploy.md`:
-- If `deploy_mode: "dry-run"` → **simulation mode**
-- If `deploy_mode: "live"` → **live mode**
-
-| Mode | Post-deploy metrics source | `simulation_mode` in telemetry.json |
-|---|---|---|
-| live | Real production monitoring (Prometheus, Datadog, CloudWatch) | `false` |
-| dry-run | Re-run perf test suite on the locally installed artifact | `true` |
-
-In simulation mode, post-deploy metrics come from running the perf test suite
-against the newly installed artifact. This is an honest approximation — set
-`simulation_mode: true` so downstream readers know the data source.
-
-## Workflow
+**Simulation Mode**: Read deploy.md `deploy_mode`. If `"dry-run"`: re-run perf suite on installed artifact, set `simulation_mode: true`. If `"live"`: query production monitoring (Prometheus/Datadog/CloudWatch), set `simulation_mode: false`. Pre/post comparison is mandatory in both modes.
 
 ### Step 1 — Collect Pre-Deploy Baseline
 Read `docs/tests/YYYY-MM-DD-perf-baseline.json`: extract P50/P95/P99 latency, error_rate_pct, throughput_rps, memory_leak_detected.
@@ -71,7 +56,6 @@ Write `docs/releases/YYYY-MM-DD-<version>-telemetry.json` (schema: → `referenc
 
 ## Completion Report
 
-Report status using exactly one of:
 - **DONE** — `telemetry.json` committed; `status: healthy`; `next_cycle_inputs` ready for Product Manager. Iteration closed.
 - **DONE_WITH_CONCERNS** — `telemetry.json` committed; anomalies detected but below rollback threshold; listed in report.
 - **BLOCKED** — rollback decision required; state the specific metric, the threshold, and the actual value.
@@ -82,6 +66,12 @@ Report status using exactly one of:
 <supporting-info>
 
 Outputs: `docs/releases/YYYY-MM-DD-<version>-telemetry.json` with anomalies, status, next_cycle_inputs. Stage 7 final artifact.
+
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s7-telemetry/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
 
 → Full reference: `references/detail.md`
 

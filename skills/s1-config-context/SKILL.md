@@ -84,11 +84,9 @@ The `CONTEXT.md` must follow the format:
 
 ## Eval Fixtures
 
-Fixtures 位於 `tests/fixtures/s1-config-context/cases.json`。
+Fixtures located at `tests/fixtures/s1-config-context/cases.json`.
 
-每個 fixture 包含：`scenario`（情境描述）、`input`（輸入物件）、`expected_behavior`（預期行為）。
-
-冒煙測試：逐一確認 skill 對每個情境的輸出結構與 expected_behavior 一致。
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
 
 ## Artifact Dependencies
 - **Reads**: none

@@ -58,6 +58,12 @@ Report status using exactly one of:
 </what-to-do>
 <supporting-info>
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s4-setup-env/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 ## Artifact Dependencies
 - **Reads**: TASK_DAG.md, RULES.md
 - **Writes**: feature branch (git), runtime environment setup

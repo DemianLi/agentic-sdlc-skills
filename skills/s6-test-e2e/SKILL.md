@@ -60,6 +60,12 @@ Report status using exactly one of:
 Output: `docs/tests/YYYY-MM-DD-e2e-results.md`
 Includes: total/passed/failed flows, AC-N.M traceability, main/secondary flow status, failures with journey step and logs.
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s6-test-e2e/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 ## Artifact Dependencies
 - **Reads**: source files, CONTEXT_SNAPSHOT.md (user flows)
 - **Writes**: `docs/tests/YYYY-MM-DD-e2e-results.md`

@@ -54,15 +54,11 @@ Positive outcomes, negative trade-offs, identified risks.
 ### Section 7 — Delta Spec
 Change ID, Added/Modified/Removed/Unchanged components with traceability.
 
-## Workflow
-
 1. Read impact report from `/s3-eval-system` and `RULES.md`
 2. **Input Sanity Check**: Impact report lists specific files (not "the service layer"); breaking changes state exact contract changes; recommended approach exists. If any fail, **stop and state exactly what is missing.**
 3. Write sections 1-7
 4. Present **section by section** — ask approval after each before continuing
 5. After all approved, commit and proceed to `/s3-breakdown-wbs`
-
----
 
 ## Red Flags — 停下來重新考慮
 
@@ -72,11 +68,8 @@ Change ID, Added/Modified/Removed/Unchanged components with traceability.
 | "用戶對粗略版本的序列圖點頭，細節可以 s4 再調整" | Mermaid 圖是 s3-breakdown-wbs 拆解任務的依據；細節變更必須重新呈現 |
 | "OpenSpec 還沒完全寫完，但 API schema 核心部分已經 OK 了" | 「還沒完成」= 還沒提交；不能分部分批准 |
 
----
-
 ## Completion Report
 
-Report status using exactly one of:
 - **DONE** — OpenSpec written, all sections approved, committed. Proceeding to `/s3-breakdown-wbs`.
 - **DONE_WITH_CONCERNS** — approved with reservations; list open architectural questions.
 - **BLOCKED** — design conflicts with an existing ADR or RULES.md constraint; state the conflict.
@@ -87,6 +80,12 @@ Report status using exactly one of:
 <supporting-info>
 
 Output: `docs/arch/YYYY-MM-DD-<topic>-design.md` with 7 required sections. Commit before transitioning.
+
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s3-design-arch/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
 
 → Full reference: `references/detail.md`
 

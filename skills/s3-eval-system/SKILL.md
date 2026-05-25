@@ -29,15 +29,8 @@ Do NOT skip /s3-design-arch’s own HARD-GATE conditions.
 Read: CONTEXT_SNAPSHOT.md (goals), CONTEXT.md (glossary), RULES.md (constraints), `docs/adr/` (ADRs).
 
 ### Step 1b — Input Sanity Check
-
-After loading `CONTEXT_SNAPSHOT.md`, verify the following before scanning the codebase. If any check fails, **stop and state exactly what is missing. Do not begin the impact scan.**
-
-| Check | What to verify | If it fails |
-|---|---|---|
-| `## Iteration Goal` is specific | One concrete goal — not a vague phrase like "improve the feature" or "refactor the module" | Ask: "What specific behavior should change? Please rewrite the goal as one sentence with a subject and verb." |
-| `## Must-Have Requirements` lists REQ-N IDs | At least one `REQ-1`, `REQ-2`, etc. referencing an actual requirements doc | Ask: "Which requirements from Stage 2 are in scope? Please list REQ-N IDs from the requirements doc." |
-| `## In Scope` names concrete components | Lists specific files, routes, or user flows — not just "the checkout module" | Ask: "Which specific files, routes, or components are in scope? The impact scan cannot proceed without a concrete boundary." |
-| `## Forbidden Actions` exists | Explicit list of what must NOT be changed this iteration | Ask: "What should I absolutely not touch during this iteration? This section is required." |
+Verify `CONTEXT_SNAPSHOT.md` before scanning: Iteration Goal is specific, REQ-N IDs present, In Scope names concrete components, Forbidden Actions exists. Any fail → stop and state what's missing.
+→ Check table: `references/input-sanity-checks.md`
 
 ### Step 2 — Codebase Impact Scan
 - [ ] Affected **source files** (exact paths)
@@ -47,7 +40,6 @@ After loading `CONTEXT_SNAPSHOT.md`, verify the following before scanning the co
 - [ ] **Test files** needing updates
 
 ### Step 3 — Risk Classification
-
 | Risk | Definition |
 |---|---|
 | 🔴 BREAKING | Changes existing public API contracts |
@@ -55,40 +47,18 @@ After loading `CONTEXT_SNAPSHOT.md`, verify the following before scanning the co
 | 🟢 INTERNAL | Changes internal implementation only |
 
 ### Step 4 — Technical Debt Flag
-
 Identify debt that blocks implementation: files >400 lines, missing tests, circular dependencies.
 
 ### Step 5 — Write, Commit, and Present
 
-**Write to disk (REQUIRED):** `docs/arch/YYYY-MM-DD-<topic>-impact.md`
+**Write** `docs/arch/YYYY-MM-DD-<topic>-impact.md` (template: `references/impact-report-template.md`).
+**Commit**: `git add docs/arch/ && git commit -m "arch: add impact report for <topic>"`
+**Present to user.** File must exist on disk; conversation summary does NOT replace it.
 
-```
-## Impact Report — <Iteration Topic>
-### Breaking Changes (🔴)
-- <component>: <what changes> → <migration needed>
-### Additive Changes (🟡)
-- <component>: <what is added>
-### Technical Debt to Resolve First
-- <file/area>: <debt description>
-### Recommended Approach
-<1-2 sentences>
-```
-
-**Commit:** `git add docs/arch/ && git commit -m "arch: add impact report for <topic>"`
-
-**Present to user and proceed to /s3-design-arch.** File must exist on disk; conversation summary does NOT replace it.
-
----
-
-## Red Flags — 停下來重新考慮
-
-| 如果你在想… | 現實是 |
-|------------|--------|
-| "影響分析看起來差不多，可以先跳過寫文件" | 文件是後續 s3-design-arch 的唯一輸入；沒有承諾的文字，設計會漂移 |
-| "用戶同意了之前的粗略版本，不需要再問一次" | 影響報告提交後的每一次變更都需要重新呈現和批准 |
-| "找不到某些組件，就假設沒有受到影響" | 不知道 ≠ 無影響；「無法存取」要停下來、列出具體障礙，並在報告中標記 NEEDS_CONTEXT |
-
----
+## Red Flags
+- "可以先跳過寫文件" → 文件是 /s3-design-arch 的唯一輸入；設計會漂移
+- "用戶同意了粗略版本" → 影響報告每次變更後都需重新呈現和批准
+- "找不到組件就假設無影響" → 不知道 ≠ 無影響；標記 NEEDS_CONTEXT 並停下來
 
 ## Completion Report
 
@@ -104,6 +74,12 @@ Report status using exactly one of:
 
 **Reads**: CONTEXT_SNAPSHOT.md, CONTEXT.md, RULES.md, docs/adr/ (optional)  
 **Writes**: `docs/arch/YYYY-MM-DD-<topic>-impact.md`
+
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s3-eval-system/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
 
 → Full reference: `references/detail.md`
 

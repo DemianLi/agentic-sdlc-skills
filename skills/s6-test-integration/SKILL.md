@@ -55,6 +55,12 @@ Report status using exactly one of:
 Output: `docs/tests/YYYY-MM-DD-integration-results.md`
 Includes: total/passed/failed/skipped tests, REQ-N traceability, coverage %, failures (test name, boundary, expected vs. actual).
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s6-test-integration/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 ## Artifact Dependencies
 - **Reads**: source files, docs/specs/YYYY-MM-DD-<topic>-requirements.md, TASK_DAG.md
 - **Writes**: `docs/tests/YYYY-MM-DD-integration-results.md`
