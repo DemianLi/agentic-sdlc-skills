@@ -16,12 +16,12 @@
 | 5 | 優雅降級 | ✅ PASS | 3 BLOCKED fallbacks: (a) mkdir/cp failure, (b) settings.json JSON parse failure, (c) verification exit code ≠ 2 |
 | 6 | 漂移監控 | ✅ PASS | `tests/fixtures/s1-git-guardrails/cases.json` referenced and exists on disk |
 
-**Total**: 6/6 — **PRODUCTION READY**
+**Total**: 6/6 — **READY**
 
 ## Fix Summary
 
 | Criterion | Before | After |
 |-----------|--------|-------|
 | C1 衝突防禦 | ❌ FAIL — no adjacent skill boundary | ✅ Semantic Boundary table, 3 skills |
-| C2 雙向阻斷 | ⚠️ PARTIAL — Red Flags ≠ invocation triggers | ✅ 絕對不要觸發 table, 2 invocation counter-examples |
+| C2 雙向阻斷 | ⚠️ WEAK — Red Flags ≠ invocation triggers | ✅ 絕對不要觸發 table, 2 invocation counter-examples |
 | C5 優雅降級 | ❌ FAIL — 3 external ops with no fallback | ✅ BLOCKED fallback at each failure point (mkdir, JSON parse, exit code) |

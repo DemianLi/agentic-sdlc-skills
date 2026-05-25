@@ -39,7 +39,7 @@
 | s7-release-notes | ✅ (4/5) | ✅ | ✅ | ✅ | ✅ | N/A | ✅ | ✅ | ✅ | ✅ ALIGNED |
 | s7-telemetry | ✅ (4/5) | ✅ | ✅ | ✅ | ✅ | N/A | ✅ | ✅ | ✅ | ✅ ALIGNED |
 
-**總計：28/28 ✅ ALIGNED，0/28 ⚠️ PARTIAL，0/28 ❌ DRIFTED**
+**總計：28/28 ✅ ALIGNED，0/28 ⚠️ WEAK，0/28 ❌ DRIFTED**
 
 ---
 

@@ -14,11 +14,11 @@
 | 5 | 優雅降級 | ✅ | Line 10: explicit git commit requirement; line 88: BLOCKED status defined; step 4 awaits user approval before proceeding |
 | 6 | 漂移監控 | ❌ | No `tests/fixtures/` directory referenced anywhere in SKILL.md |
 
-**Total**: 5/6 PASS — **NEAR READY** — address Criterion 3 and Criterion 6 before shipping
+**Total**: 5/6 PASS — **NEAR-READY** — address Criterion 3 and Criterion 6 before shipping
 
 ## Defect Details
 
-### ⚠️ PARTIAL — Criterion 3: 輸入清洗 (Input Linting)
+### ⚠️ WEAK — Criterion 3: 輸入清洗 (Input Linting)
 - **Location**: Lines 18–91
 - **Gap**: SKILL.md describes the role and workflow, but does not explicitly enumerate user inputs or define failure behavior for each. The skill operates by reading an artifact from `/s3-design-arch` (line 51), but:
   - No explicit check: "What if the design doc does not exist on disk?"

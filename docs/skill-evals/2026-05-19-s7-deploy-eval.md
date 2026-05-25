@@ -14,7 +14,7 @@
 | 5 | 優雅降級 | ✅ PASS | Step 2 branches to live/dry-run with explicit actions; Step 3 smoke tests with binary PASS/FAIL; Line 169 fallback behavior for test failure (BLOCKED status) |
 | 6 | 漂移監控 | ✅ PASS | Line 182–187: References `tests/fixtures/s7-deploy/cases.json`; fixture verified on disk |
 
-**Total**: 6/6 PASS — **PRODUCTION READY**
+**Total**: 6/6 PASS — **READY**
 
 ## Defect Details
 

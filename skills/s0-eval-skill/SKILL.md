@@ -1,8 +1,8 @@
 ---
 name: s0-eval-skill
 description: >
-  Use when scoring any SKILL.md against 6 production-quality criteria. Outputs
-  diagnostic report with defect coordinates. NOT for rewriting skills.
+  Use when scoring any SKILL.md against 7 production-quality criteria (P1–P5).
+  Outputs diagnostic report with defect coordinates. NOT for rewriting skills.
 ---
 
 <HARD-GATE>
@@ -19,7 +19,7 @@ After presenting the report, your message MUST end with exactly:
 **When NOT to use**: New skill → `skill-creator`; code quality → `s5-audit-rules`/`s5-fix-optimize`; architecture → `s3-eval-system`; modify → `s5-fix-optimize`.
 → Reference: `references/s0-eval-skill-workflow.md`
 
-**Workflow**: Step 0 — Validate input (skill_path must be .md, exist, have frontmatter). Step 1 — Read skill structure. Step 2 — Score 6 standards vs `references/scoring-rubric.md` (Conflict Defense, Bi-directional Gate, Input Sanity, Progressive Disclosure, Graceful Fallback, Drift Monitoring). Step 3 — Write report to `docs/skill-evals/YYYY-MM-DD-<skill-name>-eval.md` (each score + evidence lines + defects). Step 4 — Present & wait for approval.
+**Workflow**: Step 0 — Validate input (skill_path must be .md, exist, have frontmatter). Step 1 — Read skill structure. Step 2 — Score 7 criteria vs `references/scoring-rubric.md`: C1 衝突防禦 (P1+), C2 雙向阻斷 (P1−), C3 輸入清洗 (P2 input), C4 漸進披露 (P4), C5 優雅降級 (P2 degrade), C6 漂移監控 (P5), C7 有界執行 (P3). Each scores PASS/WEAK/FAIL. Step 3 — Write report to `docs/skill-evals/YYYY-MM-DD-<skill-name>-eval.md`. Step 4 — Present & wait for approval.
 
 ### Step 0 — Input Validation
 
@@ -30,8 +30,8 @@ After presenting the report, your message MUST end with exactly:
 | 未提供路徑 | BLOCKED — 「請提供 SKILL.md 的絕對路徑。」|
 | 路徑不存在 | BLOCKED — 「`<path>` 不存在。」 |
 | 非 `.md` 副檔名 | BLOCKED — 「預期 .md 檔，實際為 `<ext>`。」 |
-| 無 YAML frontmatter | PARTIAL — 標準 3 記為 `❌ FAIL — frontmatter absent`，其餘繼續 |
-| 缺 `<what-to-do>` | PARTIAL — 缺失 section 標記為 `❌ FAIL — section absent` |
+| 無 YAML frontmatter | DONE_WITH_CONCERNS — C3 記為 `❌ FAIL — frontmatter absent`，其餘繼續 |
+| 缺 `<what-to-do>` | DONE_WITH_CONCERNS — 缺失 section 標記為 `❌ FAIL — section absent` |
 
 ### Step 1 — Read the Skill
 
@@ -39,7 +39,7 @@ After presenting the report, your message MUST end with exactly:
 
 ### Step 2 — Apply Scoring Rubric
 
-載入 `references/scoring-rubric.md`（6 標準定義、判斷規則、報告模板）。若缺失 → BLOCKED。
+載入 `references/scoring-rubric.md`（7 準則定義、P-ID 對映、PASS/WEAK/FAIL 條件、報告模板）。若缺失 → BLOCKED。
 → 評分標準快查：`references/scoring-rubric.md`
 
 ### Step 3 — Write Evaluation Report
@@ -52,7 +52,7 @@ After presenting the report, your message MUST end with exactly:
 
 ## Completion Report
 
-- **DONE** — 報告已寫入磁碟；全部 6 項已評分。
+- **DONE** — 報告已寫入磁碟；全部 7 項已評分；整體等級 READY/NEAR-READY/DRAFT 已標註。
 - **DONE_WITH_CONCERNS** — 報告已寫入；記錄任何評分依據模糊的標準。
 - **BLOCKED** — 輸入驗證失敗；說明確切原因。
 - **NEEDS_CONTEXT** — 檔案存在但完全無法解析；說明缺少什麼。

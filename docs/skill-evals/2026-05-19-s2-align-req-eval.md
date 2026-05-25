@@ -14,7 +14,7 @@
 | 5 | 優雅降級 | ✅ | Step 1 (line 26) file read has explicit gate (lines 8-11); completion report (lines 84-88) includes BLOCKED state for unresolvable conflicts |
 | 6 | 漂移監控 | ❌ | No reference to `tests/fixtures/` found in entire SKILL.md |
 
-**Total**: 5/6 PASS — **NEAR READY**
+**Total**: 5/6 PASS — **NEAR-READY**
 
 ## Defect Details
 

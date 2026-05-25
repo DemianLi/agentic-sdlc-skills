@@ -14,11 +14,11 @@
 | 5 | 優雅降級 | ✅ | Step 2 run load test (external dep) → BLOCKED if targets exceeded (line 74); missing baseline → NEEDS_CONTEXT (line 75); Step 4 optional memory/deadlock detection with clear fallback semantics |
 | 6 | 漂移監控 | ❌ | No reference to `tests/fixtures/` in SKILL.md; no fixture directory on disk at `skills/s6-test-perf/tests/fixtures/` |
 
-**Total**: 5/6 PASS — **NEAR READY** (1 PARTIAL, 1 FAIL — address Criterion 6 before shipping)
+**Total**: 5/6 PASS — **NEAR-READY** (1 PARTIAL, 1 FAIL — address Criterion 6 before shipping)
 
 ## Defect Details
 
-### ⚠️ PARTIAL — Criterion 3: 輸入清洗 (Input Linting)
+### ⚠️ WEAK — Criterion 3: 輸入清洗 (Input Linting)
 - **Location**: Line 21 (load perf targets), line 58 (regression check)
 - **Gap**: Step 1 reads performance AC from Stage 2 requirements but doesn't specify error handling if criteria are missing, malformed, or use non-standard units. Step 5 regression check assumes baseline exists ("if exists") but doesn't define behavior when baseline is absent or corrupted. Missing explicit validation: is the 80% vs 95% percentile calculation consistent? Are thresholds numeric?
 

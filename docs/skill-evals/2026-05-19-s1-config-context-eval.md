@@ -14,7 +14,7 @@
 | 5 | 優雅降級 | ✅ | Completion Report (line 43-48) has all four status values; no external dependencies; pure documentation task |
 | 6 | 漂移監控 | ❌ | SKILL.md contains no reference to `tests/fixtures/` directory; no fixture path found on disk |
 
-**Total**: 5/6 PASS — NEAR READY
+**Total**: 5/6 PASS — NEAR-READY
 
 ## Defect Details
 

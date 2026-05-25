@@ -14,7 +14,7 @@
 | 5 | 優雅降級 | ✅ | Step 1 test execution (external dep) → NEEDS_CONTEXT if runner missing (line 47) or no test files (line 48); Step 3 traceability check → BLOCKER if AC unmapped (line 74); all external deps have defined fallback |
 | 6 | 漂移監控 | ❌ | No reference to `tests/fixtures/` in SKILL.md; no fixture directory on disk at `skills/s6-verify-release/tests/fixtures/` |
 
-**Total**: 5/6 PASS — **NEAR READY** (0 PARTIAL, 1 FAIL — address Criterion 6 before shipping)
+**Total**: 5/6 PASS — **NEAR-READY** (0 PARTIAL, 1 FAIL — address Criterion 6 before shipping)
 
 ## Defect Details
 

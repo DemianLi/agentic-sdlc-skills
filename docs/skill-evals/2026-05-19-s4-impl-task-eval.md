@@ -16,12 +16,12 @@
 | 5 | 優雅降級 | ✅ PASS | Production file write failure → BLOCKED with path + reason; TASK_DAG.md update failure → BLOCKED with manual fallback instruction |
 | 6 | 漂移監控 | ✅ PASS | `tests/fixtures/s4-impl-task/cases.json` referenced and exists on disk |
 
-**Total**: 6/6 — **PRODUCTION READY**
+**Total**: 6/6 — **READY**
 
 ## Fix Summary
 
 | Criterion | Before | After |
 |-----------|--------|-------|
 | C1 衝突防禦 | ❌ FAIL — no s4-* skill boundary table | ✅ Semantic Boundary table, 4 skills with diffs |
-| C2 雙向阻斷 | ⚠️ PARTIAL — Red Flags ≠ invocation triggers | ✅ 絕對不要觸發 table, 3 invocation counter-examples |
-| C5 優雅降級 | ⚠️ PARTIAL — production writes no fallback | ✅ BLOCKED for file write + TASK_DAG.md update failure |
+| C2 雙向阻斷 | ⚠️ WEAK — Red Flags ≠ invocation triggers | ✅ 絕對不要觸發 table, 3 invocation counter-examples |
+| C5 優雅降級 | ⚠️ WEAK — production writes no fallback | ✅ BLOCKED for file write + TASK_DAG.md update failure |

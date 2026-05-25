@@ -14,7 +14,7 @@
 | 5 | 優雅降級 | ✅ PASS | External dependencies: E2E test framework (Playwright/Cypress/Selenium), `CONTEXT_SNAPSHOT.md` read, test environment access. Step 0 (lines 22–31) maps each dependency to explicit fallback: BLOCKED if framework missing, NEEDS_CONTEXT if context missing, BLOCKED if environment inaccessible, DONE_WITH_CONCERNS if tests timeout mid-run. All covered. |
 | 6 | 漂移監控 | ✅ PASS | Line 73: "Fixtures located at `tests/fixtures/s6-test-e2e/cases.json`." Fixture verified on disk (3.1K). Purpose stated: "Smoke test: sequentially verify skill output structure and expected_behavior alignment for each scenario." |
 
-**Total**: 6/6 PASS — **PRODUCTION READY**
+**Total**: 6/6 PASS — **READY**
 
 ## Defect Details
 

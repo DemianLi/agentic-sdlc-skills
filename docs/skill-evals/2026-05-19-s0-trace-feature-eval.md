@@ -2,7 +2,7 @@
 
 **File**: `skills/s0-trace-feature/SKILL.md`
 **Evaluator**: s0-eval-skill
-**Previous score**: 5/6 NEAR READY
+**Previous score**: 5/6 NEAR-READY
 **Re-eval trigger**: C5 fixes applied
 
 ## Score Summary
@@ -16,10 +16,10 @@
 | 5 | 優雅降級 | ✅ PASS | Step 5: `docs/traces/` not found → mkdir-p + BLOCKED for write failure; git commit failure → DONE_WITH_CONCERNS with manual commit instruction |
 | 6 | 漂移監控 | ✅ PASS | `tests/fixtures/s0-trace-feature/cases.json` referenced and exists on disk |
 
-**Total**: 6/6 — **PRODUCTION READY**
+**Total**: 6/6 — **READY**
 
 ## Fix Summary
 
 | Criterion | Before | After |
 |-----------|--------|-------|
-| C5 優雅降級 | ⚠️ PARTIAL — `docs/traces/` write and git commit had no fallback | ✅ mkdir-p + BLOCKED for write failure; DONE_WITH_CONCERNS for git commit failure |
+| C5 優雅降級 | ⚠️ WEAK — `docs/traces/` write and git commit had no fallback | ✅ mkdir-p + BLOCKED for write failure; DONE_WITH_CONCERNS for git commit failure |

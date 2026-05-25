@@ -14,11 +14,11 @@
 | 5 | 優雅降級 | ⚠️ | Step 0-4 involve multiple external dependencies: runtime version command execution (line 26-31), file I/O (lock files, ADR creation), compatibility checking. Step 0 is read-only (version check). Steps 1-2 have success criteria but no fallback documented (e.g., if runtime command fails, if user refuses to resolve compatibility issues, procedure does not describe abort/retry path). BLOCKED status exists (line 56) but recovery guidance is minimal |
 | 6 | 漂移監控 | ❌ | SKILL.md contains no reference to `tests/fixtures/` directory; no fixture set found on disk for regression testing lock file generation and ADR creation |
 
-**Total**: 5/6 PASS — NEAR READY
+**Total**: 5/6 PASS — NEAR-READY
 
 ## Defect Details
 
-### ⚠️ PARTIAL — Criterion 5: 優雅降級 (Graceful Degradation)
+### ⚠️ WEAK — Criterion 5: 優雅降級 (Graceful Degradation)
 - **Location**: Lines 25-42 (main execution steps)
 - **Gap**: Step 0 (runtime version check) is read-only and has a fallback path (write to RULES.md with timestamp); however, Steps 1-3 have external dependencies with incomplete fallback guidance:
   - If runtime command fails (not found, permissions error), step does not describe alternative verification methods.

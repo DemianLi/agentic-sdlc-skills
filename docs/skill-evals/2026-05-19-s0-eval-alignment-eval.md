@@ -14,7 +14,7 @@
 | 5 | 優雅降級 | ✅ | Artifact Dependencies (line 150-151): Reads=multiple files, Writes=output file. Step 0 (line 40, 52) marks BLOCKED scenarios with explicit failure messages; step fallback: continue scan if single skill missing (line 41) |
 | 6 | 漂移監控 | ✅ | Line 142-147: references `tests/fixtures/skill-aligned/SKILL.md` and `tests/fixtures/skill-drifted/SKILL.md`; both exist on disk at `/skills/s0-eval-alignment/tests/fixtures/` |
 
-**Total**: 6/6 PASS — **PRODUCTION READY**
+**Total**: 6/6 PASS — **READY**
 
 ## Defect Details
 

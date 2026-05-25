@@ -14,7 +14,7 @@
 | 5 | 優雅降級 | ✅ | Line 112: explicit fallback — "若 `RULES.md` 不存在 → 假定 standard mode，不阻斷路由。" covers the sole external read dependency |
 | 6 | 漂移監控 | ✅ | Lines 184–190: `tests/fixtures/fast-track-cases.json` referenced in `<supporting-info>`; file exists on disk with 6 routing test cases |
 
-**Total**: 6/6 PASS — **PRODUCTION READY**
+**Total**: 6/6 PASS — **READY**
 
 ## Defect Details
 

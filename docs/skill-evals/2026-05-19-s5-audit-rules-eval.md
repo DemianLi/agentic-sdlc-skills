@@ -2,7 +2,7 @@
 
 **File**: `skills/s5-audit-rules/SKILL.md`
 **Evaluator**: s0-eval-skill
-**Previous score**: 4/6 NEAR READY
+**Previous score**: 4/6 NEAR-READY
 **Re-eval trigger**: C1/C2/C3/C5 fixes applied
 
 ## Score Summary
@@ -16,7 +16,7 @@
 | 5 | 優雅降級 | ✅ PASS | Step 0 BLOCKED labels cover all 4 external file reads (RULES.md, design doc, CONTEXT.md, TASK_DAG.md); Completion Report includes NEEDS_CONTEXT for missing design docs |
 | 6 | 漂移監控 | ✅ PASS | `tests/fixtures/s5-audit-rules/cases.json` referenced and exists on disk |
 
-**Total**: 6/6 — **PRODUCTION READY**
+**Total**: 6/6 — **READY**
 
 ## Fix Summary
 
@@ -24,5 +24,5 @@
 |-----------|--------|-------|
 | C1 衝突防禦 | ✅ (implicit via upstream/downstream) | ✅ Explicit Semantic Boundary table, 3 skills with diffs |
 | C2 雙向阻斷 | ✅ (Red Flags counted as partial pass) | ✅ 絕對不要觸發 table, 2 invocation counter-examples |
-| C3 輸入清洗 | ⚠️ PARTIAL — inputs implicit, no failure flow | ✅ Step 0 with 4 required inputs + 4 BLOCKED/NEEDS_CONTEXT failure scenarios |
-| C5 優雅降級 | ⚠️ PARTIAL — fallback not in main flow | ✅ BLOCKED fallback at each missing dependency in Step 0 |
+| C3 輸入清洗 | ⚠️ WEAK — inputs implicit, no failure flow | ✅ Step 0 with 4 required inputs + 4 BLOCKED/NEEDS_CONTEXT failure scenarios |
+| C5 優雅降級 | ⚠️ WEAK — fallback not in main flow | ✅ BLOCKED fallback at each missing dependency in Step 0 |

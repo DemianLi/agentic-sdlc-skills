@@ -14,7 +14,7 @@
 | 5 | 優雅降級 | ✅ PASS | All external dependencies (file read/write, directory creation) labeled with BLOCKED (lines 40, 41, 42, 43, 44, 53, 59, 74); Step 1 read failure handled; Step 3 directory creation failure handled |
 | 6 | 漂移監控 | ✅ PASS | Line 119: `tests/fixtures/` referenced in `<supporting-info>`; directory exists at project root `tests/fixtures/` containing 1 fixture (`good-skill.md`) |
 
-**Total**: 6/6 PASS — **PRODUCTION READY**
+**Total**: 6/6 PASS — **READY**
 
 ## Defect Details
 

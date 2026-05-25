@@ -14,7 +14,7 @@
 | 5 | 優雅降級 | ✅ | Line 34: "STOP. Report `NEEDS_CONTEXT`" for intermittent failures. Lines 104–107: Escalation protocol at 3 failed attempts (explicit BLOCKED). All external dependencies (test runs, file reads) have fallback or explicit failure labels. |
 | 6 | 漂移監控 | ✅ | Line 173 references `tests/fixtures/s4-local-debug/cases.json`. Verified: fixture exists on disk. |
 
-**Total**: 6/6 PASS — **PRODUCTION READY**
+**Total**: 6/6 PASS — **READY**
 
 ## Defect Details
 

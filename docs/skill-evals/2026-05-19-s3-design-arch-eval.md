@@ -14,7 +14,7 @@
 | 5 | 優雅降級 | ✅ | Line 226: explicit output path; line 236: commit before transitioning; lines 162–164 define artifact dependencies (reads impact report + RULES.md); all external reads have clear paths |
 | 6 | 漂移監控 | ❌ | No `tests/fixtures/` directory referenced anywhere in SKILL.md |
 
-**Total**: 5/6 PASS — **NEAR READY** — address Criterion 6 before shipping
+**Total**: 5/6 PASS — **NEAR-READY** — address Criterion 6 before shipping
 
 ## Defect Details
 

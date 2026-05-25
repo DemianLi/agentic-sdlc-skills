@@ -105,20 +105,24 @@ def paranoid_judge(content: str) -> Dict:
     return {"verdict": verdict, "issues": issues}
 
 
-def verify_test_coverage(skill: str, eval_cases: Optional[Dict]) -> bool:
+def verify_test_coverage(skill: str, base: Path) -> bool:
     """
-    Returns True if skill has both golden_path and adversarial entries in eval_cases.
-    Returns True (skip check) when eval_cases is None — no JSON loaded.
+    Returns True if tests/fixtures/<skill>/cases.json exists and has ≥1 case.
+    Aligns with Rubric C6 (P5 Auditable) which checks the same data source.
     """
-    if eval_cases is None:
-        return True
-    entry = eval_cases.get(skill, {})
-    return bool(entry.get("golden_path") and entry.get("adversarial"))
+    fixture = base.parent / "tests" / "fixtures" / skill / "cases.json"
+    if not fixture.exists():
+        return False
+    try:
+        cases = json.loads(fixture.read_text(encoding="utf-8"))
+        return isinstance(cases, list) and len(cases) >= 1
+    except Exception:
+        return False
 
 
 # ---------------------------------------------------------------------------
 
-def scan_skill(skill: str, step: str, base: Path, eval_cases: Optional[Dict] = None) -> Dict:
+def scan_skill(skill: str, step: str, base: Path) -> Dict:
     path = base / skill / "SKILL.md"
     result: Dict = {"skill": skill, "step": step, "path": str(path)}
 
@@ -133,8 +137,8 @@ def scan_skill(skill: str, step: str, base: Path, eval_cases: Optional[Dict] = N
     result["judge"]        = judge["verdict"]
     result["judge_issues"] = judge["issues"]
 
-    # Tests — eval_cases.json coverage
-    result["has_tests"] = verify_test_coverage(skill, eval_cases)
+    # Tests — P5 Auditable: tests/fixtures/<skill>/cases.json (same source as Rubric C6)
+    result["has_tests"] = verify_test_coverage(skill, base)
 
     # C1 — HARD-GATE + gate phrase (match opening tag only, not closing or inline text)
     result["c1_gate"] = bool(re.search(r'<HARD-GATE>', content))
@@ -190,6 +194,49 @@ def scan_skill(skill: str, step: str, base: Path, eval_cases: Optional[Dict] = N
 
 def sym(ok: bool) -> str:
     return "✅" if ok else "❌"
+
+
+def p_property_table(r: Dict) -> str:
+    """
+    Derives P1-P5 status from scan result dict.
+    Produces a mini markdown table for diffing against Rubric reports.
+    scan.py cannot verify all Rubric sub-criteria — coverage gaps are marked (partial).
+    """
+    judge_issues = r.get("judge_issues", [])
+    j1_fail = any("J1" in i for i in judge_issues)
+    j2_fail = any("J2" in i for i in judge_issues)
+
+    # P1: description quality (c3). Anti-collision prose not checked by scan.py.
+    p1 = "✅" if r.get("c3_pass") else "❌"
+    p1_note = "description format only; prose boundary not checked"
+
+    # P2: GATE + Reads/Writes chain + step structure (J1) + red flag (c4)
+    p2_checks = [r.get("c1_gate", False), r.get("c2_reads", False) and r.get("c2_writes", False), not j1_fail, r.get("c4_pass", True)]
+    p2 = "✅" if all(p2_checks) else "❌"
+    p2_note = "GATE + chain + J1 steps + red flag"
+
+    # P3: handoff phrase (c1_approval) + J2 completion statuses
+    p3 = "✅" if r.get("c1_approval", False) and not j2_fail else "❌"
+    p3_note = "handoff phrase + J2 completion statuses"
+
+    # P4: line budget (informational)
+    p4 = "✅" if r.get("p4_pass", False) else "⚠️"
+    p4_note = f"{r.get('p4_lines', '?')}L (threshold 50; informational)"
+
+    # P5: fixture file exists with ≥1 case
+    p5 = "✅" if r.get("has_tests", False) else "❌"
+    p5_note = "tests/fixtures/<skill>/cases.json ≥1 case"
+
+    rows = [
+        "| P 屬性 | scan.py 判定 | 依據 |",
+        "|--------|-------------|------|",
+        f"| P1 Scopeable | {p1} | {p1_note} |",
+        f"| P2 Executable | {p2} | {p2_note} |",
+        f"| P3 Bounded | {p3} | {p3_note} |",
+        f"| P4 Efficient | {p4} | {p4_note} |",
+        f"| P5 Auditable | {p5} | {p5_note} |",
+    ]
+    return "\n".join(rows)
 
 
 def judge_sym(verdict: str) -> str:
@@ -264,7 +311,7 @@ def build_report(results: List[Dict]) -> str:
         "|------|--------|------|",
         f"| Judge J1 <what-to-do> 步驟結構 | P2 Executable | ✅ {j_aligned} / ⚠️ {j_partial} / ❌ {j_drifted} |",
         f"| Judge J2 Completion Report 狀態 | P3 Bounded | ✅ {j_aligned} / ⚠️ {j_partial} / ❌ {j_drifted} |",
-        f"| Tests eval_cases.json 覆蓋 | P5 Auditable | {sum(r.get('has_tests', False) for r in non_missing)}/{len(results)} |",
+        f"| tests/fixtures/<skill>/cases.json ≥1 case | P5 Auditable | {sum(r.get('has_tests', False) for r in non_missing)}/{len(results)} |",
         f"| HARD-GATE 存在 | P2 Executable | {sum(r.get('c1_gate', False) for r in non_missing)}/{len(results)} |",
         f"| gate phrase (boundary: 'Awaiting…' / intra: 'proceed immediately to') | P3 Bounded | {sum(r.get('c1_approval', False) for r in non_missing)}/{len(results)} |",
         f"| Reads + Writes 聲明 | P2 Executable | {sum(r.get('c2_reads', False) and r.get('c2_writes', False) for r in non_missing)}/{len(results)} |",
@@ -281,7 +328,7 @@ def build_report(results: List[Dict]) -> str:
             for ji in r.get("judge_issues", []):
                 issues.append(f"Judge: {ji}")
             if not r["has_tests"]:
-                issues.append("Tests: eval_cases.json 缺少對應測資")
+                issues.append("P5: tests/fixtures/<skill>/cases.json 不存在或無 case")
             if not r["c1_gate"]:
                 issues.append("C1: 缺 HARD-GATE")
             if not r["c1_approval"]:
@@ -299,6 +346,8 @@ def build_report(results: List[Dict]) -> str:
             if r.get("c4_required") and not r.get("c4_pass"):
                 issues.append("C4: 缺紅旗表")
             lines.append(f"\n### {r['skill']} — {tag}\n")
+            lines.append(p_property_table(r))
+            lines.append("")
             for i in issues:
                 lines.append(f"- {i}")
     else:
@@ -334,12 +383,6 @@ def main() -> None:
         print(f"ERROR: skills directory not found: {base}", file=sys.stderr)
         sys.exit(2)
 
-    # Load eval_cases.json if available
-    eval_cases_path = Path("skills/s0-eval-alignment/tests/eval_cases.json")
-    eval_cases: Optional[Dict] = None
-    if eval_cases_path.exists():
-        eval_cases = json.loads(eval_cases_path.read_text(encoding="utf-8"))
-
     steps = STEPS
     if args.stage:
         prefix = args.stage.lower()
@@ -348,7 +391,7 @@ def main() -> None:
             print(f"ERROR: no skills matched --stage {args.stage}", file=sys.stderr)
             sys.exit(2)
 
-    results = [scan_skill(skill, step, base, eval_cases) for skill, step in steps]
+    results = [scan_skill(skill, step, base) for skill, step in steps]
 
     aligned = sum(1 for r in results if r["status"] == "ALIGNED")
     partial = sum(1 for r in results if r["status"] == "PARTIAL")

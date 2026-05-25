@@ -14,7 +14,7 @@
 | 5 | 優雅降級 | ✅ | Step 1 git commit (lines 28-30) has explicit STOP gate if not committed (line 31). File reads have clear error path. Template generation (Step 2) is low-risk. |
 | 6 | 漂移監控 | ❌ | No reference to `tests/fixtures/` found anywhere in SKILL.md |
 
-**Total**: 5/6 PASS — **NEAR READY**
+**Total**: 5/6 PASS — **NEAR-READY**
 
 ## Defect Details
 
