@@ -117,22 +117,39 @@ def test_judge_aligned_on_full_content():
 
 # ---------------------------------------------------------------------------
 # verify_test_coverage unit tests
+# Uses monkeypatch to override _REPO_ROOT so tests are filesystem-isolated.
 # ---------------------------------------------------------------------------
 
-def test_coverage_true_when_no_json():
-    assert verify_test_coverage("any-skill", None) is True
+import scan as scan_module
 
-def test_coverage_true_when_entry_exists():
-    cases = {"my-skill": {"golden_path": "do X", "adversarial": "skip X"}}
-    assert verify_test_coverage("my-skill", cases) is True
 
-def test_coverage_false_when_entry_missing():
-    cases = {"other-skill": {"golden_path": "do X", "adversarial": "skip X"}}
-    assert verify_test_coverage("my-skill", cases) is False
+def test_coverage_true_when_fixture_exists(tmp_path, monkeypatch):
+    monkeypatch.setattr(scan_module, "_REPO_ROOT", tmp_path)
+    fixture_dir = tmp_path / "tests" / "fixtures" / "my-skill"
+    fixture_dir.mkdir(parents=True)
+    (fixture_dir / "cases.json").write_text('[{"scenario": "ok"}]')
+    assert verify_test_coverage("my-skill", tmp_path / "skills") is True
 
-def test_coverage_false_when_entry_incomplete():
-    cases = {"my-skill": {"golden_path": "do X"}}  # no adversarial
-    assert verify_test_coverage("my-skill", cases) is False
+
+def test_coverage_false_when_fixture_missing(tmp_path, monkeypatch):
+    monkeypatch.setattr(scan_module, "_REPO_ROOT", tmp_path)
+    assert verify_test_coverage("my-skill", tmp_path / "skills") is False
+
+
+def test_coverage_false_when_empty_fixture(tmp_path, monkeypatch):
+    monkeypatch.setattr(scan_module, "_REPO_ROOT", tmp_path)
+    fixture_dir = tmp_path / "tests" / "fixtures" / "my-skill"
+    fixture_dir.mkdir(parents=True)
+    (fixture_dir / "cases.json").write_text("[]")
+    assert verify_test_coverage("my-skill", tmp_path / "skills") is False
+
+
+def test_coverage_false_when_invalid_json(tmp_path, monkeypatch):
+    monkeypatch.setattr(scan_module, "_REPO_ROOT", tmp_path)
+    fixture_dir = tmp_path / "tests" / "fixtures" / "my-skill"
+    fixture_dir.mkdir(parents=True)
+    (fixture_dir / "cases.json").write_text("not json")
+    assert verify_test_coverage("my-skill", tmp_path / "skills") is False
 
 
 # ---------------------------------------------------------------------------
