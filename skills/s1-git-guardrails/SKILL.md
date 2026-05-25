@@ -71,6 +71,12 @@ Offer: add/remove blocked patterns? Edit `BLOCKED_PATTERNS` in script accordingl
 
 Outputs: script installed at `.claude/hooks/block-dangerous-git.sh` (or `~/.claude/hooks/`) + PreToolUse hook wired to `settings.json` + verification test showing exit code 2.
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s1-git-guardrails/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
 
 ## Artifact Dependencies

@@ -62,6 +62,12 @@ List all tasks + total estimated complexity. Get user sign-off before building D
 **Reads**: `docs/arch/YYYY-MM-DD-<topic>-design.md`  
 **Writes**: `docs/arch/YYYY-MM-DD-<topic>-wbs.md`
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s3-breakdown-wbs/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
 
 </supporting-info>

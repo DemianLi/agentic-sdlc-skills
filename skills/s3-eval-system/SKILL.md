@@ -75,6 +75,12 @@ Report status using exactly one of:
 **Reads**: CONTEXT_SNAPSHOT.md, CONTEXT.md, RULES.md, docs/adr/ (optional)  
 **Writes**: `docs/arch/YYYY-MM-DD-<topic>-impact.md`
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s3-eval-system/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
 
 </supporting-info>

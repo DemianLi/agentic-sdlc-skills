@@ -67,6 +67,12 @@ Write `docs/brainstorm/YYYY-MM-DD-<topic>-problem-draft.md`: chosen framing, pro
 
 Output: `docs/brainstorm/YYYY-MM-DD-<topic>-problem-draft.md` (chosen framing, map, rejected framings, open questions, what NOT). Only output; no architecture, tech, hints.
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s0-brainstorm/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
 
 ## Artifact Dependencies

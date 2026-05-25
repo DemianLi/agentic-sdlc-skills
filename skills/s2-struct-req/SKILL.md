@@ -78,6 +78,12 @@ Report status using exactly one of:
 Output: `docs/specs/YYYY-MM-DD-<topic>-requirements.md`
 Requires: `## REQ-N` blocks, `## Test Coverage Map` (AC to test type), `## Scope Contract` (IN/OUT scope). Commit before transitioning.
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s2-struct-req/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 ## Artifact Dependencies
 - **Reads**: `docs/alignment/YYYY-MM-DD-<topic>-alignment.md`
 - **Writes**: `docs/specs/YYYY-MM-DD-<topic>-requirements.md`

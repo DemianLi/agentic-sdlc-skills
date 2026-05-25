@@ -74,6 +74,12 @@ Write to `docs/traces/YYYY-MM-DD-<feature-slug>.md` with Mermaid diagram, busine
 
 Output voice: Name files, functions, line numbers. Be concrete, not general.
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s0-trace-feature/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
 
 ## Artifact Dependencies

@@ -61,7 +61,16 @@ Write failing test **before** fix. Watch it fail. Apply fix. Confirm GREEN. Comm
 </what-to-do>
 
 <supporting-info>
+
 **Reads**: failing test output, source files
 **Writes**: bug fix commits, regression test
+
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s4-local-debug/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
+
 </supporting-info>

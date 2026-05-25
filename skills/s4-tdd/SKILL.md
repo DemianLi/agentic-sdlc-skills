@@ -74,6 +74,12 @@ Repeat: `RED → verify failure → GREEN → verify all pass → micro-refactor
 
 <supporting-info>
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s4-tdd/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 ## Artifact Dependencies
 - **Reads**: TASK_DAG.md (Atomic Task + Acceptance Criteria)
 - **Writes**: test files (`*.test.*` / `test_*.py` / `*_test.go`), coverage report

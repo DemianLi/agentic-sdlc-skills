@@ -67,6 +67,12 @@ Write `docs/releases/YYYY-MM-DD-<version>-telemetry.json` (schema: → `referenc
 
 Outputs: `docs/releases/YYYY-MM-DD-<version>-telemetry.json` with anomalies, status, next_cycle_inputs. Stage 7 final artifact.
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s7-telemetry/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
 
 ## Artifact Dependencies

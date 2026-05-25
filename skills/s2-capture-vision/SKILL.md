@@ -64,6 +64,12 @@ Check: placeholders ("TBD"), internal consistency, scope focus, ambiguous requir
 
 <supporting-info>
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s2-capture-vision/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 ## Artifact Dependencies
 - **Reads**: brainstorm doc from `/s0-brainstorm` (optional)
 - **Writes**: `docs/specs/YYYY-MM-DD-<topic>-vision.md` (sections: Problem Statement, Target Users, Proposed Approach, Out of Scope, Open Questions)

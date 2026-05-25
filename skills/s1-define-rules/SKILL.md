@@ -62,6 +62,12 @@ Report status using exactly one of:
 ## Artifact Standard
 `RULES.md` must contain: linter/formatter configs, directory structure governance, forbidden patterns, toolchain enforcement notes (tool reference or `# manual review required` per rule).
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s1-define-rules/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 ## Artifact Dependencies
 - **Reads**: none
 - **Writes**: `RULES.md`

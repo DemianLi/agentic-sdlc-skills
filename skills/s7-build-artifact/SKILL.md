@@ -73,6 +73,12 @@ Present: version, artifact type, path, SHA-256, git tag, timestamp, reproducible
 **Reads**: test-results.json, pyproject.toml/package.json/go.mod, source files
 **Writes**: dist/<artifact> (or Docker image), local git tag v<version>
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s7-build-artifact/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
 
 </supporting-info>

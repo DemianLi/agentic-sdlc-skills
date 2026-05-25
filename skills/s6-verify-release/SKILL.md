@@ -65,7 +65,16 @@ Machine-generated only (never manual). Include: `timestamp`, `topic`, `release_g
 </what-to-do>
 
 <supporting-info>
+
 **Reads**: docs/tests/YYYY-MM-DD-integration-results.md, docs/tests/YYYY-MM-DD-e2e-results.md, docs/tests/YYYY-MM-DD-perf-baseline.json, docs/specs/YYYY-MM-DD-*-requirements.md, RULES.md
 **Writes**: test-results.json
+
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s6-verify-release/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
+
 </supporting-info>

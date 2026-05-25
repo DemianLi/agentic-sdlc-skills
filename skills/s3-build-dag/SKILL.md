@@ -61,6 +61,12 @@ Present to user and wait for approval before committing.
 **Reads**: docs/arch/YYYY-MM-DD-<topic>-wbs.md
 **Writes**: TASK_DAG.md
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s3-build-dag/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
 
 </supporting-info>

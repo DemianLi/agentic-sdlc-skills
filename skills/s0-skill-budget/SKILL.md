@@ -72,6 +72,12 @@ Overall: all ✅ → PASS; has ⚠️ no ❌ → PARTIAL; has ❌ → FAIL.
 **Reads**: `skill_path` (user-provided), `schemas/SKILL_INDEX.yaml` (optional)  
 **Writes**: none (chat output only)
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s0-skill-budget/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
 
 </supporting-info>

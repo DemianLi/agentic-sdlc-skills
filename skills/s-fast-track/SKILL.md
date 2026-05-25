@@ -69,6 +69,12 @@ Report status using exactly one of:
 
 Routes to one of s4-tdd, s4-impl-task, s4-setup-env, s4-local-debug. Generates RULES.md + CONTEXT.md + TASK_DAG.md in Express Mode.
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/fast-track-cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
 
 ## Artifact Dependencies

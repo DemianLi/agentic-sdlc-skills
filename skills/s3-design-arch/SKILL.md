@@ -81,6 +81,12 @@ Change ID, Added/Modified/Removed/Unchanged components with traceability.
 
 Output: `docs/arch/YYYY-MM-DD-<topic>-design.md` with 7 required sections. Commit before transitioning.
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s3-design-arch/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
 
 ## Artifact Dependencies

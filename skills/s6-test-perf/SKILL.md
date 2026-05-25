@@ -73,6 +73,12 @@ Report status using exactly one of:
 **Reads**: source files, RULES.md (performance thresholds if defined)  
 **Writes**: `docs/tests/YYYY-MM-DD-perf-baseline.json`
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s6-test-perf/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
 
 </supporting-info>

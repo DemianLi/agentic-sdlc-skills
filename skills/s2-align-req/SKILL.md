@@ -78,6 +78,12 @@ Report status using exactly one of:
 **Reads**: `docs/specs/YYYY-MM-DD-<topic>-vision.md`  
 **Writes**: `docs/alignment/YYYY-MM-DD-<topic>-alignment.md`
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s2-align-req/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
 
 </supporting-info>

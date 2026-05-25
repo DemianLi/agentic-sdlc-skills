@@ -79,6 +79,12 @@ Notify: *"Context Snapshot committed. Stage 3 ready."*
 ## Artifact Standard
 `CONTEXT_SNAPSHOT.md` at project root, ≤50 lines, with `## Forbidden Actions` section and source document paths.
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s2-snapshot-ctx/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 ## Artifact Dependencies
 - **Reads**: `docs/specs/YYYY-MM-DD-<topic>-requirements.md`, CONTEXT.md, RULES.md
 - **Writes**: `CONTEXT_SNAPSHOT.md`

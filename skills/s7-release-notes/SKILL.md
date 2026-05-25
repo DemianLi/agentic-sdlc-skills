@@ -54,6 +54,12 @@ Commit: `git add CHANGELOG.md && git commit -m "docs: add CHANGELOG entry for v<
 **Reads**: git log, docs/specs/*.md, docs/audit/*.md, docs/releases/YYYY-MM-DD-<version>-deploy.md
 **Writes**: CHANGELOG.md (appended)
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s7-release-notes/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
 
 </supporting-info>

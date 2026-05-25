@@ -66,7 +66,16 @@ git commit -m "release(v<version>): add deploy log"
 </what-to-do>
 
 <supporting-info>
+
 **Reads**: dist/<artifact> or Docker image; test-results.json
 **Writes**: docs/releases/YYYY-MM-DD-<version>-deploy.md
+
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s7-deploy/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
+
 </supporting-info>

@@ -67,6 +67,12 @@ Output status (PASS/BLOCKED) with: CRITICAL issues (must fix), WARNING issues (n
 **Reads**: source files, RULES.md  
 **Writes**: `docs/audit/YYYY-MM-DD-<branch>-sast.md`
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s5-sast-lint/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
 
 </supporting-info>

@@ -79,6 +79,12 @@ Report status using exactly one of:
 
 Output: `docs/audit/YYYY-MM-DD-<branch>-pr-review.md` with Scope Drift status, Overall Status, CRITICAL/WARNING/SUGGESTION, Confirmed Good. Severity: CRITICAL (correctness/security/scope/contract), WARNING (perf/error/naming), SUGGESTION (optional).
 
+## Eval Fixtures
+
+Fixtures located at `tests/fixtures/s5-pr-review/cases.json`.
+
+Each fixture contains: `scenario` (situation description), `input` (input object), `expected_behavior` (expected skill behavior).
+
 → Full reference: `references/detail.md`
 
 ## Artifact Dependencies
