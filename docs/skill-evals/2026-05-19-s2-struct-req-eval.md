@@ -14,7 +14,7 @@
 | 5 | 優雅降級 | ✅ | Document commitment gate (lines 8-9) is explicit. Change control process (lines 72-80) provides fallback: create new version if changes required after commitment, not silent edits. |
 | 6 | 漂移監控 | ❌ | No reference to `tests/fixtures/` found anywhere in SKILL.md |
 
-**Total**: 5/6 PASS — **NEAR READY**
+**Total**: 5/6 PASS — **NEAR-READY**
 
 ## Defect Details
 

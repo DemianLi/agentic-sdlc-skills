@@ -39,7 +39,7 @@
 | s7-deploy | 7.3 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ PASS | — | ✅ ALIGNED |
 | s7-telemetry | 7.4 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ PASS | — | ✅ ALIGNED |
 
-**總計：28/28 ✅ ALIGNED，0/28 ⚠️ PARTIAL，0/28 ❌ DRIFTED**
+**總計：28/28 ✅ ALIGNED，0/28 ⚠️ WEAK，0/28 ❌ DRIFTED**
 
 ---
 

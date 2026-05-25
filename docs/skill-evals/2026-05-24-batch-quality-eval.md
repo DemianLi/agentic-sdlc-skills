@@ -45,19 +45,19 @@
 ## 各標準失敗/待改清單
 
 ### C1 — 衝突防禦
-**⚠️ PARTIAL (3)**: `s1-define-rules`, `s2-snapshot-ctx`, `s4-setup-env`
+**⚠️ WEAK (3)**: `s1-define-rules`, `s2-snapshot-ctx`, `s4-setup-env`
 
 ### C2 — 雙向阻斷
 **❌ FAIL (24)**: `s-fast-track`, `s1-define-rules`, `s2-align-req`, `s2-capture-vision`, `s2-snapshot-ctx`, `s2-struct-req`, `s3-breakdown-wbs`, `s3-build-dag`, `s3-design-arch`, `s3-eval-system`, `s4-local-debug`, `s4-setup-env`, `s4-tdd`, `s5-fix-optimize`, `s5-pr-review`, `s5-sast-lint`, `s6-test-e2e`, `s6-test-integration`, `s6-test-perf`, `s6-verify-release`, `s7-build-artifact`, `s7-deploy`, `s7-release-notes`, `s7-telemetry`
 
 ### C3 — 輸入清洗
-**⚠️ PARTIAL (21)**: `s-fast-track`, `s1-config-context`, `s1-define-rules`, `s1-git-guardrails`, `s1-lock-tech-stack`, `s2-align-req`, `s2-capture-vision`, `s2-snapshot-ctx`, `s2-struct-req`, `s3-breakdown-wbs`, `s3-build-dag`, `s3-design-arch`, `s3-eval-system`, `s4-local-debug`, `s4-tdd`, `s5-sast-lint`, `s6-test-perf`, `s7-build-artifact`, `s7-deploy`, `s7-release-notes`, `s7-telemetry`
+**⚠️ WEAK (21)**: `s-fast-track`, `s1-config-context`, `s1-define-rules`, `s1-git-guardrails`, `s1-lock-tech-stack`, `s2-align-req`, `s2-capture-vision`, `s2-snapshot-ctx`, `s2-struct-req`, `s3-breakdown-wbs`, `s3-build-dag`, `s3-design-arch`, `s3-eval-system`, `s4-local-debug`, `s4-tdd`, `s5-sast-lint`, `s6-test-perf`, `s7-build-artifact`, `s7-deploy`, `s7-release-notes`, `s7-telemetry`
 
 ### C4 — 漸進披露
-**⚠️ PARTIAL (4)**: `s0-eval-alignment`, `s0-eval-skill`, `s4-tdd`, `s6-verify-release`
+**⚠️ WEAK (4)**: `s0-eval-alignment`, `s0-eval-skill`, `s4-tdd`, `s6-verify-release`
 
 ### C5 — 優雅降級
-**⚠️ PARTIAL (30)**: `s-fast-track`, `s0-brainstorm`, `s0-skill-budget`, `s0-trace-feature`, `s1-config-context`, `s1-define-rules`, `s1-lock-tech-stack`, `s2-align-req`, `s2-capture-vision`, `s2-snapshot-ctx`, `s2-struct-req`, `s3-breakdown-wbs`, `s3-build-dag`, `s3-design-arch`, `s3-eval-system`, `s4-local-debug`, `s4-setup-env`, `s4-tdd`, `s5-audit-rules`, `s5-fix-optimize`, `s5-pr-review`, `s5-sast-lint`, `s6-test-e2e`, `s6-test-integration`, `s6-test-perf`, `s6-verify-release`, `s7-build-artifact`, `s7-deploy`, `s7-release-notes`, `s7-telemetry`
+**⚠️ WEAK (30)**: `s-fast-track`, `s0-brainstorm`, `s0-skill-budget`, `s0-trace-feature`, `s1-config-context`, `s1-define-rules`, `s1-lock-tech-stack`, `s2-align-req`, `s2-capture-vision`, `s2-snapshot-ctx`, `s2-struct-req`, `s3-breakdown-wbs`, `s3-build-dag`, `s3-design-arch`, `s3-eval-system`, `s4-local-debug`, `s4-setup-env`, `s4-tdd`, `s5-audit-rules`, `s5-fix-optimize`, `s5-pr-review`, `s5-sast-lint`, `s6-test-e2e`, `s6-test-integration`, `s6-test-perf`, `s6-verify-release`, `s7-build-artifact`, `s7-deploy`, `s7-release-notes`, `s7-telemetry`
 
 ## 詳細證據
 

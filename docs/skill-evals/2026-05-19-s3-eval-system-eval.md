@@ -14,11 +14,11 @@
 | 5 | 優雅降級 | ✅ | Line 70: explicit output path required before presenting; line 92: git commit required; line 97: user approval required; step 1 reads context files with clear dependencies (lines 25–29) |
 | 6 | 漂移監控 | ❌ | No `tests/fixtures/` directory referenced anywhere in SKILL.md |
 
-**Total**: 5/6 PASS — **NEAR READY** — address Criterion 1 and Criterion 6 before shipping
+**Total**: 5/6 PASS — **NEAR-READY** — address Criterion 1 and Criterion 6 before shipping
 
 ## Defect Details
 
-### ⚠️ PARTIAL — Criterion 1: 衝突防禦 (Semantic Anti-Collision)
+### ⚠️ WEAK — Criterion 1: 衝突防禦 (Semantic Anti-Collision)
 - **Location**: Lines 1–7, 126–127
 - **Gap**: SKILL.md names `/s3-design-arch` as the downstream skill but does not compare the two roles or explain the semantic boundary:
   - s3-eval-system is "risk identification, not solution design" (line 20)

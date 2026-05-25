@@ -14,7 +14,7 @@
 | 5 | 優雅降級 | ✅ PASS | External dependencies: tool execution (formatter, linter, SAST), `RULES.md` read (all read-only). Completion states (lines 114–118) define 4 output paths: DONE / DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT. Missing `RULES.md` maps to "NEEDS_CONTEXT". All dependencies have defined fallback. |
 | 6 | 漂移監控 | ✅ PASS | Line 164 explicitly references: "Fixtures located at `tests/fixtures/s5-sast-lint/cases.json`." Fixture verified on disk (3.1K). Purpose clearly stated: "Smoke test: sequentially verify skill output structure and expected_behavior alignment for each scenario." |
 
-**Total**: 6/6 PASS — **PRODUCTION READY**
+**Total**: 6/6 PASS — **READY**
 
 ## Defect Details
 

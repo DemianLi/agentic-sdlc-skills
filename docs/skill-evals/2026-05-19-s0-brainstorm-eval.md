@@ -16,13 +16,13 @@
 | 5 | 優雅降級 | ✅ PASS | Step 7: `若 docs/brainstorm/ 目錄不存在 → mkdir -p; 若寫入失敗 → 輸出至對話並標記` |
 | 6 | 漂移監控 | ✅ PASS | `tests/fixtures/s0-brainstorm/cases.json` referenced and exists on disk |
 
-**Total**: 6/6 — **PRODUCTION READY**
+**Total**: 6/6 — **READY**
 
 ## Fix Summary
 
 | Criterion | Before | After |
 |-----------|--------|-------|
-| C1 衝突防禦 | ⚠️ PARTIAL — downstream mention only | ✅ Semantic Boundary table with 3 skills + specific diffs |
+| C1 衝突防禦 | ⚠️ WEAK — downstream mention only | ✅ Semantic Boundary table with 3 skills + specific diffs |
 | C2 雙向阻斷 | ❌ FAIL — no negative trigger block | ✅ 絕對不要觸發 table, 3 counter-examples |
-| C3 輸入清洗 | ⚠️ PARTIAL — no failure behavior defined | ✅ Step 0 with 2 failure scenarios + defined behavior |
-| C5 優雅降級 | ⚠️ PARTIAL — write no fallback | ✅ mkdir-p + stdout fallback with explicit label |
+| C3 輸入清洗 | ⚠️ WEAK — no failure behavior defined | ✅ Step 0 with 2 failure scenarios + defined behavior |
+| C5 優雅降級 | ⚠️ WEAK — write no fallback | ✅ mkdir-p + stdout fallback with explicit label |

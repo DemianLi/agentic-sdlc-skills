@@ -14,7 +14,7 @@
 | 5 | 優雅降級 | ✅ PASS | Line 149: Graceful fallback when commit unmapped to REQ: "標記為 `Internal: <commit hash>` 並跳過"; Line 122–124: template explains category omission rule ("Do not invent entries") |
 | 6 | 漂移監控 | ✅ PASS | Line 169–174: References `tests/fixtures/s7-release-notes/cases.json`; fixture verified on disk |
 
-**Total**: 6/6 PASS — **PRODUCTION READY**
+**Total**: 6/6 PASS — **READY**
 
 ## Defect Details
 

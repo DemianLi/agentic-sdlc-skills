@@ -14,11 +14,11 @@
 | 5 | 優雅降級 | ✅ | Line 10: explicit git commit requirement; line 143: cycle detection → BLOCKED path defined; step 5 awaits user approval (line 94) |
 | 6 | 漂移監控 | ❌ | No `tests/fixtures/` directory referenced anywhere in SKILL.md |
 
-**Total**: 5/6 PASS — **NEAR READY** — address Criterion 3 and Criterion 6 before shipping
+**Total**: 5/6 PASS — **NEAR-READY** — address Criterion 3 and Criterion 6 before shipping
 
 ## Defect Details
 
-### ⚠️ PARTIAL — Criterion 3: 輸入清洗 (Input Linting)
+### ⚠️ WEAK — Criterion 3: 輸入清洗 (Input Linting)
 - **Location**: Lines 20–95
 - **Gap**: Workflow reads `docs/arch/YYYY-MM-DD-<topic>-wbs.md` (line 27) but does not validate input before processing:
   - No explicit check: "What if WBS.md does not exist on disk?"

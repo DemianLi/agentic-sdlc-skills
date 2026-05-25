@@ -14,7 +14,7 @@
 | 5 | 優雅降級 | ✅ PASS | Line 122–128: Rollback Decision table with explicit "never trigger automatically" (Line 128); Line 125: Simulation mode fallback ("no live deployment to roll back"); Line 100–103: SLO-headroom-relative anomaly detection prevents cold-cache false positives |
 | 6 | 漂移監控 | ✅ PASS | Line 232–237: References `tests/fixtures/s7-telemetry/cases.json`; fixture verified on disk |
 
-**Total**: 6/6 PASS — **PRODUCTION READY**
+**Total**: 6/6 PASS — **READY**
 
 ## Defect Details
 

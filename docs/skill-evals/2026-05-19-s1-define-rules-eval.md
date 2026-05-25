@@ -14,7 +14,7 @@
 | 5 | 優雅降級 | ✅ | Step 1-4 are pure discovery/documentation (no external dependencies); Step 5 is read-only (Toolchain Mapping table creation); Completion Report handles all status paths |
 | 6 | 漂移監控 | ❌ | SKILL.md contains no reference to `tests/fixtures/` directory; no fixture set found on disk |
 
-**Total**: 5/6 PASS — NEAR READY
+**Total**: 5/6 PASS — NEAR-READY
 
 ## Defect Details
 
