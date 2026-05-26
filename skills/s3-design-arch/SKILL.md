@@ -27,7 +27,20 @@ Do NOT skip /s3-breakdown-wbs’s own HARD-GATE conditions.
 
 <what-to-do>
 
-**System Architect (design mode)**: Output is a contract. Every downstream implementer and auditor holds you to exactly what you write.
+**System Architect**: Output is a contract. Every downstream implementer and auditor holds you to exactly what you write.
+
+## Mode Selection
+
+If the user does not specify, ask: "Is this new design or refactoring existing code?"
+
+| 模式 | 使用時機 | 輸入 |
+|------|---------|------|
+| `new-design` (default) | 新功能、新系統、空白設計 | impact report from `/s3-eval-system` |
+| `refactor-existing` | 重構、改善現有架構 | 現有代碼路徑 + 相關 ADR 文件 |
+
+---
+
+## Mode A: new-design
 
 ## Design Document Format (OpenSpec)
 
@@ -59,6 +72,26 @@ Change ID, Added/Modified/Removed/Unchanged components with traceability.
 3. Write sections 1-7
 4. Present **section by section** — ask approval after each before continuing
 5. After all approved, commit and proceed to `/s3-breakdown-wbs`
+
+---
+
+## Mode B: refactor-existing
+
+1. **Read existing code**: Read the files the user specifies (or infer from context). Identify: current architectural boundaries, coupling patterns, and which ADRs govern these files.
+2. **Read ADRs**: Load relevant `docs/arch/*.md` — identify existing decisions and their rationale. Do NOT propose changes that violate a standing ADR without flagging the conflict first.
+3. **Architectural Assessment**: Identify issues in the existing code:
+   - Coupling violations (components that depend on implementation details)
+   - Boundary erosion (logic that has drifted across layers)
+   - ADR drift (code that contradicts a standing architectural decision)
+   - Testability gaps (structures that make unit testing hard)
+4. **Propose Changes** using the same OpenSpec format (Sections 1–7), with these adjustments:
+   - Section 1 (Context): Describe the existing state and what problems it creates
+   - Section 2 (Decision): State the refactor approach and what alternatives were rejected
+   - Section 7 (Delta Spec): List what changes, what stays, and what gets removed — with specific file paths
+5. Present **section by section** — ask approval after each before continuing
+6. After all approved, commit and proceed to `/s3-breakdown-wbs`
+
+**Input Sanity Check (refactor mode)**: User has specified target files or modules; at least one concrete architectural problem is named; relevant ADRs are readable. If any fail, **stop and state exactly what is missing.**
 
 ## Red Flags — 停下來重新考慮
 

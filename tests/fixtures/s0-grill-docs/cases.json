@@ -1,0 +1,36 @@
+[
+  {
+    "scenario": "golden path — code has grown beyond CONTEXT.md",
+    "input": {
+      "context_md_terms": ["Order", "Customer", "Product"],
+      "code_terms_found": ["Order", "Customer", "Product", "Cart", "Checkout", "Fulfillment"],
+      "drift_type": "Undocumented"
+    },
+    "expected_behavior": "Skill should: (1) read CONTEXT.md and extract baseline 3 terms, (2) scan code and find 6 terms including 3 new ones (Cart, Checkout, Fulfillment), (3) for each undocumented term show file:line and inferred meaning, (4) challenge user one at a time, (5) on confirmation write approved additions to CONTEXT.md Language section only"
+  },
+  {
+    "scenario": "contradicted term — code usage conflicts with CONTEXT.md definition",
+    "input": {
+      "context_md_term": "Invoice",
+      "context_md_definition": "A document sent to a customer after payment is received",
+      "code_usage": "Invoice is created before payment and used as the payment request",
+      "code_location": "src/billing/invoice.ts:23"
+    },
+    "expected_behavior": "Skill should surface the contradiction: show CONTEXT.md definition vs code usage, ask user which is correct. If user updates CONTEXT.md — update Language section. If user says code is wrong — mark as CODE SMELL and recommend review but do NOT change CONTEXT.md"
+  },
+  {
+    "scenario": "stale term — exists in CONTEXT.md but not in any code",
+    "input": {
+      "context_md_term": "LegacyImport",
+      "code_search_result": "no occurrences found in src/"
+    },
+    "expected_behavior": "Skill should flag 'LegacyImport' as Stale — exists in CONTEXT.md but not found in code. Ask user: 'This term is documented but not used in code — intentionally kept for historical reference, or safe to remove?' Do NOT remove without explicit approval"
+  },
+  {
+    "scenario": "should redirect — CONTEXT.md does not exist",
+    "input": {
+      "context_md_exists": false
+    },
+    "expected_behavior": "Skill should stop at Step 0 and redirect: 'This skill requires an existing CONTEXT.md. Please run /s1-config-context first.'"
+  }
+]

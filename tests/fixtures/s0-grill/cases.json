@@ -1,0 +1,31 @@
+[
+  {
+    "scenario": "vague input — skill clarifies before stress-testing",
+    "input": {
+      "idea": "I feel like our deployment process is too slow and error-prone"
+    },
+    "expected_behavior": "Skill should NOT reject the vague input. Instead: (1) ask clarifying questions one at a time (what is painful, what would change if solved, what's been tried), (2) once a direction emerges (e.g., 'we want to add automated smoke tests before deploy'), transition naturally to decision tree expansion, (3) exhaust all branches — no TBD leaves, (4) output decision map with IN/OUT/Deferred scope boundary"
+  },
+  {
+    "scenario": "concrete plan — skill goes directly to branch tree exhaustion",
+    "input": {
+      "plan": "We'll add a caching layer in front of the database. When a request comes in, check cache first; if miss, query DB and populate cache. TTL is 5 minutes."
+    },
+    "expected_behavior": "Skill should skip clarification and go directly to decision tree. Surfaces hidden decisions: (1) cache invalidation on write? (2) cache key strategy? (3) what happens on cache failure — serve stale or fail? All branches must resolve before decision map is written."
+  },
+  {
+    "scenario": "blocked — user cannot resolve a critical branch",
+    "input": {
+      "plan": "Migrate users from old auth to new auth system",
+      "unresolvable_conflict": "Team cannot decide between big-bang vs gradual rollout — depends on budget approval not yet received"
+    },
+    "expected_behavior": "Skill surfaces migration strategy as critical unresolved branch, proposes both options with trade-offs. When user confirms the decision is blocked by external factor, outputs BLOCKED status with specific decision needed."
+  },
+  {
+    "scenario": "should redirect — codebase exists and terminology audit is needed",
+    "input": {
+      "context": "We have existing code and CONTEXT.md, but new features added terms that aren't documented yet"
+    },
+    "expected_behavior": "Skill should stop and redirect: 'You have an existing codebase — use /s0-grill-docs to audit terminology drift against CONTEXT.md.'"
+  }
+]
