@@ -280,7 +280,6 @@ Available in all Claude Code sessions.
 ```
 skills/
   s-fast-track/         Fast-Track Router — bypass s1–s3 for small tasks
-  s0-brainstorm/        Problem Scout — framed problem statement
   s0-trace-feature/     Code Archaeologist — feature call-chain diagram
   s0-eval-skill/        Skill Auditor — single-skill structural quality check
   s0-eval-alignment/    Alignment Inspector — batch drift detection (28 skills)
