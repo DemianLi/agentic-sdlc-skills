@@ -1,6 +1,6 @@
 # Agentic SDLC Skills
 
-36 atomic Skill files that drive an AI Agent through a structured, gated Software Development Lifecycle. The core pipeline is 7 stages (Foundation → Release); six standalone Stage 0 skills operate outside the pipeline and can be used at any time; one fast-track routing skill lets you skip s1–s3 ceremony for small, well-understood tasks.
+35 atomic Skill files that drive an AI Agent through a structured, gated Software Development Lifecycle. The core pipeline is 7 stages (Foundation → Release); six standalone Stage 0 skills operate outside the pipeline and can be used at any time; one fast-track routing skill lets you skip s1–s3 ceremony for small, well-understood tasks.
 
 Each Skill is a Markdown file that defines a Role, a Workflow, and a `<HARD-GATE>` — a mandatory stop that blocks the Agent from proceeding until a pre-defined artifact exists on disk.
 
@@ -164,7 +164,7 @@ graph LR
 
 ---
 
-## The 36 Skills
+## The 35 Skills
 
 | Stage | Role | Slash Command | Purpose |
 |---|---|---|---|
@@ -296,7 +296,7 @@ skills/
   s6-*/SKILL.md         Stage 6 — QA Engineer (4 skills)
   s7-*/SKILL.md         Stage 7 — Release Manager (4 skills)
 schemas/
-  skill_graph_schema.yaml   Declarative dependency graph — 36 skills with stage, requires, outputs
+  skill_graph_schema.yaml   Declarative dependency graph — 35 skills with stage, requires, outputs
   SKILL_INDEX.yaml          Keyword → skill mapping for O(1) routing (used by s-fast-track and s0-skill-budget)
 references/
   skill-design-intent.md        Evaluation baseline for s0-eval-alignment (C1–C4 checks + per-skill keywords)
