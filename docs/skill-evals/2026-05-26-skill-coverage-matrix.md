@@ -27,7 +27,7 @@
 | 技能 | 意圖（1句） | 原則依據 | mattpocock 參考 | superpowers 參考 | gstack 參考 | OpenSpec 參考 | 分類 | 關鍵缺口/備註 |
 |------|------------|----------|----------------|-----------------|------------|--------------|------|--------------|
 | **s-fast-track** | 根據意圖信號路由到正確 skill，繞過手動選擇 | C3 trigger語言；Skill Index | — | using-superpowers/ (同為 meta entry-point；機制不同：Skill Index vs 隨機觸發) | — | — | essential | Skill Index 機制是我們獨有的 |
-| **s0-brainstorm** | 從模糊感受出發，Socratic問答探索問題空間，輸出 problem-draft.md | scoring C1衝突防禦；C2雙向阻斷 | — | brainstorming/ (superpowers 直接出設計文件→writing-plans；我們出 problem-draft→s2 pipeline) | — | — | essential | 觸發條件不同：我們處理「模糊感受」，superpowers 處理「有想法但未設計」 |
+| ~~**s0-brainstorm**~~ | *(棄用)* 功能已合併至 s0-grill（自適應模式） | — | — | — | — | — | **deprecated** | 與 s0-grill 功能重疊；s0-grill 現在自適應處理模糊輸入和具體計畫 |
 | **s0-eval-alignment** | 批次掃描所有 skill 的結構對齊度，輸出 drift 報告 | C1a/C2/C3/C4 全套；C6漂移監控 | — | writing-skills/ (驗證單一 skill；我們是批次掃描所有) | — | — | essential | 四大倉庫均無批次結構對齊掃描工具 |
 | **s0-eval-skill** | 單一 skill 的六維品質評估 | scoring 6指標全套 | write-a-skill/ (創建新 skill；eval-skill 評估既有 skill) | writing-skills/ (含驗證步驟，但無六維量化評分) | — | — | essential | 六維量化評分框架是我們獨有的 |
 | **s0-semantic-validate** | 驗證技能描述的語義邊界，防止路由混亂 | scoring C1衝突防禦；C3 trigger語言 | — | — | — | — | essential | 四大倉庫均無語義邊界驗證工具 |
@@ -113,12 +113,13 @@
 
 | 分類 | 數量 | 技能列表 |
 |------|------|---------|
-| **essential** | 37 | s-fast-track, s0-brainstorm, s0-eval-alignment, s0-eval-skill, s0-semantic-validate, s0-skill-budget, s0-trace-feature, **s0-grill** *(新)*, **s0-grill-docs** *(新)*, s1-config-context, s1-define-rules, s1-git-guardrails, s1-lock-tech-stack, s2-capture-vision, s2-align-req, s2-struct-req, s2-snapshot-ctx, s3-eval-system, s3-design-arch, s3-breakdown-wbs, s3-build-dag, s4-setup-env, s4-impl-task, s4-tdd, s4-local-debug, s5-sast-lint, s5-audit-rules, s5-pr-review, s5-fix-optimize, s6-test-integration, s6-test-e2e, s6-test-perf, s6-verify-release, s7-build-artifact, s7-deploy, s7-release-notes, s7-telemetry |
+| **essential** | 36 | s-fast-track, s0-eval-alignment, s0-eval-skill, s0-semantic-validate, s0-skill-budget, s0-trace-feature, **s0-grill** *(新)*, **s0-grill-docs** *(新)*, s1-config-context, s1-define-rules, s1-git-guardrails, s1-lock-tech-stack, s2-capture-vision, s2-align-req, s2-struct-req, s2-snapshot-ctx, s3-eval-system, s3-design-arch, s3-breakdown-wbs, s3-build-dag, s4-setup-env, s4-impl-task, s4-tdd, s4-local-debug, s5-sast-lint, s5-audit-rules, s5-pr-review, s5-fix-optimize, s6-test-integration, s6-test-e2e, s6-test-perf, s6-verify-release, s7-build-artifact, s7-deploy, s7-release-notes, s7-telemetry |
+| **deprecated** | 1 | s0-brainstorm（功能合併至 s0-grill；對齊 mattpocock 的 has-code / no-code 兩分法） |
 | **needs-evolution** | 0 | — |
 | **redundant-internal** | 0 | — |
 | **redundant-external** | 0 | — |
 
-**結論：37 個技能全部有獨立存在理由，無一多餘。6 個初始判定的 needs-evolution 在閱讀 SKILL.md 後全數修正：3 個為誤判（multi-skill 組合已覆蓋），3 個缺口透過新建 s0-grill、s0-grill-docs 和演化 s3-design-arch 填補。**
+**結論：36 個有效技能，1 個棄用（s0-brainstorm）。s0-grill 現在自適應處理模糊輸入和具體計畫，對齊 mattpocock 的 no-code → grill-me / has-code → grill-with-docs 設計軸。**
 
 **缺口行動狀態（2026-05-26 更新）**：
 

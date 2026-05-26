@@ -1,33 +1,31 @@
 [
   {
-    "scenario": "golden path — concrete plan with hidden assumptions",
+    "scenario": "vague input — skill clarifies before stress-testing",
     "input": {
-      "plan": "We'll add a caching layer in front of the database. When a request comes in, check cache first; if miss, query DB and populate cache. TTL is 5 minutes.",
-      "domain": "web application / performance"
+      "idea": "I feel like our deployment process is too slow and error-prone"
     },
-    "expected_behavior": "Skill should: (1) decompose the plan and surface hidden decisions (cache invalidation on write? cache key strategy? what happens on cache failure?), (2) expand each to a full branch tree with no TBD leaves, (3) resolve each conflict one at a time with the user, (4) output a decision map with explicit IN/OUT/Deferred scope boundary"
+    "expected_behavior": "Skill should NOT reject the vague input. Instead: (1) ask clarifying questions one at a time (what is painful, what would change if solved, what's been tried), (2) once a direction emerges (e.g., 'we want to add automated smoke tests before deploy'), transition naturally to decision tree expansion, (3) exhaust all branches — no TBD leaves, (4) output decision map with IN/OUT/Deferred scope boundary"
   },
   {
-    "scenario": "adversarial — plan with only happy path",
+    "scenario": "concrete plan — skill goes directly to branch tree exhaustion",
     "input": {
-      "plan": "User uploads a file, we process it in the background and send them an email when done.",
-      "domain": "file processing"
+      "plan": "We'll add a caching layer in front of the database. When a request comes in, check cache first; if miss, query DB and populate cache. TTL is 5 minutes."
     },
-    "expected_behavior": "Skill should identify the missing error branches: (1) what if the file is malformed? (2) what if background processing fails partway through? (3) what if email delivery fails? (4) what if user uploads duplicate file? Each branch must be resolved before decision map is written — no TBD leaves allowed"
+    "expected_behavior": "Skill should skip clarification and go directly to decision tree. Surfaces hidden decisions: (1) cache invalidation on write? (2) cache key strategy? (3) what happens on cache failure — serve stale or fail? All branches must resolve before decision map is written."
   },
   {
     "scenario": "blocked — user cannot resolve a critical branch",
     "input": {
-      "plan": "Migrate users from the old auth system to the new one.",
-      "unresolvable_conflict": "Team cannot decide whether to do big-bang migration or gradual rollout — depends on budget approval not yet received"
+      "plan": "Migrate users from old auth to new auth system",
+      "unresolvable_conflict": "Team cannot decide between big-bang vs gradual rollout — depends on budget approval not yet received"
     },
-    "expected_behavior": "Skill should surface the migration strategy as a critical unresolved branch, attempt to propose both options with trade-offs, and when user confirms the decision is blocked by external factor (budget), output BLOCKED status with the specific decision needed: 'Awaiting budget approval to choose between big-bang vs gradual rollout strategy'"
+    "expected_behavior": "Skill surfaces migration strategy as critical unresolved branch, proposes both options with trade-offs. When user confirms the decision is blocked by external factor, outputs BLOCKED status with specific decision needed."
   },
   {
-    "scenario": "should redirect — vague input without concrete plan",
+    "scenario": "should redirect — codebase exists and terminology audit is needed",
     "input": {
-      "plan": "make the app faster"
+      "context": "We have existing code and CONTEXT.md, but new features added terms that aren't documented yet"
     },
-    "expected_behavior": "Skill should stop at Step 0 and redirect: 'Please provide a concrete plan or design proposal. For vague intent, use /s0-brainstorm.'"
+    "expected_behavior": "Skill should stop and redirect: 'You have an existing codebase — use /s0-grill-docs to audit terminology drift against CONTEXT.md.'"
   }
 ]

@@ -251,12 +251,6 @@ skills:
     outputs:
       - skills/s-fast-track/SKILL.md
 
-  s0-brainstorm:
-    stage: 0
-    requires: []
-    outputs:
-      - skills/s0-brainstorm/SKILL.md
-
   s0-eval-alignment:
     stage: 0
     requires: []
