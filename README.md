@@ -293,7 +293,7 @@ skills/
   s6-*/SKILL.md         Stage 6 — QA Engineer (4 skills)
   s7-*/SKILL.md         Stage 7 — Release Manager (4 skills)
 schemas/
-  skill_graph_schema.yaml   Declarative dependency graph — 35 skills with stage, requires, outputs
+  skill_graph_schema.yaml   Declarative dependency graph — 37 skills with stage, requires, outputs
   SKILL_INDEX.yaml          Keyword → skill mapping for O(1) routing (used by s-fast-track and s0-skill-budget)
 references/
   skill-design-intent.md        Evaluation baseline for s0-eval-alignment (C1–C4 checks + per-skill keywords)

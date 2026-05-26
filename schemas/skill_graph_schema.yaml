@@ -286,3 +286,15 @@ skills:
     requires: []
     outputs:
       - skills/s0-semantic-validate/SKILL.md
+
+  s0-grill:
+    stage: 0
+    requires: []
+    outputs:
+      - skills/s0-grill/SKILL.md
+
+  s0-grill-docs:
+    stage: 0
+    requires: []
+    outputs:
+      - skills/s0-grill-docs/SKILL.md

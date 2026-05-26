@@ -1,0 +1,33 @@
+[
+  {
+    "scenario": "golden path — concrete plan with hidden assumptions",
+    "input": {
+      "plan": "We'll add a caching layer in front of the database. When a request comes in, check cache first; if miss, query DB and populate cache. TTL is 5 minutes.",
+      "domain": "web application / performance"
+    },
+    "expected_behavior": "Skill should: (1) decompose the plan and surface hidden decisions (cache invalidation on write? cache key strategy? what happens on cache failure?), (2) expand each to a full branch tree with no TBD leaves, (3) resolve each conflict one at a time with the user, (4) output a decision map with explicit IN/OUT/Deferred scope boundary"
+  },
+  {
+    "scenario": "adversarial — plan with only happy path",
+    "input": {
+      "plan": "User uploads a file, we process it in the background and send them an email when done.",
+      "domain": "file processing"
+    },
+    "expected_behavior": "Skill should identify the missing error branches: (1) what if the file is malformed? (2) what if background processing fails partway through? (3) what if email delivery fails? (4) what if user uploads duplicate file? Each branch must be resolved before decision map is written — no TBD leaves allowed"
+  },
+  {
+    "scenario": "blocked — user cannot resolve a critical branch",
+    "input": {
+      "plan": "Migrate users from the old auth system to the new one.",
+      "unresolvable_conflict": "Team cannot decide whether to do big-bang migration or gradual rollout — depends on budget approval not yet received"
+    },
+    "expected_behavior": "Skill should surface the migration strategy as a critical unresolved branch, attempt to propose both options with trade-offs, and when user confirms the decision is blocked by external factor (budget), output BLOCKED status with the specific decision needed: 'Awaiting budget approval to choose between big-bang vs gradual rollout strategy'"
+  },
+  {
+    "scenario": "should redirect — vague input without concrete plan",
+    "input": {
+      "plan": "make the app faster"
+    },
+    "expected_behavior": "Skill should stop at Step 0 and redirect: 'Please provide a concrete plan or design proposal. For vague intent, use /s0-brainstorm.'"
+  }
+]
