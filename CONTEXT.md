@@ -21,7 +21,7 @@ The user-facing trigger for a Skill, following the naming convention `/s{StageNu
 *Avoid*: Trigger, Command Line, Input
 
 **Standalone Skill**:
-A Skill with the `/s0-` prefix that operates outside the s1–s7 pipeline. It produces an artifact that may optionally feed into the pipeline but is never a required gate. Current standalone skills: `/s0-brainstorm`, `/s0-trace-feature`, `/s0-eval-skill`, `/s0-eval-alignment`, `/s0-skill-budget`.
+A Skill with the `/s0-` prefix that operates outside the s1–s7 pipeline. It produces an artifact that may optionally feed into the pipeline but is never a required gate. Current standalone skills: `/s0-grill`, `/s0-grill-docs`, `/s0-trace-feature`, `/s0-eval-skill`, `/s0-eval-alignment`, `/s0-skill-budget`, `/s0-semantic-validate`.
 *Avoid*: Pre-stage skill, utility skill
 
 **OpenSpec**:
