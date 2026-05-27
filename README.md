@@ -275,6 +275,92 @@ Available in all Claude Code sessions.
 
 ---
 
+## Minimal Invocation Paths
+
+The two paths below cover the most common usage scenarios. Both use `/s-fast-track` to bypass the full s1–s3 requirements ceremony, making them suitable for atomic tasks and existing codebases.
+
+---
+
+### Path 1: Development path (10 steps)
+
+Use when you have a task to take from idea to release, including tests and versioning.
+
+```
+Step  Command               Purpose
+────────────────────────────────────────────────────────────────────
+ 1   /s0-grill             Clarify the idea — walk decision branches, produce Decision Map
+ 2   /s-fast-track         List tasks + route — Express Mode generates TASK_DAG.md (3 Qs);
+                           Standard Mode asks one question and routes directly to s4
+ 3   /s4-tdd               Write the failing test (RED), paste actual terminal output
+ 4   /s4-impl-task         Minimal implementation to turn the test GREEN
+ 5   /s4-local-debug       (On demand) Only when a bug exists: REPRODUCE → MINIMISE →
+                           HYPOTHESISE → INSTRUMENT → FIX → REGRESSION TEST
+ 6   /s6-test-integration  Cross-module boundary tests — unlocks the s6-test-e2e prerequisite
+ 7   /s6-test-e2e          Full user-flow E2E tests (Playwright / Cypress)
+ 8   /s7-build-artifact    Package artifact + SHA-256 + local git tag
+ 9   /s7-deploy            Deploy (live / dry-run / gitops) + smoke tests
+10   /s7-release-notes     Generate CHANGELOG.md entry from git log
+```
+
+> **Note:** Step 6 (`s6-test-integration`) cannot be skipped. The `s6-test-e2e` HARD-GATE runs `engine.py --check-prereqs` and hard-stops if `docs/tests/*-integration-results.md` is absent. Likewise, step 9 (`s7-deploy`) cannot be skipped — `s7-release-notes` requires the deploy log to exist before writing to CHANGELOG.md.
+
+Typical trigger phrases per step:
+
+| Step | Example input to the skill |
+|------|---------------------------|
+| `/s0-grill` | "I want users to be able to export reports" (scope unclear) |
+| `/s-fast-track` | "Add POST /export returning CSV, existing tests must not break" |
+| `/s4-tdd` | Write `test_export_returns_csv_with_correct_headers`, confirm RED |
+| `/s4-impl-task` | Minimal `/export` handler until `1 passed` |
+| `/s4-local-debug` | Tests GREEN but CSV fields are empty |
+| `/s6-test-integration` | auth service + export service + DB running together |
+| `/s6-test-e2e` | Login → pick date range → download CSV → validate columns |
+| `/s7-build-artifact` | `python -m build` → `.whl` + SHA-256 |
+| `/s7-deploy` | dry-run: `pip install dist/*.whl` + smoke test |
+| `/s7-release-notes` | Compile git log into `## [v1.2.0] Added: CSV export` |
+
+---
+
+### Path 2: Debug path (2 steps)
+
+Use when a bug or unexpected behaviour is already known and needs to be located and fixed.
+
+```
+Step  Command               Purpose
+────────────────────────────────────────────────────────────────
+ 1   /s-fast-track         Describe the bug in one sentence → routing table selects /s4-local-debug
+ 2   /s4-local-debug       6-phase disciplined debugging process (see below)
+```
+
+The mandatory execution order inside `s4-local-debug`:
+
+```
+REPRODUCE   → Reproduce consistently; paste actual terminal output
+     ↓
+MINIMISE    → Find the smallest input that triggers the failure
+     ↓
+ANALOGY     → Find a working counterpart; diff side-by-side for differences
+     ↓
+HYPOTHESISE → Write "Root cause is ___ because ___"; name file/function/line
+     ↓
+INSTRUMENT  → Add logs to collect actual vs. expected values
+     ↓
+FIX + REGRESSION TEST  ← Write RED test first, watch it fail, apply fix, confirm GREEN
+```
+
+**Hard rule:** After 3 failed hypotheses, stop and report `BLOCKED`. No further guessing allowed.
+
+| Typical trigger scenario | Input to `/s-fast-track` |
+|--------------------------|--------------------------|
+| Tests GREEN but response fields are empty | `"API returns 200 but data field is empty — debug"` |
+| Service fails to start | `"import error on startup — debug"` |
+| Passes locally, fails in CI | `"local GREEN, CI FAILED, different stack trace — debug"` |
+| Only specific inputs trigger the bug | `"discount calculation wrong when amount > 10000 — debug"` |
+
+> If even the symptom is unclear, prepend `/s0-grill` before `/s-fast-track` to surface the problem first — 3 steps total.
+
+---
+
 ## Repository structure
 
 ```

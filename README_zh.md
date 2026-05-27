@@ -184,6 +184,92 @@ cp -r skills/* ~/.claude/skills/
 
 ---
 
+## 最小調用路徑
+
+以下兩條路徑是使用本系統最常見的情境。兩者都以 `/s-fast-track` 繞過 s1–s3 的完整儀式，適用於原子任務與既有代碼庫。
+
+---
+
+### 路徑一：開發路徑（10 步）
+
+適用情境：有一個清晰或半清晰的任務要從頭做完，包含完整測試與發布。
+
+```
+步驟  指令                  目的
+────────────────────────────────────────────────────────────────
+ 1   /s0-grill             釐清想法 — 探索決策分支，產出 Decision Map
+ 2   /s-fast-track         羅列任務 + 路由 — Express Mode 產出 TASK_DAG.md；
+                           Standard Mode 一問直達 s4
+ 3   /s4-tdd               寫失敗測試（RED），貼出實際 terminal 輸出
+ 4   /s4-impl-task         最小實作讓測試轉綠（GREEN）
+ 5   /s4-local-debug       （按需）有 bug 才觸發：REPRODUCE → MINIMISE →
+                           HYPOTHESISE → INSTRUMENT → FIX → REGRESSION TEST
+ 6   /s6-test-integration  模組邊界整合測試，解鎖 s6-test-e2e 的前置條件
+ 7   /s6-test-e2e          完整用戶流程 E2E 測試（Playwright / Cypress）
+ 8   /s7-build-artifact    打包成品 + SHA-256 + 本地 git tag
+ 9   /s7-deploy            部署（live / dry-run / gitops）+ smoke test
+10   /s7-release-notes     從 git log 產出 CHANGELOG.md 條目
+```
+
+> **注意**：步驟 6（`s6-test-integration`）不可跳過。`s6-test-e2e` 的 HARD-GATE 會執行 `engine.py --check-prereqs`，若 `docs/tests/*-integration-results.md` 不存在則硬停。同理，步驟 9（`s7-deploy`）不可跳過，`s7-release-notes` 強制要求 deploy log 存在。
+
+各步驟使用場景：
+
+| 步驟 | 典型觸發語句 |
+|------|------------|
+| `/s0-grill` | 「我想讓用戶可以匯出報表」（範圍不清） |
+| `/s-fast-track` | 「新增 POST /export 回傳 CSV，現有測試不能壞」 |
+| `/s4-tdd` | 先寫 `test_export_returns_csv_with_correct_headers`，確認 RED |
+| `/s4-impl-task` | 最簡 `/export` handler，直到 `1 passed` |
+| `/s4-local-debug` | 測試 GREEN 但 CSV 欄位是空的 |
+| `/s6-test-integration` | auth service + export service + DB 串聯跑 |
+| `/s6-test-e2e` | 登入 → 選時間區間 → 下載 CSV → 驗證欄位 |
+| `/s7-build-artifact` | `python -m build` → `.whl` + SHA-256 |
+| `/s7-deploy` | dry-run：`pip install dist/*.whl` + smoke test |
+| `/s7-release-notes` | 整理 git log，寫入 `## [v1.2.0] Added: CSV export` |
+
+---
+
+### 路徑二：Debug 路徑（2 步）
+
+適用情境：已知有 bug 或行為異常，需要定位並修復。
+
+```
+步驟  指令                  目的
+────────────────────────────────────────────────────────────
+ 1   /s-fast-track         輸入一句 debug 描述 → 路由表自動選 /s4-local-debug
+ 2   /s4-local-debug       6 階段紀律化除錯流程（見下方）
+```
+
+`s4-local-debug` 的強制執行順序：
+
+```
+REPRODUCE   → 重現問題，貼出實際 terminal 輸出
+     ↓
+MINIMISE    → 找出觸發問題的最小輸入
+     ↓
+ANALOGY     → 找一個有效的對照組，逐行 diff 找差異
+     ↓
+HYPOTHESISE → 寫出「根因是 ___ 因為 ___」，點名 file/function/line
+     ↓
+INSTRUMENT  → 加 log 取得實際值，與預期對比
+     ↓
+FIX + REGRESSION TEST  ← 先寫 RED 測試，看它紅，再修，確認 GREEN
+```
+
+**硬規定**：同一 bug 假設失敗 3 次強制 STOP，回報 `BLOCKED`，不允許繼續猜。
+
+| 典型觸發場景 | 輸入 `/s-fast-track` 的描述 |
+|------------|--------------------------|
+| 測試 GREEN 但回傳欄位是空的 | `"API 回傳 200 但 data 欄位是空的 — debug"` |
+| Build 起不來 | `"import error 無法啟動 — debug"` |
+| 本地過但 CI 掛 | `"本地 GREEN，CI FAILED，stack trace 不同 — debug"` |
+| 特定輸入才觸發 | `"金額 > 10000 時折扣計算錯誤 — debug"` |
+
+> 若問題本身連症狀都不清楚，在 `/s-fast-track` 前先加 `/s0-grill`，總共 3 步。
+
+---
+
 ## 專案結構
 
 ```
